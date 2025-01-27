@@ -1,5 +1,98 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Styling Guidelines
+
+Please adhere to the following styling guidelines:
+
+### 1. Use Double Quotes (`"`) for Strings
+- Always use double quotes (`"`) for strings in JSX and TypeScript files, except when using template literals or when single quotes (`'`) are part of the string content.  
+- Example:
+  ```typescript
+  const title = "Welcome to the Planner!";
+  const greeting = `Hello, it's ${user.name}'s schedule!`;
+  ```
+
+### 14. Define Functions Using the `function` Keyword
+- Always define functions using the `function` keyword instead of `const` to improve readability and hoisting behavior.
+- Example:
+  ```typescript
+  // Preferred
+  function calculateTotal(a: number, b: number): number {
+    return a + b;
+  }
+
+  // Avoid
+  const calculateTotal = (a: number, b: number): number => {
+    return a + b;
+  };
+  ```
+  
+### 2. Use MUI's `sx` Prop for Inline Styling
+- Leverage the `sx` prop for styling individual components instead of inline styles or separate classes.  
+- Example:
+  ```typescript
+  <Box sx={{ margin: 2, padding: 1, backgroundColor: "primary.main" }}>
+    Content goes here
+  </Box>
+  ```
+
+### 3. Centralize Theme Configuration
+- Define a global theme in the `theme.ts` file for shared styles like colors, typography, and spacing. Use the `theme` wherever applicable to ensure consistency.
+
+### 4. Responsive Design
+- Use MUI's `breakpoints` for responsiveness. Avoid hardcoding media queries and leverage the theme’s breakpoint system.
+  ```typescript
+  sx={{
+    display: "flex",
+    flexDirection: { xs: "column", md: "row" },
+  }}
+  ```
+
+### 5. Component-Specific Styles
+- Keep styles closely tied to components by placing styles in the component folder. Use MUI's `styled` API or `makeStyles` for more complex styling.
+  ```typescript
+  // Example in ComponentName/style.ts
+  import { styled } from "@mui/material/styles";
+
+  export const StyledButton = styled("button")(({ theme }) => ({
+    backgroundColor: theme.palette.primary.main,
+    padding: theme.spacing(2),
+  }));
+  ```
+
+### 6. Avoid Overriding MUI Classes Directly
+- Instead of targeting MUI classes for styling overrides, use MUI's customization features like `components` in the theme or the `sx` prop.
+
+### 7. Typography Standards
+- Use the `Typography` component for all text. Avoid hardcoding font sizes, colors, or weights directly. Stick to variants defined in the theme.
+  ```typescript
+  <Typography variant="h4" color="textPrimary">
+    Welcome to the Planner!
+  </Typography>
+  ```
+
+### 8. Avoid Overly Nested Styles
+- Keep styles flat and avoid deeply nested selectors. This makes it easier to read and maintain.
+
+### 9. Consistent Naming
+- Use clear and descriptive names for styled components, following the format `<ComponentName>Styled` or `<StyledComponentName>`.
+
+### 10. Spacing and Layout
+- Use the theme’s `spacing` function rather than hardcoded values for margins, paddings, and gaps.
+  ```typescript
+  sx={{ margin: theme.spacing(2), padding: theme.spacing(1) }}
+  ```
+
+### 11. Color Usage
+- Use the theme palette (`theme.palette`) for all colors. Avoid hardcoding color codes directly unless absolutely necessary.
+
+### 12. Dark Mode Support
+- Test your styles for both light and dark mode to ensure proper contrast and usability.
+
+### 13. Consistency in Component Props
+- When applying custom styles to components like `Button`, use props such as `size`, `variant`, or `color` before resorting to custom `sx` props.
+
+
 ## Getting Started
 
 First, run the development server:
