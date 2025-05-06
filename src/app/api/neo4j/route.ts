@@ -1,29 +1,22 @@
+/**
+ * @author Kevin Zhang
+ * @description Neo4j API route handler for server-side data fetching
+ * @edited 2025-05-07
+ */
+
 import { NextResponse } from "next/server";
-import neo4j from "neo4j-driver";
+import { connectToNeo4j, closeNeo4jConnection } from "@/utils/neo4j";
 
 // ✅ Fetch Neo4j Data (Server-Side)
 async function fetchNeo4jData() {
-  console.log("📡 Connecting to Neo4j...");
+  const { driver, session } = await connectToNeo4j();
 
-  const URI = process.env.DB_URI;
-  const USER = process.env.DB_USER;
-  const PASSWORD = process.env.DB_PASSWORD;
-
-  if (!URI || !USER || !PASSWORD) {
-    console.error("❌ Missing environment variables");
-    throw new Error("Missing environment variables");
+  try {
+    const result = await session.run("MATCH (n) RETURN n LIMIT 5");
+    return result.records.map(record => record.toObject());
+  } finally {
+    await closeNeo4jConnection(driver, session);
   }
-
-  const driver = neo4j.driver(URI, neo4j.auth.basic(USER, PASSWORD));
-  const session = driver.session();
-
-  const result = await session.run("MATCH (n) RETURN n LIMIT 5");
-  await session.close();
-  await driver.close();
-
-  console.log("🔌 Neo4j connection closed");
-
-  return result.records.map(record => record.toObject());
 }
 
 // ✅ App Router API Route
