@@ -1,8 +1,3 @@
-<!--
-@author Kevin Zhang
-@created 2025-05-07
--->
-
 # 🔍 Useful Neo4j Browser Queries
 
 This guide provides practical Cypher queries to help you explore and debug your graph in the Neo4j Browser. Assumes you're working with `:Module` and `:Logic` nodes (as in a prerequisite system).
@@ -166,3 +161,5 @@ RETURN max(length(path)) AS maxDepth
 - Use `apoc.path.subgraphAll` for recursive visual queries
 
 ---
+
+_Written by Kevin Zhang · May 7, 2025_
