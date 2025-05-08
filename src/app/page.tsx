@@ -3,6 +3,8 @@ import { getPrereq } from "@/api/prereq";
 import { fetchNeo4j } from "@/api/neo4j"
 import { Button } from "@mui/material";
 import { useState } from "react";
+import GraphViewer from "./components/GraphViewer";
+import GraphPage from "./graphPage";
 
 export default function Home() {
   const [neo4jData, setNeo4jData] = useState(null);
@@ -26,14 +28,19 @@ export default function Home() {
     }
   }
 
+
   return (
     <div>
       <h1>Uni Planner</h1>
       <Button onClick={handleClick}>test</Button>
       <Button onClick={handleTestAPI}>testAPI</Button>
+      <GraphPage></GraphPage>
 
       {neo4jData && (
-        <pre>{JSON.stringify(neo4jData, null, 2)}</pre>
+        <>
+          <GraphViewer data={neo4jData} />
+          {/* <pre>{JSON.stringify(neo4jData, null, 2)}</pre> */}
+        </>
       )}
 
     </div>

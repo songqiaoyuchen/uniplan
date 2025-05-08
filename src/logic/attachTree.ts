@@ -5,13 +5,27 @@
  */
 
 import { Session, Integer } from 'neo4j-driver';
+import { handleLeaf } from './handleLeaf';
+import { handleNof } from './handleNof';
 
 const CLEAR_EXISTING = true; // Set to false if you want to preserve existing logic
 
 export async function attachPrereqTree(moduleCode: string, tree: any, session: Session) {
   if (CLEAR_EXISTING) {
+    // First: delete the HAS_PREREQ relationship
     await session.run(
-      `MATCH (m:Module {code: $code})-[r:HAS_PREREQ]->(l:Logic)
+      `MATCH (m:Module {code: $code})-[r:HAS_PREREQ]->() DELETE r`,
+      { code: moduleCode }
+    );
+  
+    // Second: delete the entire logic subtree (only logic nodes!)
+    await session.run(
+      `MATCH (m:Module {code: $code})-[:HAS_PREREQ]->(root:Logic)
+       CALL apoc.path.subgraphAll(root, {
+         relationshipFilter: "REQUIRES>|OPTION>",
+         labelFilter: "Logic"
+       }) YIELD nodes
+       UNWIND nodes AS l
        DETACH DELETE l`,
       { code: moduleCode }
     );
@@ -38,85 +52,8 @@ export async function attachPrereqTree(moduleCode: string, tree: any, session: S
     : `✅ Attached new prereqs for ${moduleCode}`);
 }
 
-// === Resolve one or more module IDs from a raw code (e.g., "CS2040", "CS2040%", "CS2040:D")
-export async function resolveModuleCodes(rawCode: string, session: Session): Promise<Integer[]> {
-  const prefix = rawCode.replace('%', '');
-
-  const res = await session.run(
-    `MATCH (m:Module) WHERE m.code STARTS WITH $prefix RETURN id(m) AS id`,
-    { prefix }
-  );
-
-  return res.records.map(r => r.get('id'));
-}
-
-// === Handle leaf case: a single string module prerequisite
-export async function handleLeaf(tree: string, session: Session): Promise<Integer> {
-  const rawCode = tree.split(':')[0];
-  const ids = await resolveModuleCodes(rawCode, session);
-
-  if (ids.length === 0) {
-    throw new Error(`❌ No module matched for: ${rawCode}`);
-  }
-
-  if (rawCode.includes('%') && ids.length > 1) {
-    const logicRes = await session.run(
-      `CREATE (l:Logic {type: "OR"}) RETURN id(l) AS logicId`
-    );
-    const logicId = logicRes.records[0].get('logicId');
-
-    for (const moduleId of ids) {
-      await session.run(
-        `MATCH (l) WHERE id(l) = $lid
-         MATCH (m) WHERE id(m) = $mid
-         MERGE (l)-[:OPTION]->(m)`,
-        { lid: logicId, mid: moduleId }
-      );
-    }
-
-    return logicId;
-  }
-
-  return ids[0];
-}
-
-// === Handle nOf logic gate
-async function handleNof(tree: any, session: Session): Promise<Integer> {
-  const [threshold, options] = tree.nOf;
-
-  if (!Array.isArray(options) || options.length === 0) {
-    throw new Error(`nOf has no options: ${JSON.stringify(tree)}`);
-  }
-
-  if (threshold > options.length) {
-    console.warn(`⚠️ nOf threshold ${threshold} exceeds number of options (${options.length})`);
-  }
-
-  const logicRes = await session.run(
-    `CREATE (l:Logic {type: "NOF", threshold: $threshold}) RETURN id(l) AS logicId`,
-    { threshold }
-  );
-  const logicId = logicRes.records[0].get('logicId');
-
-  for (const code of options) {
-    const rawCode = code.split(':')[0];
-    const ids = await resolveModuleCodes(rawCode, session);
-
-    for (const moduleId of ids) {
-      await session.run(
-        `MATCH (l) WHERE id(l) = $lid
-         MATCH (m) WHERE id(m) = $mid
-         MERGE (l)-[:OPTION]->(m)`,
-        { lid: logicId, mid: moduleId }
-      );
-    }
-  }
-
-  return logicId;
-}
-
-// === Core recursive function
-export async function processTree(tree: any, session: Session): Promise<Integer> {
+// === Core recursive function for constructing a prerequisite logic tree
+async function processTree(tree: any, session: Session): Promise<Integer> {
   if (typeof tree === 'string') {
     return await handleLeaf(tree, session);
   }
@@ -136,24 +73,30 @@ export async function processTree(tree: any, session: Session): Promise<Integer>
     throw new Error(`Empty ${type} logic block in ${JSON.stringify(tree)}`);
   }
 
+  // Create a Logic node with the given type ("AND" or "OR")
   const logicRes = await session.run(
     `CREATE (l:Logic {type: $type}) RETURN id(l) AS logicId`,
     { type }
   );
   const logicId = logicRes.records[0].get('logicId');
 
+  // For each child in the logic gate
   for (const child of children) {
     let childId: Integer;
     let rel: string;
 
+    // Arguable labels for relationship
     if (typeof child === 'string') {
+      // If child is a module (or wildcard), get its node ID via handleLeaf
       childId = await handleLeaf(child, session);
-      rel = 'OPTION';
+      rel = 'OPTION'; // Use OPTION when a logic gate directly points to a module
     } else {
+      // If child is a nested logic block, recurse to build its subtree
       childId = await processTree(child, session);
-      rel = 'REQUIRES';
+      rel = 'REQUIRES'; // Use REQUIRES when a logic gate depends on another logic gate
     }
 
+    // Connect the current logic node to the child using the appropriate relationship
     await session.run(
       `MATCH (l:Logic) WHERE id(l) = $lid
        MATCH (t) WHERE id(t) = $tid
@@ -164,3 +107,4 @@ export async function processTree(tree: any, session: Session): Promise<Integer>
 
   return logicId;
 }
+

@@ -24,6 +24,7 @@ async function importModules() {
         `MERGE (:Module {code: $code})`,
         { code }
       );
+      console.log(`Adding ${code}...`);
     }
 
     await tx.commit();
