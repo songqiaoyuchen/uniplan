@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from "react";
-import { fetchGraph } from "@/api/fetchGraph";
+import { fetchGraph } from "@/services/module/fetchGraph";
 import GraphViewer from "./components/GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField

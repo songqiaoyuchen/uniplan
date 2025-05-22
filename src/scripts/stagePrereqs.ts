@@ -6,9 +6,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { getPrereqTree } from '../logic/fetchTree';
-import { attachPrereqTree } from '../logic/attachTree';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { getPrereqTree } from './scrapers/fetchTree';
+import { attachPrereqTree } from './utils/attachTree';
 
 const moduleCodes: string[] = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'output', 'moduleCodes.json'), 'utf8')

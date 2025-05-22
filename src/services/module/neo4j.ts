@@ -1,8 +1,4 @@
-/**
- * @author Kevin Zhang
- * @description Neo4j API client for fetching data
- * @created 2024-05-07
- */
+// Neo4j API client for fetching data
 
 import axios from 'axios';
 

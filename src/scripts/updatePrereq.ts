@@ -1,5 +1,5 @@
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { attachPrereqTree} from '../logic/attachTree';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { attachPrereqTree} from './utils/attachTree';
 
 const moduleCode = "FIN3702A";
 const tree = "FIN2704%:D"; // direct string leaf

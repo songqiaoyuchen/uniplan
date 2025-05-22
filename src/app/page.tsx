@@ -1,6 +1,6 @@
 'use client';
-import { getPrereq } from "@/api/prereq";
-import { fetchNeo4j } from "@/api/neo4j"
+import { getPrereq } from "@/scripts/scrapers/prereq";
+import { fetchNeo4j } from "@/services/module/neo4j"
 import { Button } from "@mui/material";
 import { useState } from "react";
 import GraphViewer from "./components/GraphViewer";

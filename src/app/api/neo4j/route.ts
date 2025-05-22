@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { connectToNeo4j, closeNeo4jConnection } from "@/utils/neo4j";
+import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
 
 // ✅ Fetch Neo4j Data (Server-Side)
 async function fetchNeo4jData() {

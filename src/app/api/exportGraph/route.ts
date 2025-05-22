@@ -4,15 +4,15 @@
  * @created 2024-05-08
  */
 
-import { exportPrereqGraph } from '@/utils/exportGraph';
-import { NextRequest } from 'next/server';
+import { exportPrereqGraph } from '@/db/exportGraph';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const moduleCode = searchParams.get('moduleCode');
 
   if (!moduleCode) {
-    return new Response(JSON.stringify({ error: 'Missing moduleCode' }), { status: 400 });
+    return NextResponse.json({ error: 'Missing moduleCode' }, { status: 400 });
   }
 
   try {

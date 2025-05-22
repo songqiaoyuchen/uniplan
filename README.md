@@ -1,4 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Project Structure
+
+### app/
+Contains Next.js `app/` directory features such as:
+
+- `api/` — API route handlers (e.g., `route.ts`)
+- `components/` — Reusable UI components
+
+### services/
+Client-side API callers that fetch data from backend endpoints.
+
+- `module/` — Module-related API callers (e.g., fetch module graph)
+- `user/` — (Future) User-related API callers (e.g., user profile)
+
+### db/
+Handles connection and query logic for databases.
+
+- `neo4j.ts` — Neo4j driver setup
+- `[query].ts` — Reusable query functions (e.g., `getModuleTree.ts`)
+
+> If using multiple databases (e.g., Neo4j and PostgreSQL), this directory can include subfolders like `neo4j/` and `postgres/` for clarity.
+
+### scripts/
+One-time or scheduled scripts to populate or manipulate database content.
+
+- `neo4j/` — Cipher queries to insert/update/delete nodes and relationships in Neo4j
+- `scrapers/` — Code to pull external data from NUSMods to feed into the graph
+
+> These scripts are not part of the app runtime and can be run manually or via CLI.
+
+### utils/
+General-purpose helper functions shared across frontend/backend, such as:
+
+- Graph transformation (e.g., formatting Neo4j output)
+- Data sanitization or formatting
 
 ## Styling Guidelines
 

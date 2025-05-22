@@ -4,7 +4,7 @@
  * @created 2025-05-07
  */
 
-import { getPrereq } from '../api/prereq';
+import { getPrereq } from './scrapers/prereq';
 import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
