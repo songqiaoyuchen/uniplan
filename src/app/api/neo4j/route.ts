@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from "next/server";
-import { connectToNeo4j, closeNeo4jConnection } from "@/utils/neo4j";
+import { connectToNeo4j, closeNeo4jConnection } from "@/utils/helper/neo4j";
 
 // ✅ Fetch Neo4j Data (Server-Side)
 async function fetchNeo4jData() {
@@ -24,8 +24,8 @@ export async function GET() {
   try {
     const data = await fetchNeo4jData();
     return NextResponse.json(data);
-  } catch (error: any) {
-    console.error("❌ API Error:", error.message);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    console.error('❌ API Error:', error instanceof Error ? error.message : 'Unknown');
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Unknown' }, { status: 500 });
   }
 }

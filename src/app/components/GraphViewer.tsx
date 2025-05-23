@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import cytoscape from "cytoscape";
-// @ts-ignore
+// @ts-expect-error
 import dagre from 'cytoscape-dagre';
 
 cytoscape.use(dagre);
@@ -27,7 +27,7 @@ interface GraphViewerProps {
   }>;
 }
 
-export default function GraphViewer({ data }: GraphViewerProps) {
+export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
   const cyRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({ nodes: 0, edges: 0 });
   const cyInstance = useRef<any>(null);

@@ -4,32 +4,34 @@
  * @created 2024-05-08
  */
 
-import { exportPrereqGraph } from '@/utils/exportGraph';
-import { NextRequest } from 'next/server';
+// app/api/exportGraph/route.ts
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { getMergedTree } from '@/utils/getMergedPrereqTree';
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
+export async function GET(request: NextRequest) {
+  const { searchParams } = request.nextUrl;
   const moduleCode = searchParams.get('moduleCode');
+  const moduleCodesParam = searchParams.get('moduleCodes');
 
-  if (!moduleCode) {
-    return new Response(JSON.stringify({ error: 'Missing moduleCode' }), { status: 400 });
+  let codes: string[] = [];
+  if (moduleCodesParam) {
+    codes = moduleCodesParam
+      .split(',')
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => c);
+  } else if (moduleCode) {
+    codes = [moduleCode.trim().toUpperCase()];
   }
 
   try {
-    const graph = await exportPrereqGraph(moduleCode);
-
-    if (!graph) {
-      return new Response(JSON.stringify({ error: `Module ${moduleCode} not found or has no prerequisites` }), {
-        status: 404,
-      });
-    }
-
-    return new Response(JSON.stringify(graph), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const graph = await getMergedTree(codes);
+    return NextResponse.json(graph);
   } catch (err) {
-    console.error('❌ Failed to export graph:', err);
-    return new Response(JSON.stringify({ error: 'Graph export failed' }), { status: 500 });
+    console.error('exportGraph error:', err);
+    return NextResponse.json(
+      { error: 'Failed to build merged graph' },
+      { status: 500 }
+    );
   }
 }
