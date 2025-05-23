@@ -1,8 +1,5 @@
-/**
- * @author Kevin Zhang
- * @description Handles the case where logic gate is Nof
- * @created 2025-05-08
- */
+// /src/scripts/neo4j/handleNof.ts
+// Handles the case where logic gate is Nof
 
 import { Session, Integer } from 'neo4j-driver';
 import { resolveModuleCodes } from './resolveModuleCodes';

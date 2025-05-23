@@ -2,8 +2,8 @@
 
 import { Box, Typography, Button } from "@mui/material";
 import { useState } from "react";
-import { getPrereq } from "@/api/prereq";
-import { fetchNeo4j } from "@/api/neo4j";
+import { getPrereq } from "@/scripts/scrapers/prereq";
+import { fetchNeo4j } from "@/services/planner/neo4j";
 import GraphViewer from "./components/GraphViewer";
 import GraphPage from "./components/graphPage";
 import PlannerViewer from "./components/PlannerViewer";

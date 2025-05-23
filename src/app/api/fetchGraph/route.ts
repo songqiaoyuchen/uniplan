@@ -7,7 +7,7 @@
 // app/api/exportGraph/route.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getMergedTree } from '@/utils/getMergedPrereqTree';
+import { getMergedTree } from '@/scripts/neo4j/getMergedPrereqTree';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;

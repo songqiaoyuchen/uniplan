@@ -4,7 +4,7 @@
  * @created 2025-05-10
  */
 
-import { connectToNeo4j, closeNeo4jConnection } from './helper/neo4j';
+import { connectToNeo4j, closeNeo4jConnection } from '../../db/neo4j';
 import type { Record as NeoRecord, Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
 
 interface JsonNode {

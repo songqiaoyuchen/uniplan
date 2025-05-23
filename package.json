@@ -15,7 +15,6 @@
     "dryRunGroupModules": "ts-node --project tsconfig.node.json src/utils/dryRunGroupModules.ts",
     "applyModuleGrouping": "ts-node --project tsconfig.node.json src/utils/staging/applyModuleGrouping.ts",
     "testschedule": "ts-node --project tsconfig.node.json src/logic/schedulePlanner/scheduleModules.ts"
-    
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

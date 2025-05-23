@@ -6,7 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { connectToNeo4j, closeNeo4jConnection } from '../helper/neo4j';
+import { connectToNeo4j, closeNeo4jConnection } from '../../db/neo4j';
 
 // Load module codes from output directory
 const moduleCodes: string[] = JSON.parse(

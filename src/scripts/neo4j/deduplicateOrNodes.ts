@@ -1,4 +1,4 @@
-import { connectToNeo4j, closeNeo4jConnection } from '../helper/neo4j';
+import { connectToNeo4j, closeNeo4jConnection } from '../../db/neo4j';
 
 export async function deduplicateOrNodes() {
   const { driver, session } = await connectToNeo4j();

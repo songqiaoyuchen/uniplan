@@ -9,7 +9,7 @@ import axios, { AxiosError } from 'axios';
 const academicYear = "2024-2025";
 const API_URL = `https://api.nusmods.com/v2/${academicYear}/modules/`;
 
-export async function getPrereqTree(moduleCode: string): Promise<any> {
+export async function fetchPrereqInfo(moduleCode: string): Promise<any> {
   try {
     const res = await axios.get(`${API_URL}${moduleCode}.json`);
     return res.data.prereqTree ?? null;

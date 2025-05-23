@@ -1,6 +1,6 @@
-import { getMergedTree } from '../utils/getMergedPrereqTree';
-import { getPrereqTree } from '../utils/getPrereqTree';
-import { connectToNeo4j, closeNeo4jConnection } from '../utils/helper/neo4j';
+import { getMergedTree } from '../scripts/neo4j/getMergedPrereqTree';
+import { getPrereqTree } from '../scripts/neo4j/getPrereqTree';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
 import type { Driver, Session } from 'neo4j-driver';
 
 describe('getMergedTree integration with Neo4j', () => {

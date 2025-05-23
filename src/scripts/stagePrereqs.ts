@@ -6,9 +6,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { connectToNeo4j, closeNeo4jConnection } from '../helper/neo4j';
-import { getPrereqTree } from '../../logic/fetchNusMods/fetchTree';
-import { attachPrereqTree } from '../../logic/createGraph/attachTree';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { fetchPrereqInfo } from './scrapers/fetchPrereqInfo';
+import { attachPrereqTree } from './neo4j/attachPrereqTree';
 
 const moduleCodes: string[] = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'output', 'moduleCodes.json'), 'utf8')
@@ -23,7 +23,7 @@ export async function run() {
   const { driver, session } = await connectToNeo4j();
 
   for (const code of moduleCodes) {
-    const tree = await getPrereqTree(code);
+    const tree = await fetchPrereqInfo(code);
     if (!tree) {
       console.log(`⚠️ Skipped ${code}: No prereqTree`);
       continue;

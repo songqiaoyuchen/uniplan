@@ -1,10 +1,10 @@
-import { connectToNeo4j, closeNeo4jConnection } from '../helper/neo4j';
-import { extractModuleCodes } from './scrapeMods';
-import { importModules } from './stageNodes';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { fetchModuleList } from './scrapers/fetchModuleList';
+import { importModules } from './neo4j/stageNodes';
 import { run } from './stagePrereqs';
-import { deduplicateOrNodes } from './deduplicateOrNodes';
-import { getModuleInfo } from './getModuleInfo';
-import { updateModulesMetadata } from './updateModuleInfo';
+import { deduplicateOrNodes } from './neo4j/deduplicateOrNodes';
+import { exportModuleInfo } from './exportModuleInfo';
+import { updateModulesMetadata } from './neo4j/updateModuleInfo';
 
 async function resetDB(): Promise<void> {
   const { driver, session } = await connectToNeo4j();
@@ -16,10 +16,10 @@ async function resetDB(): Promise<void> {
     console.log('✅ Graph cleared.');
 
     console.log('📡 Fetching latest NUSMods data...');
-    await getModuleInfo();
+    await exportModuleInfo();
 
     console.log('📦 Scraping module data...');
-    await extractModuleCodes();
+    await fetchModuleList();
 
     console.log('🌱 Staging module nodes...');
     await importModules();

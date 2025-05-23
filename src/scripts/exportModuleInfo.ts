@@ -4,11 +4,11 @@
  * @created 2025-05-07
  */
 
-import { fetchModuleInfo } from '../../logic/fetchNusMods/fetchModuleInfo';
+import { fetchModuleInfo } from './scrapers/fetchModuleInfo';
 import fs from 'fs/promises';
 import path from 'path';
 
-export async function getModuleInfo(): Promise<any> {
+export async function exportModuleInfo(): Promise<any> {
   try {
     console.log(`📡 Fetching module information ...`);
     const response = await fetchModuleInfo();

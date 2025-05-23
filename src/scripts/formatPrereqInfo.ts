@@ -4,10 +4,10 @@
  * @created 2025-05-08
  */
 
-import { connectToNeo4j, closeNeo4jConnection } from './helper/neo4j';
-import { getPrereqTree } from '@/utils/getPrereqTree';
+import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { getPrereqTree } from '@/scripts/neo4j/getPrereqTree';
 
-export async function getPrereqGraph(moduleCode: string) {
+export async function fetchPrereqInfo(moduleCode: string) {
   const { driver, session } = await connectToNeo4j();
 
   try {

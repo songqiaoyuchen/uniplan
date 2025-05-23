@@ -4,7 +4,7 @@
  * @created 2025-05-07
  */
 
-import { getPrereq } from '../api/prereq';
+import { fetchPrereqInfo } from './scrapers/fetchPrereqInfo';
 import fs from 'fs/promises';
 import path from 'path';
 import readline from 'readline';
@@ -24,7 +24,7 @@ function promptUser(question: string): Promise<string> {
   );
 }
 
-async function getPrereqTree(): Promise<void> {
+async function exportPrereqInfo(): Promise<void> {
   try {
     const moduleCode = await promptUser('📘 Enter a module code: ');
     if (!moduleCode) {
@@ -33,7 +33,7 @@ async function getPrereqTree(): Promise<void> {
     }
 
     console.log(`📡 Fetching prereq tree for ${moduleCode}...`);
-    const response = await getPrereq(moduleCode);
+    const response = await fetchPrereqInfo(moduleCode);
 
     if (!response) {
       console.warn(`⚠️ No prereqTree found for ${moduleCode}`);
@@ -52,5 +52,3 @@ async function getPrereqTree(): Promise<void> {
     console.error('❌ Error:', error);
   }
 }
-
-getPrereqTree();

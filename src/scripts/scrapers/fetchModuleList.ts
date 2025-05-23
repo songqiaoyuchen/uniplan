@@ -10,7 +10,7 @@ import path from 'path';
 
 const MODULE_LIST_URL = "https://api.nusmods.com/v2/2024-2025/moduleList.json";
 
-export async function extractModuleCodes() {
+export async function fetchModuleList() {
   try {
     const response = await axios.get(MODULE_LIST_URL);
     const moduleList = response.data;
