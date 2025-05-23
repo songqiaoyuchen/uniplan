@@ -13,7 +13,7 @@ const moduleCodes: string[] = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'output', 'moduleCodes.json'), 'utf8')
 );
 
-async function importModules() {
+export async function importModules() {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -35,5 +35,3 @@ async function importModules() {
     await closeNeo4jConnection(driver, session);
   }
 }
-
-importModules();

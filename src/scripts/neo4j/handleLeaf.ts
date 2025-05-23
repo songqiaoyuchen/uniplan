@@ -1,3 +1,9 @@
+/**
+ * @author Kevin Zhang
+ * @description Handles the case where logic gate is OR
+ * @created 2025-05-08
+ */
+
 import { Session, Integer } from 'neo4j-driver';
 import { resolveModuleCodes } from './resolveModuleCodes';
 

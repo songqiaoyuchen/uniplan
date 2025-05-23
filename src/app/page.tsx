@@ -1,10 +1,12 @@
 'use client';
-import { getPrereq } from "@/scripts/scrapers/prereq";
-import { fetchNeo4j } from "@/services/module/neo4j"
-import { Button } from "@mui/material";
+
+import { Box, Typography, Button } from "@mui/material";
 import { useState } from "react";
+import { getPrereq } from "@/scripts/scrapers/prereq";
+import { fetchNeo4j } from "@/services/planner/neo4j";
 import GraphViewer from "./components/GraphViewer";
-import GraphPage from "./graphPage";
+import GraphPage from "./components/graphPage";
+import PlannerViewer from "./components/PlannerViewer";
 
 export default function Home() {
   const [neo4jData, setNeo4jData] = useState(null);
@@ -28,21 +30,24 @@ export default function Home() {
     }
   }
 
-
   return (
-    <div>
-      <h1>Uni Planner</h1>
-      <Button onClick={handleClick}>test</Button>
-      <Button onClick={handleTestAPI}>testAPI</Button>
-      <GraphPage></GraphPage>
+    <Box sx={{ bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh', p: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Uni Planner
+      </Typography>
+      <Button variant="contained" onClick={handleClick} sx={{ mr: 2 }}>
+        test
+      </Button>
+      <Button variant="outlined" onClick={handleTestAPI}>
+        testAPI
+      </Button>
+
+      <GraphPage />
+      <PlannerViewer />
 
       {neo4jData && (
-        <>
-          <GraphViewer data={neo4jData} />
-          {/* <pre>{JSON.stringify(neo4jData, null, 2)}</pre> */}
-        </>
+        <GraphViewer data={neo4jData} />
       )}
-
-    </div>
+    </Box>
   );
 }

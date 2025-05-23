@@ -1,3 +1,9 @@
+/**
+ * @author Kevin Zhang
+ * @description Returns node IDs of the corresponding course(s) in Neo4j
+ * @created 2025-05-08
+ */
+
 import { Session, Integer } from 'neo4j-driver';
 
 // === Resolve one or more module IDs from a raw code (e.g., "CS2040", "CS2040%", "CS2040:D")
