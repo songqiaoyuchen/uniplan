@@ -1,8 +1,4 @@
-/**
- * @author Kevin Zhang
- * @description Page logic for displaying graphs (Dialog)
- * @created 2025-05-08
- */
+// Page for displaying graphs (Dialog)
 
 'use client';
 

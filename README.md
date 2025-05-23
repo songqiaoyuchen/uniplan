@@ -9,7 +9,7 @@ Contains Next.js `app/` directory features such as:
 ### services/
 Client-side API callers that fetch data from backend endpoints.
 
-- `module/` — Module-related API callers (e.g., fetch module graph)
+- `planner/` — Planner-related API callers (e.g., fetch module graph)
 - `user/` — (Future) User-related API callers (e.g., user profile)
 
 ### db/
@@ -33,6 +33,9 @@ General-purpose helper functions shared across frontend/backend, such as:
 
 - Graph transformation (e.g., formatting Neo4j output)
 - Data sanitization or formatting
+
+### temp/
+Temporary functions that I am not sure what for.
 
 ## Styling Guidelines
 

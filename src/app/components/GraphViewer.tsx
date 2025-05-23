@@ -1,8 +1,5 @@
-/**
- * @author Kevin Zhang
- * @description Vibe-coded based on Cytoscape Library for displaying graphs
- * @created 2024-05-08
- */
+// Display prereq trees using Cytoscape
+
 import { useEffect, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 // @ts-expect-error

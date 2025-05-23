@@ -1,8 +1,4 @@
-/**
- * @author Kevin Zhang
- * @description Neo4j API for fetching Graph
- * @created 2024-05-08
- */
+// Neo4j API for fetching Graph
 
 import axios from 'axios';
 

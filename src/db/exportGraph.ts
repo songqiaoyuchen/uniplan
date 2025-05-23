@@ -1,8 +1,4 @@
-/**
- * @author Kevin Zhang
- * @description Exports the prerequisite graph for a given module from Neo4j to JSON.
- * @created 2025-05-08
- */
+// Export prereq graph for a given module from Neo4j to node and edge lists.
 
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
 

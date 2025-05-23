@@ -1,7 +1,8 @@
 /**
- * @author Kevin Zhang
- * @description Exports the prerequisite graph for a given module from Neo4j to JSON.
- * @created 2025-05-08
+ * @param {string} moduleCode - module code to fetch prerequisite information for
+ * @returns {Promise<{ nodes: Array, relationships: Array } | null>}
+ * 
+ * @description fetch and format the prerequisite graph for a given module from Neo4j to nodes and edges array.
  */
 
 import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';

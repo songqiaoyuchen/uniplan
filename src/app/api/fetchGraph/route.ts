@@ -1,10 +1,6 @@
-/**
- * @author Kevin Zhang
- * @description Neo4j API route handler for graph fetching
- * @created 2024-05-08
- */
-
 // app/api/exportGraph/route.ts
+//  API route handler for graph fetching
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getMergedTree } from '@/scripts/neo4j/getMergedPrereqTree';
