@@ -8,13 +8,14 @@
     "start": "next start",
     "lint": "next lint",
     "getPrereq": "ts-node --project tsconfig.node.json src/utils/getPrereq.ts",
-    "scrapeMods": "ts-node --project tsconfig.node.json src/utils/staging/scrapeMods.ts",
-    "stageNodes": "ts-node --project tsconfig.node.json src/utils/staging/stageNodes.ts",
-    "stagePrereqs": "ts-node --project tsconfig.node.json src/utils/staging/stagePrereqs.ts",
+    "resetDB": "ts-node --project tsconfig.node.json src/utils/staging/resetDB.ts",
     "getModuleInfo": "ts-node --project tsconfig.node.json src/utils/getModuleInfo.ts",
     "updateModuleInfo": "ts-node --project tsconfig.node.json src/utils/updateModuleInfo.ts",
     "updatePrereqTree": "ts-node --project tsconfig.node.json src/utils/updatePrereqTree.ts",
+    "dryRunGroupModules": "ts-node --project tsconfig.node.json src/utils/dryRunGroupModules.ts",
+    "applyModuleGrouping": "ts-node --project tsconfig.node.json src/utils/staging/applyModuleGrouping.ts",
     "testschedule": "ts-node --project tsconfig.node.json src/logic/schedulePlanner/scheduleModules.ts"
+    
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",

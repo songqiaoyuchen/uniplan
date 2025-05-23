@@ -19,7 +19,7 @@ const moduleCodes: string[] = JSON.parse(
     DETACH DELETE l
 */
 //Key fix required: Logic nodes are replicated without checking as of right now
-async function run() {
+export async function run() {
   const { driver, session } = await connectToNeo4j();
 
   for (const code of moduleCodes) {
@@ -41,6 +41,4 @@ async function run() {
   await closeNeo4jConnection(driver, session);
   console.log("🎉 Finished attaching all prereq trees.");
 }
-
-run();
 
