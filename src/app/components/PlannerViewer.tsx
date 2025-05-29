@@ -45,7 +45,7 @@ export default function PlannerViewer() {
       }
 
       const queryParam = parsedTargets.join(',');
-      const response = await fetch(`/api/exportGraph?moduleCodes=${encodeURIComponent(queryParam)}`);
+      const response = await fetch(`/api/fetchGraph?moduleCodes=${encodeURIComponent(queryParam)}`);
 
       if (!response.ok) {
         throw new Error(`Server responded with ${response.status}`);

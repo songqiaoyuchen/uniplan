@@ -1,36 +1,19 @@
-/**
- * @author Kevin Zhang
- * @description Merges prerequisite subgraphs for multiple modules using APOC subgraphAll from Neo4j.
- * @created 2025-05-10
- */
+// src/db/getMergedPrereqTree.ts
+// get prerequisite subgraphs for multiple modules and return a merged tree as RawGraph
+// merges prerequisite subgraphs for multiple modules using APOC subgraphAll from Neo4j.
 
-import { connectToNeo4j, closeNeo4jConnection } from '../../db/neo4j';
+import type { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
 import type { Record as NeoRecord, Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
-
-interface JsonNode {
-  id: number;
-  labels: string[];
-  properties: Record<string, any>;
-}
-interface JsonRel {
-  id: number;
-  startNode: number;
-  endNode: number;
-  type: string;
-  properties: Record<string, any>;
-}
+import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
 
 /**
  * Merges prerequisite subgraphs for multiple modules in a single Cypher call,
  * eliminates duplicates via DISTINCT, and returns plain JSON arrays.
  */
-export async function getMergedTree(moduleCodes: string[]): Promise<{
-  nodes: JsonNode[];
-  relationships: JsonRel[];
-}> {
+export async function getMergedTree(moduleCodes: string[]): Promise<RawGraph> {
   const { driver, session } = await connectToNeo4j();
   try {
-        // Single Cypher query to unwind, collect, and dedupe subgraphs
+    // Single Cypher query to unwind, collect, and dedupe subgraphs
     const result = await session.run(
       `UNWIND $moduleCodes AS code
        MATCH (m:Module { code: code })
@@ -57,8 +40,8 @@ export async function getMergedTree(moduleCodes: string[]): Promise<{
     const neoRels  = record.get('relationships') as NeoRel[];
 
     // Map driver objects to plain JSON
-    const nodes: JsonNode[] = neoNodes.map(n => ({
-      id: n.identity.toInt(),
+    const nodes: RawNode[] = neoNodes.map(n => ({
+      id: n.identity.toNumber(),
       labels: [...n.labels],
       properties: {
         ...n.properties,
@@ -66,10 +49,10 @@ export async function getMergedTree(moduleCodes: string[]): Promise<{
       }
     }));
 
-    const relationships: JsonRel[] = neoRels.map(r => ({
-      id:        r.identity.toInt(),
-      startNode: r.start.toInt(),
-      endNode:   r.end.toInt(),
+    const relationships: RawRelationship[] = neoRels.map(r => ({
+      id:        r.identity.toNumber(),
+      startNode: r.start.toNumber(),
+      endNode:   r.end.toNumber(),
       type:      r.type,
       properties:{ ...r.properties }
     }));

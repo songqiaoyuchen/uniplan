@@ -8,6 +8,7 @@ import GraphViewer from "./GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
+import { requiredGraph } from "@/utils/graph/cleanGraph";
 
 export default function GraphPage() {
   const [neo4jData, setNeo4jData] = useState<any>(null);
@@ -22,7 +23,8 @@ export default function GraphPage() {
     if (codes.length === 0) return;
 
     try {
-      const data = await fetchGraph(codes);
+      const dataRaw = await fetchGraph(codes);
+      const data = requiredGraph(dataRaw, codes);
       setNeo4jData(data);
       setDialogOpen(false);
     } catch (err) {

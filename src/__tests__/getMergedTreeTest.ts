@@ -1,4 +1,4 @@
-import { getMergedTree } from '../scripts/neo4j/getMergedPrereqTree';
+import { getMergedTree } from '../db/getMergedTree';
 import { getPrereqTree } from '../scripts/neo4j/getPrereqTree';
 import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
 import type { Driver, Session } from 'neo4j-driver';

@@ -1,8 +1,10 @@
-// Export prereq graph for a given module from Neo4j to node and edge lists.
+// get prereq graph for a given module from Neo4j as RawGraph
 
+import { RawGraph } from '@/types/graphTypes';
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
 
-export async function exportPrereqGraph(moduleCode: string) {
+export async function getGraph(moduleCode: string)
+: Promise<RawGraph | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -29,14 +31,14 @@ export async function exportPrereqGraph(moduleCode: string) {
     }));
 
     const relationships = record.get('relationships').map((rel: any) => ({
-      id: rel.identity.toInt(),
+      id: rel.identity.toNumber(),
       type: rel.type,
       startNode: rel.start.toInt(),
       endNode: rel.end.toInt(),
       properties: rel.properties,
     }));
 
-    return { nodes, relationships }; // ✅ return the graph object
+    return { nodes, relationships }; // ✅ return the RawGraph
   } catch (err) {
     console.error(`❌ Failed to query graph for ${moduleCode}:`, err);
     throw err;

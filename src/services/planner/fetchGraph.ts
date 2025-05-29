@@ -1,10 +1,11 @@
+// src/services/planner/fetchGraph.ts
 // Neo4j API for fetching Graph
 
 import axios from 'axios';
 
 export async function fetchGraph(moduleCodes: string[]) {
   try {
-    const response = await axios.get('/api/exportGraph', {
+    const response = await axios.get('/api/rawGraph', {
       params: { moduleCodes: moduleCodes.join(',') },
     });
     return response.data;
