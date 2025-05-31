@@ -22,8 +22,29 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
     incomingMap.get(rel.endNode)!.push(rel);
   }
 
+  // 🔄 Normalize AND/OR to NOF
+  const normalizedNodes: RawNode[] = graph.nodes.map(node => {
+    if (!node.labels.includes('Logic')) return node;
+
+    const out = outgoingMap.get(node.id)?.length ?? 0;
+
+    if (node.properties.type === 'AND') {
+      return {
+        ...node,
+        properties: { type: 'NOF', threshold: out },
+      };
+    } else if (node.properties.type === 'OR') {
+      return {
+        ...node,
+        properties: { type: 'NOF', threshold: 1 },
+      };
+    } else {
+      return node; // Already NOF
+    }
+  });
+
   const requiredModuleIds = new Set<number>();
-  for (const node of graph.nodes) {
+  for (const node of normalizedNodes) {
     if (node.labels.includes('Module') && requiredCodes.includes(node.properties.code)) {
       requiredModuleIds.add(node.id);
     }
@@ -36,15 +57,20 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
   let idCounter = 1000000;
   const generateId = () => idCounter++;
 
-  for (const node of graph.nodes) {
+  for (const node of normalizedNodes) {
     if (!node.labels.includes('Logic')) continue;
 
-    const type = node.properties.type;
     const children = outgoingMap.get(node.id)?.map(r => r.endNode) || [];
     const requiredChildren = children.filter(id => requiredModuleIds.has(id));
 
-    if (type === 'OR' && requiredChildren.length > 0) {
-      const parents = incomingMap.get(node.id)?.map(r => r.startNode) || [];
+    if (requiredChildren.length === 0) continue;
+
+    const parents = incomingMap.get(node.id)?.map(r => r.startNode) || [];
+    const optionalChildren = children.filter(id => !requiredModuleIds.has(id));
+    const reducedN = node.properties.threshold - requiredChildren.length;
+
+    if (reducedN <= 0 || optionalChildren.length === 0) {
+      // Flatten into direct connections to required
       for (const parent of parents) {
         for (const req of requiredChildren) {
           newRelationships.push({
@@ -56,97 +82,72 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
           });
         }
       }
-      (incomingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
-      (outgoingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
-    }
+    } else {
+      const newNofId = generateId();
+      const andId = generateId();
 
-    if (type === 'NOF' && requiredChildren.length > 0) {
-      const parents = incomingMap.get(node.id)?.map(r => r.startNode) || [];
-      const optionalChildren = children.filter(id => !requiredModuleIds.has(id));
-      const reducedN = node.properties.threshold - requiredChildren.length;
-
-      if (reducedN <= 0 || optionalChildren.length === 0) {
-        for (const parent of parents) {
-          for (const req of requiredChildren) {
-            newRelationships.push({
-              id: generateId(),
-              startNode: parent,
-              endNode: req,
-              type: 'HAS_PREREQ',
-              properties: {},
-            });
-          }
+      additionalNodes.push(
+        {
+          id: newNofId,
+          labels: ['Logic'],
+          properties: { type: 'NOF', threshold: reducedN },
+        },
+        {
+          id: andId,
+          labels: ['Logic'],
+          properties: { type: 'NOF', threshold: requiredChildren.length },
         }
-      } else {
-        const newNofId = generateId();
-        const andId = generateId();
+      );
 
-        additionalNodes.push(
-          {
-            id: newNofId,
-            labels: ['Logic'],
-            properties: { type: 'NOF', threshold: reducedN },
-          },
-          {
-            id: andId,
-            labels: ['Logic'],
-            properties: { type: 'AND' },
-          }
-        );
-
-        for (const child of optionalChildren) {
-          newRelationships.push({
-            id: generateId(),
-            startNode: newNofId,
-            endNode: child,
-            type: 'HAS_PREREQ',
-            properties: {},
-          });
-        }
-
-        for (const req of requiredChildren) {
-          newRelationships.push({
-            id: generateId(),
-            startNode: andId,
-            endNode: req,
-            type: 'HAS_PREREQ',
-            properties: {},
-          });
-        }
-
+      for (const child of optionalChildren) {
         newRelationships.push({
           id: generateId(),
-          startNode: andId,
-          endNode: newNofId,
+          startNode: newNofId,
+          endNode: child,
           type: 'HAS_PREREQ',
           properties: {},
         });
-
-        for (const parent of parents) {
-          newRelationships.push({
-            id: generateId(),
-            startNode: parent,
-            endNode: andId,
-            type: 'HAS_PREREQ',
-            properties: {},
-          });
-        }
       }
 
-      (incomingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
-      (outgoingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
+      for (const req of requiredChildren) {
+        newRelationships.push({
+          id: generateId(),
+          startNode: andId,
+          endNode: req,
+          type: 'HAS_PREREQ',
+          properties: {},
+        });
+      }
+
+      newRelationships.push({
+        id: generateId(),
+        startNode: andId,
+        endNode: newNofId,
+        type: 'HAS_PREREQ',
+        properties: {},
+      });
+
+      for (const parent of parents) {
+        newRelationships.push({
+          id: generateId(),
+          startNode: parent,
+          endNode: andId,
+          type: 'HAS_PREREQ',
+          properties: {},
+        });
+      }
     }
+
+    (incomingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
+    (outgoingMap.get(node.id) || []).forEach(r => toRemoveRel.add(r.id));
   }
 
-  // Keep original untouched relationships
+  // Keep untouched relationships
   for (const rel of graph.relationships) {
-    if (!toRemoveRel.has(rel.id)) {
-      newRelationships.push(rel);
-    }
+    if (!toRemoveRel.has(rel.id)) newRelationships.push(rel);
   }
 
-  // Combine all nodes
-  const combinedNodes = [...graph.nodes, ...additionalNodes];
+  const combinedNodes = [...normalizedNodes, ...additionalNodes];
 
   // Final reachable pruning
   return removeRedundantParts(combinedNodes, newRelationships, requiredModuleIds);
