@@ -3,9 +3,24 @@
 
 import axios from 'axios';
 
-export async function fetchGraph(moduleCodes: string[]) {
+export async function fetchRawGraph(moduleCodes: string[]) {
   try {
     const response = await axios.get('/api/rawGraph', {
+      params: { moduleCodes: moduleCodes.join(',') },
+    });
+    return response.data;
+  } catch (error: unknown) {
+    console.error(
+      `❌ Error fetching merged graph:`,
+      error instanceof Error ? error.message : 'Unknown error'
+    );
+    throw error;
+  }
+}
+
+export async function fetchFormattedGraph(moduleCodes: string[]) {
+  try {
+    const response = await axios.get('/api/formattedGraph', {
       params: { moduleCodes: moduleCodes.join(',') },
     });
     return response.data;

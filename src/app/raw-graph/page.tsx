@@ -3,8 +3,8 @@
 'use client';
 
 import { useState } from "react";
-import { fetchFormattedGraph } from "@/services/planner/fetchGraph";
-import FormattedGraphViewer from "../components/FormattedGraphViewer";
+import { fetchRawGraph } from "@/services/planner/fetchGraph";
+import GraphViewer from "../components/GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
@@ -22,7 +22,7 @@ export default function GraphPage() {
     if (codes.length === 0) return;
 
     try {
-      const data = await fetchFormattedGraph(codes);
+      const data = await fetchRawGraph(codes);
       setNeo4jData(data);
       setDialogOpen(false);
     } catch (err) {
@@ -56,7 +56,7 @@ export default function GraphPage() {
         </DialogActions>
       </Dialog>
 
-      {neo4jData && <FormattedGraphViewer graph={neo4jData} />}
+      {neo4jData && <GraphViewer data={neo4jData} />}
     </div>
   );
 }

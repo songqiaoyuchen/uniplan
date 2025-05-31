@@ -6,6 +6,7 @@ import type { NextRequest } from 'next/server';
 import { getMergedTree } from '@/db/getMergedTree';
 import { RawGraph } from '@/types/graphTypes';
 import { ErrorResponse } from '@/types/errorTypes';
+import { cleanGraph } from '@/utils/graph/cleanGraph';
 
 export async function GET(request: NextRequest)
 : Promise<NextResponse<RawGraph | ErrorResponse>> {
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest)
 
   try {
     const graph = await getMergedTree(codes);
-    return NextResponse.json(graph);
+    return NextResponse.json(cleanGraph(graph, codes));
   } catch (err) {
     console.error('exportGraph error:', err);
     return NextResponse.json(

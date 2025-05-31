@@ -1,6 +1,6 @@
 /**
  * @path src/utils/graph/selectLightestTrack.ts
- * @param graph: FormattedGraph,
+ * @param graph: FormattedGraph
  * @returns graph with the least total module credit: FormattedGraph
  * @description explore all tracks in the graph and return the track with the least total module credit.
  * (a track is a graph where all logic nodes are resolved)
@@ -11,183 +11,192 @@ import {
   ModuleNode,
   LogicNode,
   Edge,
+  Module,
+  ModuleGroup,
 } from '@/types/graphTypes';
 
-export function selectLightestTrack(
-  graph: FormattedGraph,
-): Set<string> {
+/**
+ * Explore all tracks in the graph and return the track (as a subgraph) with the least total module credit.
+ * If a module group is encountered, resolve it to a single random module in the group.
+ * Returns a FormattedGraph containing only the nodes and edges of the lightest track.
+ * For OR and NOF nodes, explores all options to find the subtree with the minimum total module credit.
+ */
+export function selectLightestTrack(graph: FormattedGraph): FormattedGraph {
   const { moduleNodes, logicNodes, edges } = graph;
 
-  // Helper: get node by id or code
-  // Modules keyed by code, LogicNodes keyed by id
-  function getNode(idOrCode: number | string): ModuleNode | LogicNode | null {
-    if (typeof idOrCode === 'string') {
-      return moduleNodes[idOrCode] || null;
-    }
-    return logicNodes[idOrCode] || null;
-  }
-
   // Build adjacency: Map from nodeId to list of child nodeIds
-  // We'll represent nodes by their id:
-  // For modules, id is moduleNode.id
-  // For logic nodes, id is logicNode.id
   const nodeChildren = new Map<number, number[]>();
-
-  // Helper: get node id by code or id
-  function getNodeId(node: ModuleNode | LogicNode): number {
-    return node.id;
-  }
-
-  // Create reverse lookup from module code to id
-  const moduleCodeToId = Object.values(modules).reduce<Record<string, number>>(
-    (acc, mod) => {
-      acc[mod.code] = mod.id;
-      return acc;
-    },
-    {}
-  );
-
-  // Build nodeChildren map
   for (const edge of edges) {
-    // from node id → to node id
     if (!nodeChildren.has(edge.from)) nodeChildren.set(edge.from, []);
     nodeChildren.get(edge.from)!.push(edge.to);
   }
 
-  // Memoization cache: nodeId -> minimal prerequisite set of modules (strings)
-  const memo = new Map<number, Set<string>>();
+  // Helper: get all root nodes (nodes that are not a child of any other node)
+  const allNodeIds = new Set<number>([
+    ...Object.keys(moduleNodes).map(Number),
+    ...Object.keys(logicNodes).map(Number),
+  ]);
+  for (const edge of edges) {
+    allNodeIds.delete(edge.to);
+  }
+  const rootNodeIds = Array.from(allNodeIds);
 
-  /**
-   * Recursive function to compute minimal prereqs for a node (module or logic node)
-   */
-  function dfs(nodeId: number): Set<string> {
-    // If cached
+  // Helper: get a random module from a module group
+  function pickRandomModuleFromGroup(group: ModuleGroup): Module {
+    const modules = Object.values(group.list);
+    if (modules.length === 0) throw new Error('Module group is empty');
+    // Pick random (for deterministic, pick first)
+    return modules[Math.floor(Math.random() * modules.length)];
+  }
+
+  // Helper: get module info and code for a ModuleNode
+  function getModuleInfo(node: ModuleNode): Module {
+    if (node.type === 'single') return node.info;
+    // If group, pick a random module
+    return pickRandomModuleFromGroup(node.info);
+  }
+
+  // Memoization: nodeId -> { nodeIds: Set<number>, moduleNodes: Record<number, ModuleNode>, logicNodes: Record<number, LogicNode>, edges: Edge[], totalCredit: number }
+  const memo = new Map<number, { nodeIds: Set<number>; moduleNodes: Record<number, ModuleNode>; logicNodes: Record<number, LogicNode>; edges: Edge[]; totalCredit: number }>();
+
+  // Helper: parse module credit string to number
+  function parseCredit(credit: string): number {
+    const n = parseFloat(credit);
+    return isNaN(n) ? 0 : n;
+  }
+
+  // DFS to find the lightest track for a node
+  function dfs(nodeId: number): { nodeIds: Set<number>; moduleNodes: Record<number, ModuleNode>; logicNodes: Record<number, LogicNode>; edges: Edge[]; totalCredit: number } {
     if (memo.has(nodeId)) return memo.get(nodeId)!;
 
-    // Is this node a module?
-    // Find module with id=nodeId
-    const module = Object.values(modules).find((m) => m.id === nodeId);
-    if (module) {
-      // For a module node, minimal prereq set is the module itself
-      const result = new Set<string>([module.code]);
+    // Module node
+    if (moduleNodes[nodeId]) {
+      const modNode = moduleNodes[nodeId];
+      let resolvedNode: ModuleNode;
+      if (modNode.type === 'single') {
+        resolvedNode = modNode;
+      } else {
+        // Replace group with a single random module as a single node
+        const picked = pickRandomModuleFromGroup(modNode.info);
+        resolvedNode = { type: 'single', info: picked };
+      }
+      const nodeIds = new Set<number>([nodeId]);
+      const moduleNodesOut: Record<number, ModuleNode> = { [nodeId]: resolvedNode };
+      const result = { nodeIds, moduleNodes: moduleNodesOut, logicNodes: {}, edges: [], totalCredit: parseCredit(getModuleInfo(resolvedNode).moduleCredit) };
       memo.set(nodeId, result);
       return result;
     }
 
-    // Otherwise, logic node
+    // Logic node
     const logicNode = logicNodes[nodeId];
     if (!logicNode) {
-      // Defensive: unknown node, return empty set
-      return new Set();
+      // Defensive: unknown node
+      return { nodeIds: new Set(), moduleNodes: {}, logicNodes: {}, edges: [], totalCredit: 0 };
     }
-
-    // Get children of this logic node
     const children = nodeChildren.get(nodeId) || [];
+    const childTracks = children.map(dfs);
 
-    // Compute prereq sets of all children recursively
-    const childPrereqs = children.map(dfs);
-
-    let result = new Set<string>();
+    let result: { nodeIds: Set<number>; moduleNodes: Record<number, ModuleNode>; logicNodes: Record<number, LogicNode>; edges: Edge[]; totalCredit: number } = { nodeIds: new Set(), moduleNodes: {}, logicNodes: {}, edges: [], totalCredit: 0 };
 
     switch (logicNode.type) {
-      case 'AND':
-        // Union of all children prereqs
-        result = new Set<string>();
-        for (const cset of childPrereqs) {
-          for (const c of cset) result.add(c);
+      case 'AND': {
+        // Union all children
+        const nodeIds = new Set<number>([nodeId]);
+        let totalCredit = 0;
+        let moduleNodesOut: Record<number, ModuleNode> = {};
+        let logicNodesOut: Record<number, LogicNode> = { [nodeId]: logicNode };
+        let edgesOut: Edge[] = [];
+        for (let i = 0; i < children.length; i++) {
+          const track = childTracks[i];
+          for (const nid of track.nodeIds) nodeIds.add(nid);
+          totalCredit += track.totalCredit;
+          moduleNodesOut = { ...moduleNodesOut, ...track.moduleNodes };
+          logicNodesOut = { ...logicNodesOut, ...track.logicNodes };
+          edgesOut = edgesOut.concat(track.edges);
+          edgesOut.push({ from: nodeId, to: children[i], type: 'LOGIC' });
         }
+        result = { nodeIds, moduleNodes: moduleNodesOut, logicNodes: logicNodesOut, edges: edgesOut, totalCredit };
         break;
-
-      case 'OR':
-        // Pick the minimal sized set among children prereqs
-        if (childPrereqs.length === 0) {
-          result = new Set();
-        } else {
-          let minSet = childPrereqs[0];
-          for (const cset of childPrereqs) {
-            if (cset.size < minSet.size) minSet = cset;
+      }
+      case 'OR': {
+        // Explore all options and pick the one with the minimum totalCredit
+        let minTrack: typeof result | null = null;
+        for (let i = 0; i < childTracks.length; i++) {
+          const track = childTracks[i];
+          const nodeIds = new Set<number>([nodeId, ...track.nodeIds]);
+          const moduleNodesOut = { ...track.moduleNodes };
+          const logicNodesOut = { [nodeId]: logicNode, ...track.logicNodes };
+          const edgesOut = [...track.edges, { from: nodeId, to: children[i], type: 'LOGIC' }];
+          const option = { nodeIds, moduleNodes: moduleNodesOut, logicNodes: logicNodesOut, edges: edgesOut, totalCredit: track.totalCredit };
+          if (!minTrack || option.totalCredit < minTrack.totalCredit) {
+            minTrack = option;
           }
-          result = new Set(minSet);
         }
+        result = minTrack ?? { nodeIds: new Set([nodeId]), moduleNodes: {}, logicNodes: { [nodeId]: logicNode }, edges: [], totalCredit: 0 };
         break;
-
-      case 'nOF':
-        // logicNode.n = number required (assume defined)
-        // Find the minimal union of any n children sets
-
+      }
+      case 'NOF': {
+        // Explore all combinations of n children and pick the one with the minimum totalCredit
         const n = logicNode.n ?? 0;
-        if (n <= 0 || n > childPrereqs.length) {
-          // Invalid n, fallback to empty
-          result = new Set();
+        if (n <= 0 || n > childTracks.length) {
+          result = { nodeIds: new Set([nodeId]), moduleNodes: {}, logicNodes: { [nodeId]: logicNode }, edges: [], totalCredit: 0 };
           break;
         }
-
-        // To find minimal union of any n child sets, do combination and pick minimal union size
-
-        // Generate all combinations of n child prereq sets
-        // We'll generate combinations of indices 0..childPrereqs.length-1, size n
-
-        function* combinations(arr: Set<string>[], k: number): Generator<Set<string>[]> {
-          function* backtrack(start: number, combo: Set<string>[]): any {
+        function* combinations(arr: typeof childTracks, k: number): Generator<{ tracks: typeof childTracks, idxs: number[] }> {
+          function* backtrack(start: number, combo: typeof childTracks, idxs: number[]): any {
             if (combo.length === k) {
-              yield combo;
+              yield { tracks: combo, idxs };
               return;
             }
             for (let i = start; i < arr.length; i++) {
-              yield* backtrack(i + 1, [...combo, arr[i]]);
+              yield* backtrack(i + 1, [...combo, arr[i]], [...idxs, i]);
             }
           }
-          yield* backtrack(0, []);
+          yield* backtrack(0, [], []);
         }
-
-        let minUnion: Set<string> | null = null;
-
-        for (const combo of combinations(childPrereqs, n)) {
-          // union all in combo
-          const unionSet = new Set<string>();
-          for (const s of combo) {
-            for (const mod of s) unionSet.add(mod);
+        let minCombo: typeof result | null = null;
+        for (const { tracks: combo, idxs } of combinations(childTracks, n)) {
+          const nodeIds = new Set<number>([nodeId]);
+          let totalCredit = 0;
+          let moduleNodesOut: Record<number, ModuleNode> = {};
+          let logicNodesOut: Record<number, LogicNode> = { [nodeId]: logicNode };
+          let edgesOut: Edge[] = [];
+          for (let i = 0; i < combo.length; i++) {
+            const track = combo[i];
+            for (const nid of track.nodeIds) nodeIds.add(nid);
+            totalCredit += track.totalCredit;
+            moduleNodesOut = { ...moduleNodesOut, ...track.moduleNodes };
+            logicNodesOut = { ...logicNodesOut, ...track.logicNodes };
+            edgesOut = edgesOut.concat(track.edges);
+            edgesOut.push({ from: nodeId, to: children[idxs[i]], type: 'LOGIC' });
           }
-
-          if (minUnion === null || unionSet.size < minUnion.size) {
-            minUnion = unionSet;
+          const option = { nodeIds, moduleNodes: moduleNodesOut, logicNodes: logicNodesOut, edges: edgesOut, totalCredit };
+          if (!minCombo || option.totalCredit < minCombo.totalCredit) {
+            minCombo = option;
           }
         }
-
-        result = minUnion ?? new Set();
+        result = minCombo ?? { nodeIds: new Set([nodeId]), moduleNodes: {}, logicNodes: { [nodeId]: logicNode }, edges: [], totalCredit: 0 };
         break;
+      }
     }
-
     memo.set(nodeId, result);
     return result;
   }
 
-  // Find the module node id for target module
-  const targetId = moduleCodeToId[targetModuleCode];
-  if (!targetId) {
-    throw new Error(`Target module code '${targetModuleCode}' not found in graph`);
+  // Explore all root nodes and pick the lightest track
+  let minTrack: { nodeIds: Set<number>; moduleNodes: Record<number, ModuleNode>; logicNodes: Record<number, LogicNode>; edges: Edge[]; totalCredit: number } | null = null;
+  for (const rootId of rootNodeIds) {
+    const track = dfs(rootId);
+    if (!minTrack || track.totalCredit < minTrack.totalCredit) {
+      minTrack = track;
+    }
   }
-
-  // Find immediate prerequisite logic or module nodes connected to the target module
-  // Look for edges where from = targetId and type = HAS_PREREQ or similar
-  // Actually, prereqs are usually children in the graph (target has prereqs as children?)
-
-  // Usually prereq graph edges: target module → prerequisite node
-  // So we traverse the child nodes of target module
-
-  // Get prereq children of target module node
-  const prereqChildren = nodeChildren.get(targetId);
-  if (!prereqChildren || prereqChildren.length === 0) {
-    // No prereqs → empty set
-    return new Set();
+  if (!minTrack) {
+    return { moduleNodes: {}, logicNodes: {}, edges: [] };
   }
-
-  // Compute minimal prereqs sets for all prereq children and union them
-  const finalSet = new Set<string>();
-  for (const childId of prereqChildren) {
-    const childSet = dfs(childId);
-    for (const mod of childSet) finalSet.add(mod);
-  }
-
-  return finalSet;
+  return {
+    moduleNodes: minTrack.moduleNodes,
+    logicNodes: minTrack.logicNodes,
+    edges: minTrack.edges,
+  };
 }

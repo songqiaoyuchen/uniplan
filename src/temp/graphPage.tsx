@@ -3,12 +3,14 @@
 'use client';
 
 import { useState } from "react";
-import { fetchGraph } from "@/services/planner/fetchGraph";
-import GraphViewer from "./GraphViewer";
+import { fetchRawGraph } from "@/services/planner/fetchGraph";
+import GraphViewer from "../app/components/GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
-import { requiredGraph } from "@/utils/graph/cleanGraph";
+import { cleanGraph } from "@/utils/graph/cleanGraph";
+import { weighByModuleCredit } from "@/utils/graph/augment/weightByModuleCredit";
+import { formatGraph } from "@/temp/temp";
 
 export default function GraphPage() {
   const [neo4jData, setNeo4jData] = useState<any>(null);
@@ -23,8 +25,7 @@ export default function GraphPage() {
     if (codes.length === 0) return;
 
     try {
-      const dataRaw = await fetchGraph(codes);
-      const data = requiredGraph(dataRaw, codes);
+      const data = await fetchRawGraph(codes);
       setNeo4jData(data);
       setDialogOpen(false);
     } catch (err) {

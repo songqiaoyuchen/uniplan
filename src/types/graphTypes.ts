@@ -25,20 +25,13 @@ export type LogicNode = {
   n?: number; // for nOF nodes (optional)
 };
 
-export type Edge = {
-  from: number;
-  to: number;
-  type: string; // e.g. 'HAS_PREREQ', 'OPTION'
-};
-
 export type ModuleNode =
   | { type: 'single'; info: Module }
   | { type: 'group'; info: ModuleGroup };
 
-export type FormattedGraph = {
-  moduleNodes: Record<number, ModuleNode>;
-  logicNodes: Record<number, LogicNode>;
-  edges: Edge[];
+export type Edge = {
+  from: number;
+  to: number;
 };
 
 export type ModuleGroup = {
@@ -52,4 +45,10 @@ export type Module = {
   offeredIn: number[];
   description: string;
   moduleCredit: string;
+};
+
+export type FormattedGraph = {
+  moduleNodes: Record<number, ModuleNode>;
+  logicNodes: Record<number, LogicNode>;
+  edges: Edge[];
 };

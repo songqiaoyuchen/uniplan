@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { formatGraph } from '@/utils/graph/formatGraph';
-import { selectLightestTrack } from '@/utils/graph/selectLightestTrack';
-import { fetchGraph } from '@/services/planner/fetchGraph';
+import { fetchRawGraph } from '@/services/planner/fetchGraph';
 
-const rawGraph = await fetchGraph(["CS3230"]);
+const rawGraph = await fetchRawGraph(["CS3230"]);
 
 export default function TestFormatGraph() {
   const [formatted, setFormatted] = useState<string | null>(null);
@@ -11,8 +10,6 @@ export default function TestFormatGraph() {
   const handleClick = () => {
     const result = formatGraph(rawGraph);
     setFormatted(JSON.stringify(result, null, 2));
-    const minimalPrereqs = selectLightestTrack(result);
-    console.log('Minimal prereqs:', Array.from(minimalPrereqs));
   };
 
   return (

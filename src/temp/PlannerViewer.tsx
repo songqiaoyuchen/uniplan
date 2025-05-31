@@ -2,8 +2,8 @@
 import { useState } from 'react';
 import { TextField, Button, Grid, Typography, Box } from '@mui/material';
 import { Timeline, TimelineItem, TimelineSeparator, TimelineConnector, TimelineContent, TimelineDot } from '@mui/lab';
-import { scheduleModules } from '../../temp/scheduleModules';
-import { convertToSchedulingInput } from '../../temp/convertToInput';
+import { scheduleModules } from './scheduleModules';
+import { convertToSchedulingInput } from './convertToInput';
 
 type ScheduleResult = {
   [semester: number]: string[];
