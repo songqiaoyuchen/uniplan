@@ -8,6 +8,7 @@
 */
 
 import { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
+import { normaliseNodes } from './normaliseNodes';
 
 export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
   const nodeMap = new Map<number, RawNode>();
@@ -23,25 +24,7 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
   }
 
   // 🔄 Normalize AND/OR to NOF
-  const normalizedNodes: RawNode[] = graph.nodes.map(node => {
-    if (!node.labels.includes('Logic')) return node;
-
-    const out = outgoingMap.get(node.id)?.length ?? 0;
-
-    if (node.properties.type === 'AND') {
-      return {
-        ...node,
-        properties: { type: 'NOF', threshold: out },
-      };
-    } else if (node.properties.type === 'OR') {
-      return {
-        ...node,
-        properties: { type: 'NOF', threshold: 1 },
-      };
-    } else {
-      return node; // Already NOF
-    }
-  });
+ const normalizedNodes = normaliseNodes(graph.nodes, graph.relationships);
 
   const requiredModuleIds = new Set<number>();
   for (const node of normalizedNodes) {
