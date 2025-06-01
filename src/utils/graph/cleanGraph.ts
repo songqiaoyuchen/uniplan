@@ -15,16 +15,19 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
   const outgoingMap = new Map<number, RawRelationship[]>();
   const incomingMap = new Map<number, RawRelationship[]>();
 
-  for (const node of graph.nodes) nodeMap.set(node.id, node);
-  for (const rel of graph.relationships) {
+    // 🔄 Normalize AND/OR to NOF
+  const {
+    normalizedNodes,
+    normalizedRelationships
+  } = normaliseNodes(graph.nodes, graph.relationships);
+
+  for (const node of normalizedNodes) nodeMap.set(node.id, node);
+  for (const rel of normalizedRelationships) {
     if (!outgoingMap.has(rel.startNode)) outgoingMap.set(rel.startNode, []);
     if (!incomingMap.has(rel.endNode)) incomingMap.set(rel.endNode, []);
     outgoingMap.get(rel.startNode)!.push(rel);
     incomingMap.get(rel.endNode)!.push(rel);
   }
-
-  // 🔄 Normalize AND/OR to NOF
- const normalizedNodes = normaliseNodes(graph.nodes, graph.relationships);
 
   const requiredModuleIds = new Set<number>();
   for (const node of normalizedNodes) {
@@ -126,7 +129,7 @@ export function cleanGraph(graph: RawGraph, requiredCodes: string[]): RawGraph {
   }
 
   // Keep untouched relationships
-  for (const rel of graph.relationships) {
+  for (const rel of normalizedRelationships) {
     if (!toRemoveRel.has(rel.id)) newRelationships.push(rel);
   }
 

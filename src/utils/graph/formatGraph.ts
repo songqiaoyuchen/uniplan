@@ -38,11 +38,11 @@ export function formatGraph(raw: RawGraph): FormattedGraph {
     }
 
     if (node.labels.includes("Logic")) {
-      const type = node.properties.type as "AND" | "OR" | "NOF";
+      const type = node.properties.type as "NOF";
       logicNodes[node.id] = {
         id: node.id,
         type,
-        ...(type === "NOF" && node.properties.threshold !== undefined 
+        ...(node.properties.threshold !== undefined 
           ? { n: node.properties.threshold } : {}),
       };
     }
@@ -97,16 +97,19 @@ function simplifyGraph(
     const parentsSet = parentsMap[mod.id] ?? new Set();
     const childrenSet = childrenMap[mod.id] ?? new Set();
 
-    // Only logic parents of type OR or NOF
-    const hasOnlyOrNofParents = Array.from(parentsSet).every((pId) => {
+    // Only logic parents of type NOF (no more OR/AND)
+    const hasOnlyNofParentsWithPartialThreshold = Array.from(parentsSet).every((pId) => {
       const pNode = idToNode[pId];
+      const totalChildren = childrenMap[pId]?.size ?? Infinity;
       return (
         pNode &&
         "type" in pNode &&
-        (pNode.type === "OR" || pNode.type === "NOF")
+        pNode.type === "NOF" &&
+        typeof pNode.n === "number" &&
+        pNode.n < totalChildren // i.e. not full AND
       );
     });
-    if (!hasOnlyOrNofParents) continue;
+    if (!hasOnlyNofParentsWithPartialThreshold) continue;
 
     // Unique group key from sorted parents & children IDs
     const groupKey = `${[...parentsSet].sort().join(",")}|${[...childrenSet].sort().join(",")}`;
