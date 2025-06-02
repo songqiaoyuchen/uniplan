@@ -5,6 +5,7 @@
 import type { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
 import type { Record as NeoRecord, Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
+import { v4 as uuid } from 'uuid';
 
 /**
  * Merges prerequisite subgraphs for multiple modules in a single Cypher call,
@@ -41,7 +42,7 @@ export async function getMergedTree(moduleCodes: string[]): Promise<RawGraph> {
 
     // Map driver objects to plain JSON
     const nodes: RawNode[] = neoNodes.map(n => ({
-      id: n.identity.toNumber(),
+      id: n.identity.toString(),
       labels: [...n.labels],
       properties: {
         ...n.properties,
@@ -50,9 +51,9 @@ export async function getMergedTree(moduleCodes: string[]): Promise<RawGraph> {
     }));
 
     const relationships: RawRelationship[] = neoRels.map(r => ({
-      id:        r.identity.toNumber(),
-      startNode: r.start.toNumber(),
-      endNode:   r.end.toNumber(),
+      id:        r.identity.toString(),
+      startNode: r.start.toString(),
+      endNode:   r.end.toString(),
       type:      r.type,
       properties:{ ...r.properties }
     }));

@@ -10,12 +10,12 @@ cytoscape.use(dagre);
 interface GraphViewerProps {
   data: Readonly<{
     nodes: ReadonlyArray<{
-      id: number;
+      id: string;
       labels: string[];
       properties: Record<string, any>;
     }>;
     relationships: ReadonlyArray<{
-      id: number;
+      id: string;
       type: string;
       startNode: number;
       endNode: number;
@@ -41,7 +41,7 @@ export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
     type CytoscapeNodeData = {
       id: string;
       label: string;
-      originalId: number;
+      originalId: string;
     };
     
     type CytoscapeEdgeData = {
@@ -49,7 +49,7 @@ export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
       source: string;
       target: string;
       label: string;
-      originalId: number;
+      originalId: string;
     };
     
     // Create a flat array of elements (better for Cytoscape)
@@ -182,12 +182,12 @@ export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
       <div
         ref={cyRef}
         style={{
-          height: "100vh",     // 100% of viewport height
-          width: "100vw",      // 100% of viewport width
-          position: "fixed",   // Or absolute, depending on your layout
-          top: 0,
-          left: 0,
-          zIndex: 0            // Adjust if overlapping other UI
+          height: "80vh",
+          width: "80vw",
+          position: "fixed",
+          top: "10%",
+          left: "10%",
+          zIndex: 0
         }}
       />
       <div

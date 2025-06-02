@@ -1,15 +1,15 @@
-// src/types.ts
+// src/types/graphTypes.ts
 
 export type RawNode = {
-  id: number;
+  id: string;
   labels: string[];
   properties: Record<string, any>;
 };
 
 export type RawRelationship = {
-  id: number;
-  startNode: number;
-  endNode: number;
+  id: string;
+  startNode: string;
+  endNode: string;
   type: string;
   properties: Record<string, any>;
 };
@@ -20,9 +20,8 @@ export type RawGraph = {
 };
 
 export type LogicNode = {
-  id: number;
-  type: 'AND' | 'OR' | 'NOF';
-  n?: number; // for nOF nodes (optional)
+  id: string;
+  requires: number
 };
 
 export type ModuleNode =
@@ -30,16 +29,16 @@ export type ModuleNode =
   | { type: 'group'; info: ModuleGroup };
 
 export type Edge = {
-  from: number;
-  to: number;
+  from: string;
+  to: string;
 };
 
 export type ModuleGroup = {
-  list: Record<string, Module>;
+  list: Module[];
 };
 
 export type Module = {
-  id: number;
+  id: string;
   code: string;
   title: string;
   offeredIn: number[];
@@ -48,7 +47,7 @@ export type Module = {
 };
 
 export type FormattedGraph = {
-  moduleNodes: Record<number, ModuleNode>;
-  logicNodes: Record<number, LogicNode>;
+  moduleNodes: Record<string, ModuleNode>;
+  logicNodes: Record<string, LogicNode>;
   edges: Edge[];
 };

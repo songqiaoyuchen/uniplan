@@ -8,7 +8,6 @@ import { FormattedGraph } from '@/types/graphTypes';
 import { ErrorResponse } from '@/types/errorTypes';
 import { formatGraph } from '@/utils/graph/formatGraph';
 import { cleanGraph } from '@/utils/graph/cleanGraph';
-import { weighByModuleCredit } from '@/utils/graph/augment/weightByModuleCredit';
 
 export async function GET(request: NextRequest)
 : Promise<NextResponse<FormattedGraph | ErrorResponse>> {
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest)
 
   try {
     const graph = await getMergedTree(codes);
-    return NextResponse.json(weighByModuleCredit(formatGraph(cleanGraph(graph, codes))));
+    return NextResponse.json(formatGraph(cleanGraph(graph, codes)));
   } catch (err) {
     console.error('exportGraph error:', err);
     return NextResponse.json(

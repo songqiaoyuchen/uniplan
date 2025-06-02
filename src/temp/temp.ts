@@ -1,156 +1,198 @@
-// src/utils/graph/formatGraph.ts
-// format RawGraph from neo4j to FormattedGraph for easier processing
+/** More actions
+ * @path src/utils/graph/cleanGraph.ts
+ * @param graph: RawGraph,
+ *        required mode codes: string[]
+ * @returns cleaned graph: RawGraph
+ * @description cleans the graph to include only the nodes and relationships 
+ * that are required based on the provided list of module codes.
+*/
 
-import {
-  RawGraph,
-  RawNode,
-  RawRelationship,
-  ModuleNode,
-  LogicNode,
-  Edge,
-  Module,
-  ModuleGroup,
-  FormattedGraph,
-} from '@/types/graphTypes';
+import { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
+import { v4 as uuid } from 'uuid';
 
-export function formatGraph(raw: RawGraph): FormattedGraph {
-  const moduleNodes: Record<number, ModuleNode> = {};
-  const logicNodes: Record<number, LogicNode> = {};
-  const edges: Edge[] = [];
+export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
+  const { nodes, relationships } = raw;
 
-  const idToNode: Record<number, RawNode> = {};
-  const childrenMap: Record<number, Set<number>> = {};
-  const parentsMap: Record<number, Set<number>> = {};
+  const nodeMap: Record<string, RawNode> = {};
+  for (const node of nodes) nodeMap[node.id] = node;
 
-  for (const node of raw.nodes) {
-    idToNode[node.id] = node;
+  const outgoingEdges: Record<string, RawRelationship[]> = {};
+  const incomingEdges: Record<string, RawRelationship[]> = {};
+  for (const rel of relationships) {
+    if (!outgoingEdges[rel.startNode]) outgoingEdges[rel.startNode] = [];
+    if (!incomingEdges[rel.endNode]) incomingEdges[rel.endNode] = [];
+    outgoingEdges[rel.startNode].push(rel);
+    incomingEdges[rel.endNode].push(rel);
+  }
 
-    if (node.labels.includes("Module")) {
-      const { code, title, offeredIn, description, moduleCredit } = node.properties;
-      moduleNodes[node.id] = {
-        type: "single",
-        info: {
-          id: node.id,
-          code,
-          title,
-          offeredIn,
-          description,
-          moduleCredit,
-        },
-      };
-    }
-
-    if (node.labels.includes("Logic")) {
-      const type = node.properties.type as "AND" | "OR" | "NOF";
-      logicNodes[node.id] = {
-        id: node.id,
-        type,
-        ...(type === "NOF" && node.properties.threshold !== undefined 
-          ? { n: node.properties.threshold } : {}),
-      };
+  const requiredModuleIds = new Set<string>();
+  for (const node of nodes) {
+    if (node.labels.includes('Module') && requiredCodes.includes(node.properties.code)) {
+      requiredModuleIds.add(node.id);
     }
   }
 
-  for (const rel of raw.relationships) {
-    if (!childrenMap[rel.startNode]) childrenMap[rel.startNode] = new Set();
-    if (!parentsMap[rel.endNode]) parentsMap[rel.endNode] = new Set();
+  const nodesToRemove = new Set<string>();
 
-    childrenMap[rel.startNode].add(rel.endNode);
-    parentsMap[rel.endNode].add(rel.startNode);
+  function cleanOrNof(nodeId: string) {
+    const inEdges = incomingEdges[nodeId] || [];
+    for (const parent of inEdges.map(r => r.startNode)) {
+      if (nodeMap[parent].labels.includes('Logic') && nodeMap[parent].properties.type === 'OR') {
+        // If the parent is a OR, remove all its peers that are not required
+        const outEdges = outgoingEdges[parent] || [];
+        for (const outEdge of outEdges) {
+          if (!requiredModuleIds.has(outEdge.endNode)) {
+            nodesToRemove.add(outEdge.endNode); 
+          }
+        }
+        nodesToRemove.add(parent); // Remove the OR parent itself
+        incomingEdges[nodeId] = incomingEdges[nodeId].filter(edge => edge.startNode !== parent);
 
-    edges.push({
-      from: rel.startNode,
-      to: rel.endNode,
-      type: rel.type,
-    });
-  }
+        for (const edge of incomingEdges[parent] ?? []) {
+          // redirect relationships to parent to the required module
+          edge.endNode = nodeId;
+        }
+      }
 
-  const moduleGroupCandidates: Record<
-    string,
-    { id: number; module: Module }[]
-  > = {};
-
-  for (const [idstr, node] of Object.entries(moduleNodes)) {
-    const id = Number(idstr);
-    if (node.type !== "single") continue;
-
-    const mod = node.info;
-    const parentsSet = parentsMap[mod.id] ?? new Set();
-    const childrenSet = childrenMap[mod.id] ?? new Set();
-
-    // Check: only logic parents of type OR or NOF
-    const hasOnlyOrNofParents = Array.from(parentsSet).every(pId => {
-      const pNode = idToNode[pId];
-      return (
-        pNode?.labels.includes("Logic") &&
-        (pNode.properties.type === "OR" || pNode.properties.type === "NOF")
-      );
-    });
-    if (!hasOnlyOrNofParents) continue;
-
-    // Generate a unique key based on sorted parent and child IDs
-    const groupKey = `${[...parentsSet].sort().join(",")}|${[...childrenSet].sort().join(",")}`;
-
-    if (!moduleGroupCandidates[groupKey]) {
-      moduleGroupCandidates[groupKey] = [];
-    }
-    moduleGroupCandidates[groupKey].push({ id, module: mod });
-  }
-
-  const groupedIds = new Set<number>();
-  const newEdges: Edge[] = [];
-
-  for (const [groupKey, groupList] of Object.entries(moduleGroupCandidates)) {
-    if (groupList.length <= 1) continue; // only group if more than one
-
-    const groupId = groupList[0].id;
-    const group: ModuleGroup = {
-      list: Object.fromEntries(groupList.map(({ id, module }) => [id, module])),
-    };
-
-    // Remove the original single nodes
-    for (const { id } of groupList) {
-      delete moduleNodes[id];
-    }
-
-    // Create a group node
-    moduleNodes[groupId] = { type: "group", info: group };
-
-    // Track which IDs were grouped
-    for (const { module } of groupList) {
-      groupedIds.add(module.id);
-    }
-
-    // Reconnect the edges (preserve same parent/child edges for the groupCode)
-    const sample = groupList[0].module;
-    const parentIds = Array.from(parentsMap[sample.id] ?? []);
-    const childIds = Array.from(childrenMap[sample.id] ?? []);
-
-    // Remove all edges from OR nodes to individual modules in the group
-    // Identify all OR parents
-    const orParentIds = parentIds.filter((pId) => {
-      const logicNode = logicNodes[pId];
-      return logicNode?.type === "OR";
-    });
-
-    // Filter out edges that go from any OR parent to any module in the group
-    for (let i = edges.length - 1; i >= 0; i--) {
-      const edge = edges[i];
-      if (orParentIds.includes(edge.from) && groupedIds.has(edge.to)) {
-        edges.splice(i, 1);
+      if (nodeMap[parent].labels.includes('Logic') && nodeMap[parent].properties.type === 'NOF') {
+        // If the parent is a NOF, check if it has enough required children
+        const outEdges = outgoingEdges[parent] || [];
+        const requiredChildren = outEdges.filter(r => requiredModuleIds.has(r.endNode));
+        if (requiredChildren.length < nodeMap[parent].properties.threshold) {
+          nodeMap[parent].properties.threshold -= requiredChildren.length; // reduce the threshold
+          // create a new AND node
+          const newAND = {
+            id: uuid(),
+            labels: ['Logic'],
+            properties: { type: 'AND' },
+          }
+          nodeMap[newAND.id] = newAND;
+          incomingEdges[newAND.id] = [];
+          outgoingEdges[newAND.id] = [];
+          // redirect NOF parents to the new AND node
+          for (const edge of incomingEdges[parent] ?? []) {
+            edge.endNode = newAND.id;
+          }
+          // connect the new AND node to the required children
+          for (const childId of requiredChildren.map(r => r.endNode)) {
+            const newANDToRequired = {
+              id: uuid(),
+              startNode: newAND.id,
+              endNode: childId,
+              type: 'REQUIRES',
+              properties: {},
+            };
+            outgoingEdges[newAND.id].push(newANDToRequired);
+            incomingEdges[childId].push(newANDToRequired);
+            relationships.push(newANDToRequired); // add the new relationship to the graph
+          }
+          // connect the new AND node to the parent NOF
+          const newANDToNOF = {
+            id: uuid(),
+            startNode: newAND.id,
+            endNode: parent,
+            type: 'REQUIRES',
+            properties: {},
+          };
+          outgoingEdges[newAND.id].push(newANDToNOF);
+          incomingEdges[parent].push(newANDToNOF);
+          relationships.push(newANDToNOF); // add the new relationship to the graph
+        } else { // If the NOF has enough required children, we can remove it
+          nodesToRemove.add(parent); // mark NOF for removal
+          for (const child of outEdges.map(r => r.endNode)) {
+            if (!requiredModuleIds.has(child)) {
+              nodesToRemove.add(child); // mark non-required children for removal
+            }
+          }
+          // create a new AND node to connect the required children
+          const newAND = {
+            id: uuid(),
+            labels: ['Logic'],
+            properties: { type: 'AND' },
+          };
+          nodeMap[newAND.id] = newAND;
+          incomingEdges[newAND.id] = [];
+          outgoingEdges[newAND.id] = [];
+          // connect the new AND node to the required children
+          requiredChildren.length = nodeMap[parent].properties.threshold; // ensure we only connect the required number of children
+          for (const childId of requiredChildren.map(r => r.endNode)) {
+            const newANDToRequired = {
+              id: uuid(),
+              startNode: newAND.id,
+              endNode: childId,
+              type: 'REQUIRES',
+              properties: {},
+            };
+            outgoingEdges[newAND.id].push(newANDToRequired);
+            incomingEdges[childId].push(newANDToRequired);
+            relationships.push(newANDToRequired); // add the new relationship to the graph
+          }
+          // redirect NOF parents to the new AND node
+          for (const edge of incomingEdges[parent] ?? []) {
+            edge.endNode = newAND.id;
+          }
+        }
       }
     }
+  }
 
-    for (const pId of parentIds) {
-      newEdges.push({ from: pId, to: groupId, type: "OPTION" });
+  function hasOrNofParent(nodeId: string): boolean {
+    const inEdges = incomingEdges[nodeId] || [];
+    for (const parent of inEdges.map(r => r.startNode)) {
+      if (nodeMap[parent].labels.includes('Logic') && 
+          (nodeMap[parent].properties.type === 'OR' || nodeMap[parent].properties.type === 'NOF')) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    for (const cId of childIds) {
-      newEdges.push({ from: groupId, to: cId, type: "HAS_PREREQ" });
+  for (const id of requiredModuleIds) {
+    // !!! node should be found
+    // delete debugging code if needed
+    const node = nodeMap[id];
+    if (!node) console.warn(`Node with id ${id} not found in the graph.`);
+
+    while (hasOrNofParent(id)) {
+      cleanOrNof(id);
     }
   }
 
-  edges.push(...newEdges);
+  return removeRedundantParts(nodes, relationships, requiredModuleIds, nodesToRemove);
+}
 
-  return { moduleNodes, logicNodes, edges };
+
+
+// helper function to remove redundant parts of the graph created while selecting required nodes
+function removeRedundantParts(
+  nodes: RawNode[],
+  relationships: RawRelationship[],
+  rootRequiredIds: Set<string>,
+  markedNodes: Set<string>
+): RawGraph {
+  const adjacency = new Map<string, Array<{ node: string; relId: string }>>();
+  for (const rel of relationships) {
+    if (!adjacency.has(rel.startNode)) adjacency.set(rel.startNode, []);
+    adjacency.get(rel.startNode)!.push({ node: rel.endNode, relId: rel.id });
+  }
+
+  const visitedNodes = new Set<string>();
+  const visitedrelationships = new Set<string>();
+  const stack = [...rootRequiredIds];
+
+  while (stack.length > 0) {
+    const current = stack.pop()!;
+    if (visitedNodes.has(current)) continue;
+    visitedNodes.add(current);
+
+    for (const { node, relId } of adjacency.get(current) ?? []) {
+      visitedrelationships.add(relId);
+      if (!visitedNodes.has(node)) stack.push(node);
+    }
+  }
+
+  return {
+    nodes: nodes.filter(n => visitedNodes.has(n.id) || !markedNodes.has(n.id)),
+    relationships: relationships.filter(r => visitedrelationships.has(r.id))
+  }
 }

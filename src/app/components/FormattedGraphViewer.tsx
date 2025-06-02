@@ -1,5 +1,3 @@
-// Display prereq trees using Cytoscape with FormattedGraph
-
 import { useEffect, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 // @ts-expect-error
@@ -16,7 +14,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
   const cyRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({ nodes: 0, edges: 0 });
   const cyInstance = useRef<any>(null);
-  const expandedGroups = useRef<Set<number>>(new Set());
+  const expandedGroups = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!cyRef.current) return;
@@ -29,13 +27,15 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     // Add logic nodes
     for (const [id, node] of Object.entries(graph.logicNodes)) {
-      const nodeId = `module-${id}`;
+      const nodeId = `logic-${id}`;
+      const label = node.requires !== undefined ? `${node.requires}OF` : 'AND';
+
       elements.push({
         data: {
           id: nodeId,
-          label: `${node.type}: ${node.weight ?? '?'}`,
-          originalId: Number(id)
-        }
+          label,
+          originalId: id,
+        },
       });
     }
 
@@ -48,20 +48,18 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
         elements.push({
           data: {
             id: nodeId,
-            label: `${mod.code}: ${mod.weight ?? "?"}MC`,
+            label: `${mod.code}`,
             originalId: mod.id
           }
         });
       } else {
-        // For group, show group node only
         const group = moduleNode.info;
-        const moduleList = Object.values(group.list);
-        const firstModule = moduleList[0];
+        const firstModule = Object.values(group.list)[0];
         elements.push({
           data: {
-            id: `module-${id}`,
-            label: `${firstModule.code} (group): ${group.weight ?? "?"}MC`,
-            originalId: Number(id)
+            id: nodeId,
+            label: `${firstModule.code} (group)`,
+            originalId: id
           }
         });
       }
@@ -69,14 +67,18 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     // Add edges
     for (const edge of graph.edges) {
-      const fromNode = `module-${edge.from}`
-      const toNode = `module-${edge.to}` 
+      const fromNode = edge.from.startsWith('logic-') || edge.from.startsWith('module-')
+        ? edge.from
+        : (graph.logicNodes[edge.from] ? `logic-${edge.from}` : `module-${edge.from}`);
+      const toNode = edge.to.startsWith('logic-') || edge.to.startsWith('module-')
+        ? edge.to
+        : (graph.logicNodes[edge.to] ? `logic-${edge.to}` : `module-${edge.to}`);
+
       elements.push({
         data: {
-          id: `edge-${edge.from}->${edge.to}:${edge.type}`,
+          id: `edge-${edge.from}->${edge.to}`,
           source: fromNode,
           target: toNode,
-          label: edge.type,
         }
       });
     }
@@ -93,7 +95,10 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             'text-halign': 'center',
             'background-color': (ele: any) => {
               const label = ele.data('label');
-              return label.startsWith('Group') ? '#FFD966' : label.startsWith('OR') || label.startsWith('AND') || label.startsWith('NOF') ? '#F6B26B' : '#6FA8DC';
+              if (label?.includes('group')) return '#FFD966'; // group
+              if (label === 'AND') return '#F6B26B'; // logic AND
+              if (label?.endsWith('OF')) return '#F9CB9C'; // logic NOF
+              return '#6FA8DC'; // module
             },
             'width': 55,
             'height': 55,
@@ -130,33 +135,33 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     setStats({ nodes: cy.nodes().length, edges: cy.edges().length });
 
-    cy.on('tap', 'node', function(evt) {
+    cy.on('tap', 'node', function (evt) {
       const node = evt.target;
       const id = node.id();
 
-      if (id.startsWith("group-")) {
-        const groupId = parseInt(id.replace("group-", ""));
-        if (expandedGroups.current.has(groupId)) return;
-        expandedGroups.current.add(groupId);
-
-        const groupNode = graph.moduleNodes[groupId];
+      if (id.startsWith("module-")) {
+        const moduleId = id.replace("module-", "");
+        const groupNode = graph.moduleNodes[moduleId];
         if (groupNode?.type === 'group') {
+          if (expandedGroups.current.has(moduleId)) return;
+          expandedGroups.current.add(moduleId);
+
           const group = groupNode.info;
           const moduleList = Object.values(group.list);
 
           moduleList.forEach(mod => {
-            const modId = `group-${groupId}-${mod.code}`;
+            const modId = `mod-${mod.code}-${mod.id}`;
             cy.add({
               data: {
                 id: modId,
-                label: `${mod.code}: ${mod.weight ?? mod.moduleCredit}MC`,
+                label: `${mod.code}`,
                 originalId: mod.id
               }
             });
             cy.add({
               data: {
-                id: `edge-group-${groupId}->${mod.code}`,
-                source: `group-${groupId}`,
+                id: `edge-${moduleId}->${mod.code}`,
+                source: `module-${moduleId}`,
                 target: modId,
                 label: 'GROUP_MEMBER',
                 originalId: -1
@@ -175,14 +180,12 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             animate: true
           } as any).run();
         }
-
-        return;
       }
 
       cy.fit(node, 50);
     });
 
-    cyRef.current.addEventListener('dblclick', function() {
+    cyRef.current.addEventListener('dblclick', function () {
       cy.fit(undefined, 50);
       cy.center();
     });

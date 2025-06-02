@@ -1,7 +1,6 @@
 'use client';
 
 import { Box, Typography, Button } from "@mui/material";
-import Tester from "./components/Tester";
 
 export default function Home() {
 
@@ -10,7 +9,6 @@ export default function Home() {
       <Typography variant="h4" gutterBottom>
         Uni Planner
       </Typography>
-      <Tester/>
     </Box>
   );
 }
