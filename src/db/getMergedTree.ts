@@ -17,18 +17,19 @@ export async function getMergedTree(moduleCodes: string[]): Promise<RawGraph> {
     // Single Cypher query to unwind, collect, and dedupe subgraphs
     const result = await session.run(
       `UNWIND $moduleCodes AS code
-       MATCH (m:Module { code: code })
-       CALL apoc.path.subgraphAll(
-         m,
-         {
-           relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
-           labelFilter: "Module|Logic"
-         }
-       ) YIELD nodes AS subNodes, relationships AS subRels
-       UNWIND subNodes AS n
-       UNWIND subRels AS r
-       WITH collect(DISTINCT n) AS nodes, collect(DISTINCT r) AS relationships
-       RETURN nodes, relationships`,
+        MATCH (m:Module { code: code })
+
+        CALL apoc.path.subgraphAll(
+          m,
+          {
+            relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
+            labelFilter: "Module|Logic"
+          }
+        ) YIELD nodes, relationships
+
+        WITH collect(DISTINCT nodes) AS groupedNodes, collect(DISTINCT relationships) AS groupedRels
+        WITH apoc.coll.flatten(groupedNodes) AS nodes, apoc.coll.flatten(groupedRels) AS relationships
+        RETURN nodes, relationships`,
       { moduleCodes }
     );
 
