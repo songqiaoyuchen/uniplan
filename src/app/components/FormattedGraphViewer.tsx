@@ -58,7 +58,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
         elements.push({
           data: {
             id: nodeId,
-            label: `${firstModule.code} (group)`,
+            label: `G-${firstModule.code}`,
             originalId: id
           }
         });
@@ -95,7 +95,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             'text-halign': 'center',
             'background-color': (ele: any) => {
               const label = ele.data('label');
-              if (label?.includes('group')) return '#FFD966'; // group
+              if (label?.includes('G-')) return '#FFD966'; // group
               if (label === 'AND') return '#F6B26B'; // logic AND
               if (label?.endsWith('OF')) return '#F9CB9C'; // logic NOF
               return '#6FA8DC'; // module
