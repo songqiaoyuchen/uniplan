@@ -1,89 +1,75 @@
 /** 
- * @path src/utils/graph/normalizeNodes.ts
- * @param nodes: RawNode[],
- *        relationships: RawRelationship[]
- * @returns normalizedNodes: RawNode[]
- * @description converts all Logic nodes of type AND or OR into equivalent NOF form, 
- * where:
+ * @path src/utils/graph/normaliseNodes.ts
+ * @param graph: RawGraph
+ * @returns graph with normalised nodes and additional relationships: RawGraph
+ * @description convert all logic nodes of type AND or OR into equivalent NOF form for easier traversal
  * - AND nodes become NOF with threshold equal to the number of outgoing edges
  * - OR nodes become NOF with threshold 1
- * Additionally, direct module-to-module dependencies are rewritten to insert a NOF node in between.
- * This ensures the graph uses only a single type of logic gate (NOF) for simplification.
+ * - all direct module-to-module dependencies are inserted with a NOF(1) node in between
  */
 
-import { RawNode, RawRelationship } from '@/types/graphTypes';
+import { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
+import { v4 as uuid } from 'uuid';
 
-let idCounter = 10000000;
+export function normaliseNodes(graph: RawGraph): RawGraph {
+  const { nodes, relationships } = graph;
 
-export function normaliseNodes(
-  nodes: RawNode[],
-  relationships: RawRelationship[]
-): { normalizedNodes: RawNode[]; normalizedRelationships: RawRelationship[] } {
-  const outgoingMap = new Map<number, number>();
-  const newRelationships: RawRelationship[] = [];
-  const newNodes: RawNode[] = [];
+  const nodeMap: Record<string, RawNode> = {};
+  for (const node of nodes) nodeMap[node.id] = node;
 
-  const nodeMap = new Map<number, RawNode>();
-  for (const node of nodes) nodeMap.set(node.id, node);
+  const outgoingEdges: Record<string, number> = {};
 
   // Count outgoing edges for logic node normalization
   for (const rel of relationships) {
-    outgoingMap.set(rel.startNode, (outgoingMap.get(rel.startNode) ?? 0) + 1);
+    outgoingEdges[rel.startNode] ??= 0;
+    outgoingEdges[rel.startNode] ++;
   }
 
   for (const node of nodes) {
-    if (node.labels.includes('Logic')) {
-      const out = outgoingMap.get(node.id) ?? 0;
-
-      if (node.properties.type === 'AND') {
-        newNodes.push({
-          ...node,
-          properties: { type: 'NOF', threshold: out },
-        });
-      } else if (node.properties.type === 'OR') {
-        newNodes.push({
-          ...node,
-          properties: { type: 'NOF', threshold: 1 },
-        });
-      } else {
-        newNodes.push(node); // already NOF
+    if (node.labels.includes('Logic') && node.properties.type === 'AND') {
+      const out = outgoingEdges[node.id] ?? 0;
+      // debugging
+      if (out <= 0) {
+        console.warn(`AND node ${node.id} has no outgoing edges!!!!!!!!!!!!!!`);
       }
+      node.properties.threshold = out;
+      node.properties.type = 'NOF';
+    } else if (node.labels.includes('Logic') && node.properties.type === 'OR') {
+      node.properties.threshold = 1;
+      node.properties.type = 'NOF';
     } else {
-      newNodes.push(node); // module
+      continue;
     }
   }
 
   for (const rel of relationships) {
-    const fromNode = nodeMap.get(rel.startNode);
-    const toNode = nodeMap.get(rel.endNode);
+    const fromNode = nodeMap[rel.startNode];
+    const toNode = nodeMap[rel.endNode];
 
     const fromIsModule = fromNode?.labels.includes('Module');
     const toIsModule = toNode?.labels.includes('Module');
 
     if (
-      rel.type === 'HAS_PREREQ' &&
       fromIsModule &&
       toIsModule
     ) {
-      // Insert NOF node between Module → Module
-      const nofId = idCounter++;
-
-      newNodes.push({
+      const nofId = uuid();
+      nodes.push({
         id: nofId,
         labels: ['Logic'],
         properties: { type: 'NOF', threshold: 1 },
       });
 
-      newRelationships.push(
+      relationships.push(
         {
-          id: idCounter++,
+          id: uuid(),
           startNode: rel.startNode,
           endNode: nofId,
           type: 'HAS_PREREQ',
           properties: {},
         },
         {
-          id: idCounter++,
+          id: uuid(),
           startNode: nofId,
           endNode: rel.endNode,
           type: 'HAS_PREREQ',
@@ -91,12 +77,9 @@ export function normaliseNodes(
         }
       );
     } else {
-      newRelationships.push(rel); // keep original
+      continue;
     }
   }
 
-  return {
-    normalizedNodes: newNodes,
-    normalizedRelationships: newRelationships,
-  };
+  return graph;
 }
