@@ -3,7 +3,7 @@
  * @param graph: RawGraph,
  *        required mode codes: string[]
  * @returns cleaned graph: RawGraph
- * @description cleans the graph to include only the nodes and relationships 
+ * @description clean the graph to include only the nodes and relationships 
  * that are required based on the provided list of module codes.
 */
 
@@ -105,7 +105,7 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
 
           for (const childEdge of requiredChildren) {
             const newRel = {
-              id: uuid(),
+              id: `${newAND.id}-${childEdge.endNode}`,
               startNode: newAND.id,
               endNode: childEdge.endNode,
               type: 'REQUIRES',
@@ -118,7 +118,7 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
           }
 
           const andToNofRel = {
-            id: uuid(),
+            id:  `${newAND.id}-${parent}`,
             startNode: newAND.id,
             endNode: parent,
             type: 'REQUIRES',
@@ -148,7 +148,7 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
           const selectedChildren = requiredChildren.slice(0, parentNode.properties.threshold);
           for (const childEdge of selectedChildren) {
             const newRel = {
-              id: uuid(),
+              id: `${newAND.id}-${childEdge.endNode}`,
               startNode: newAND.id,
               endNode: childEdge.endNode,
               type: 'REQUIRES',

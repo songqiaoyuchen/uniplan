@@ -1,31 +1,27 @@
 /** 
  * @path src/utils/graph/formatGraph.ts
- * @param raw: RawGraph,
+ * @param raw: RawGraph
  * @returns formatted graph: FormattedGraph
- * @description formats the raw graph from neo4j into a more structured format,
- * combining module nodes into groups where applicable and simplifying the structure.
+ * @description formats the raw graph from neo4j into a more structured format
 */ 
 
 import {
   RawGraph,
-  ModuleNode,
-  LogicNode,
   Edge,
-  Module,
-  ModuleGroup,
+  Node,
   FormattedGraph,
 } from '@/types/graphTypes';
 import { mergeModules } from './mergeModules';
 
 export function formatGraph(raw: RawGraph): FormattedGraph {
-  const moduleNodes: Record<string, ModuleNode> = {};
-  const logicNodes: Record<string, LogicNode> = {};
+  const nodes: Record<string, Node> = {};
   const edges: Edge[] = [];
 
   for (const node of raw.nodes) {
     if (node.labels.includes("Module")) {
       const { code, title, offeredIn, description, moduleCredit } = node.properties;
-      moduleNodes[node.id] = {
+      nodes[node.id] = {
+        id: node.id,
         type: "single",
         info: {
           id: node.id,
@@ -39,8 +35,9 @@ export function formatGraph(raw: RawGraph): FormattedGraph {
     }
 
     if (node.labels.includes("Logic")) {
-      logicNodes[node.id] = {
+      nodes[node.id] = {
         id: node.id,
+        type: "logic",
         requires: node.properties.threshold,
       };
     }
@@ -48,10 +45,11 @@ export function formatGraph(raw: RawGraph): FormattedGraph {
 
   for (const rel of raw.relationships) {
     edges.push({
+      id: `${rel.startNode}-${rel.endNode}`,
       from: rel.startNode,
       to: rel.endNode,
     });
   }
 
-  return mergeModules({moduleNodes, logicNodes, edges});
+  return {nodes, edges};
 }

@@ -62,20 +62,23 @@ export function normaliseNodes(graph: RawGraph): RawGraph {
 
       relationships.push(
         {
-          id: uuid(),
+          id: `${rel.startNode}-${nofId}`,
           startNode: rel.startNode,
           endNode: nofId,
           type: 'HAS_PREREQ',
           properties: {},
         },
         {
-          id: uuid(),
+          id: `${nofId}-${rel.endNode}`,
           startNode: nofId,
           endNode: rel.endNode,
           type: 'HAS_PREREQ',
           properties: {},
         }
       );
+
+      // delete the original relationship
+      relationships.splice(relationships.indexOf(rel), 1);
     } else {
       continue;
     }

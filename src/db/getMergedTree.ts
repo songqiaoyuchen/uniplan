@@ -50,13 +50,12 @@ export async function getMergedTree(moduleCodes: string[]): Promise<RawGraph> {
     }));
 
     const relationships: RawRelationship[] = neoRels.map(r => ({
-      id:        r.identity.toString(),
+      id:        `${r.start.toString()}-${r.end.toString()}`,
       startNode: r.start.toString(),
       endNode:   r.end.toString(),
       type:      r.type,
       properties:{ ...r.properties }
     }));
-    console.log("wtfffffffffffffff" + nodes.length)
     return { nodes, relationships };
   } finally {
     await closeNeo4jConnection(driver, session);

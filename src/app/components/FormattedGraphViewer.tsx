@@ -25,26 +25,11 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     const elements: { data: any }[] = [];
 
-    // Add logic nodes
-    for (const [id, node] of Object.entries(graph.logicNodes)) {
-      const nodeId = `logic-${id}`;
-      const label = node.requires !== undefined ? `${node.requires}OF` : 'AND';
-
-      elements.push({
-        data: {
-          id: nodeId,
-          label,
-          originalId: id,
-        },
-      });
-    }
-
-    // Add module nodes
-    for (const [id, moduleNode] of Object.entries(graph.moduleNodes)) {
-      const nodeId = `module-${id}`;
-
-      if (moduleNode.type === 'single') {
-        const mod = moduleNode.info;
+    // Add nodes
+    for (const [id, node] of Object.entries(graph.nodes)) {
+      const nodeId = id;
+      if (node.type === 'single') {
+        const mod = node.info;
         elements.push({
           data: {
             id: nodeId,
@@ -52,8 +37,8 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             originalId: mod.id
           }
         });
-      } else {
-        const group = moduleNode.info;
+      } else if (node.type === 'group') {
+        const group = node.info;
         const firstModule = Object.values(group.list)[0];
         elements.push({
           data: {
@@ -62,18 +47,22 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             originalId: id
           }
         });
+      } else if (node.type === 'logic') {
+        const label = node.requires !== undefined ? `${node.requires}OF` : 'Logic';
+        elements.push({
+          data: {
+            id: nodeId,
+            label,
+            originalId: id,
+          },
+        });
       }
     }
 
     // Add edges
     for (const edge of graph.edges) {
-      const fromNode = edge.from.startsWith('logic-') || edge.from.startsWith('module-')
-        ? edge.from
-        : (graph.logicNodes[edge.from] ? `logic-${edge.from}` : `module-${edge.from}`);
-      const toNode = edge.to.startsWith('logic-') || edge.to.startsWith('module-')
-        ? edge.to
-        : (graph.logicNodes[edge.to] ? `logic-${edge.to}` : `module-${edge.to}`);
-
+      const fromNode = edge.from
+      const toNode = edge.to
       elements.push({
         data: {
           id: `edge-${edge.from}->${edge.to}`,
@@ -95,10 +84,9 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             'text-halign': 'center',
             'background-color': (ele: any) => {
               const label = ele.data('label');
-              if (label?.includes('G-')) return '#FFD966'; // group
-              if (label === 'AND') return '#F6B26B'; // logic AND
+              if (label?.startsWith('G-')) return '#6FA8DC'; // group
               if (label?.endsWith('OF')) return '#F9CB9C'; // logic NOF
-              return '#6FA8DC'; // module
+              return '#97e685'; // module
             },
             'width': 55,
             'height': 55,
@@ -141,7 +129,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
       if (id.startsWith("module-")) {
         const moduleId = id.replace("module-", "");
-        const groupNode = graph.moduleNodes[moduleId];
+        const groupNode = graph.nodes[moduleId];
         if (groupNode?.type === 'group') {
           if (expandedGroups.current.has(moduleId)) return;
           expandedGroups.current.add(moduleId);
@@ -210,7 +198,9 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
           position: "fixed",
           top: "10%",
           left: "10%",
-          zIndex: 0
+          zIndex: 0,
+          border: "1px solid #7a7a7a",
+          borderRadius: "8px",
         }}
       />
       <div
