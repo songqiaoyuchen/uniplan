@@ -32,7 +32,6 @@ export default function GraphPage() {
 
   return (
     <div>
-      <h1>Uni Planner</h1>
       <Button variant="contained" onClick={() => setDialogOpen(true)}>
         Export Graph
       </Button>
