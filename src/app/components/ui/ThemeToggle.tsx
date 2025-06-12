@@ -3,7 +3,7 @@
 import IconButton from '@mui/material/IconButton';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
-import { useThemeMode } from '@/styles/ThemeProvider';
+import { useThemeMode } from '@providers/ThemeProvider';
 import Tooltip from '@mui/material/Tooltip';
 
 export default function ThemeToggle() {

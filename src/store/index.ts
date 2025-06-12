@@ -1,7 +1,9 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
+
 import themeReducer from './themeSlice';
+import plannerReducer from './plannerSlice';
 
 const persistConfig = {
   key: 'root',
@@ -10,6 +12,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   theme: themeReducer,
+  planner: plannerReducer, 
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

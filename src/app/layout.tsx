@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import "../styles/globals.css";
-import JoyNavbar from "./components/layout/Navbar";
+import Navbar from "./components/layout/Navbar";
 import Toolbar from "@mui/material/Toolbar";
-import Providers from '@components/Providers'
+import Providers from '@providers/Providers'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +31,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AppRouterCacheProvider>
           <Providers>
-            <JoyNavbar/>
+            <Navbar/>
             <Toolbar/> {/* for spacing */}
             {children}
           </Providers>

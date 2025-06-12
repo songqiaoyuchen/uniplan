@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { fetchFinalGraph } from "@/services/planner/fetchGraph";
-import FinalGraphViewer from "../components/FinalGraphViewer";
+import FinalGraphViewer from "./FinalGraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";

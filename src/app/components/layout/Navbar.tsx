@@ -18,12 +18,12 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
-import ThemeToggle from '../ui/ThemeToggle';
-import { useThemeMode } from '@/styles/ThemeProvider';
+import ThemeToggle from '@ui/ThemeToggle';
+import { useThemeMode } from '@providers/ThemeProvider';
 
 const pages = [
   { name: 'Home', href: '/' },
-  { name: 'Planner', href: '/tbu' },
+  { name: 'Planner', href: '/planner' },
   { name: 'Explore', href: '/final-graph' }
 ];
 
@@ -81,9 +81,9 @@ function Navbar() {
 
             {/* Laptop Navlinks */}
             <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' } }}>
-              <Navlink href="/">Home</Navlink>
-              <Navlink href="/tbu">Planner</Navlink>
-              <Navlink href="/final-graph">Explore</Navlink>
+              {pages.map(page => (
+                <Navlink key={page.name} href={page.href}>{page.name}</Navlink>
+              ))}
             </Box>
 
             {/* Mobile Menu Icon */}

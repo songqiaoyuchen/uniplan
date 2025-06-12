@@ -3,9 +3,9 @@
 import { useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from '@mui/material';
-import { lightTheme, darkTheme } from './themes';
-import { RootState } from '../store';
-import { toggleTheme } from '../store/themeSlice';
+import { lightTheme, darkTheme } from '@/styles/themes';
+import { RootState } from '@/store';
+import { toggleTheme } from '@/store/themeSlice';
 import { createContext, useContext } from 'react';
 
 const ThemeContext = createContext({

@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { fetchFormattedGraph } from "@/services/planner/fetchGraph";
-import FormattedGraphViewer from "../components/FormattedGraphViewer";
+import FormattedGraphViewer from "./FormattedGraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";

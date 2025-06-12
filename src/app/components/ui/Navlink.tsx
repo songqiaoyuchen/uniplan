@@ -1,6 +1,6 @@
 'use client';
 
-import { useThemeMode } from '@/styles/ThemeProvider';
+import { useThemeMode } from '@providers/ThemeProvider';
 import Button from '@mui/material/Button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
