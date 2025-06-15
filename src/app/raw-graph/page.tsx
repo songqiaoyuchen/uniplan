@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { fetchRawGraph } from "@/services/planner/fetchGraph";
-import GraphViewer from "../components/GraphViewer";
+import GraphViewer from "./GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";

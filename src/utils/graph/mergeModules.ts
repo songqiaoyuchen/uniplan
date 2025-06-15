@@ -1,14 +1,12 @@
 /** 
  * @path src/utils/graph/mergeModules.ts
- * @param graph: FormattedGraph,
+ * @param graph: FormattedGraph
  * @returns graph with equivalent modules merged to a ModuleGroup: FormattedGraph
  * @description merge equivalent modules into a ModuleGroup,
  * modules are considered equivalent if they have the same parents and children
 */ 
 
 import {
-  ModuleNode,
-  LogicNode,
   Edge,
   Module,
   ModuleGroup,
@@ -19,7 +17,7 @@ import crypto from 'crypto';
 import { v4 as uuid } from 'uuid';
 
 export function mergeModules(graph: FormattedGraph): FormattedGraph {
-  const { moduleNodes, logicNodes, edges } = graph;
+  const { nodes, edges } = graph;
 
   const moduleGroupCandidates: Record<string, Module[]> = {};
 
@@ -34,7 +32,7 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
   }
 
   // Find candidate module groups based on parent/child sets
-  for (const [_, node] of Object.entries(moduleNodes)) {
+  for (const [_, node] of Object.entries(nodes)) {
     if (node.type !== "single") continue;
     const mod = node.info;
 
@@ -65,11 +63,11 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
 
     // Remove original single nodes
     for (const { id } of groupList) {
-      delete moduleNodes[id];
+      delete nodes[id];
     }
 
     // Add group node
-    moduleNodes[groupId] = { type: "group", info: group };
+    nodes[groupId] = { id: groupId, type: "group", info: group };
 
     // Track grouped IDs
     for (const module of groupList) {
@@ -83,10 +81,10 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
 
     // Add new edges to group node
     for (const pId of parentIds) {
-      newEdges.push({ from: pId, to: groupId});
+      newEdges.push({ id: uuid(), from: pId, to: groupId});
     }
     for (const cId of childIds) {
-      newEdges.push({ from: groupId, to: cId});
+      newEdges.push({ id: uuid(), from: groupId, to: cId});
     }
   }
 
@@ -106,5 +104,5 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
   // Append new edges for groups
   filteredEdges.push(...newEdges);
 
-  return { moduleNodes, logicNodes, edges: filteredEdges };
+  return { nodes: nodes, edges: filteredEdges };
 }

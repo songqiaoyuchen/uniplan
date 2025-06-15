@@ -1,16 +1,18 @@
-// app/api/rawGraph/route.ts
+// app/api/finalGraph/route.ts
 // API route handler for graph fetching
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getMergedTree } from '@/db/getMergedTree';
-import { RawGraph } from '@/types/graphTypes';
+import { FinalGraph } from '@/types/graphTypes';
 import { ErrorResponse } from '@/types/errorTypes';
+import { formatGraph } from '@/utils/graph/formatGraph';
 import { cleanGraph } from '@/utils/graph/cleanGraph';
 import { normaliseNodes } from '@/utils/graph/normaliseNodes';
+import { selectRandom } from '@/utils/graph/selectRandom';
 
 export async function GET(request: NextRequest)
-: Promise<NextResponse<RawGraph | ErrorResponse>> {
+: Promise<NextResponse<FinalGraph | ErrorResponse>> {
   const { searchParams } = request.nextUrl;
   const moduleCode = searchParams.get('moduleCode');
   const moduleCodesParam = searchParams.get('moduleCodes');
@@ -27,7 +29,7 @@ export async function GET(request: NextRequest)
 
   try {
     const graph = await getMergedTree(codes);
-    return NextResponse.json(normaliseNodes(cleanGraph(graph, codes)));
+    return NextResponse.json(selectRandom(formatGraph(normaliseNodes(cleanGraph(graph, codes))), codes));
   } catch (err) {
     console.error('exportGraph error:', err);
     return NextResponse.json(

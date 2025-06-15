@@ -3,14 +3,11 @@
 'use client';
 
 import { useState } from "react";
-import { fetchRawGraph } from "@/services/planner/fetchGraph";
-import GraphViewer from "../app/components/GraphViewer";
+import { fetchFinalGraph } from "@/services/planner/fetchGraph";
+import FinalGraphViewer from "./FinalGraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
-import { cleanGraph } from "@/utils/graph/cleanGraph";
-import { weighByModuleCredit } from "@/utils/graph/augment/weightByModuleCredit";
-import { formatGraph } from "@/temp/temp";
 
 export default function GraphPage() {
   const [neo4jData, setNeo4jData] = useState<any>(null);
@@ -25,7 +22,7 @@ export default function GraphPage() {
     if (codes.length === 0) return;
 
     try {
-      const data = await fetchRawGraph(codes);
+      const data = await fetchFinalGraph(codes);
       setNeo4jData(data);
       setDialogOpen(false);
     } catch (err) {
@@ -35,7 +32,6 @@ export default function GraphPage() {
 
   return (
     <div>
-      <h1>Uni Planner</h1>
       <Button variant="contained" onClick={() => setDialogOpen(true)}>
         Export Graph
       </Button>
@@ -59,7 +55,7 @@ export default function GraphPage() {
         </DialogActions>
       </Dialog>
 
-      {neo4jData && <GraphViewer data={neo4jData} />}
+      {neo4jData && <FinalGraphViewer graph={neo4jData} />}
     </div>
   );
 }

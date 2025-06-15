@@ -19,16 +19,13 @@ export type RawGraph = {
   relationships: RawRelationship[];
 };
 
-export type LogicNode = {
-  id: string;
-  requires: number
-};
-
-export type ModuleNode =
-  | { type: 'single'; info: Module }
-  | { type: 'group'; info: ModuleGroup };
+export type Node = 
+  | { id: string; type: 'single'; info: Module }
+  | { id: string; type: 'group'; info: ModuleGroup }
+  | { id: string; type: 'logic'; requires: number };
 
 export type Edge = {
+  id: string;
   from: string;
   to: string;
 };
@@ -47,7 +44,11 @@ export type Module = {
 };
 
 export type FormattedGraph = {
-  moduleNodes: Record<string, ModuleNode>;
-  logicNodes: Record<string, LogicNode>;
+  nodes: Record<string, Node>;
   edges: Edge[];
 };
+
+export type FinalGraph = {
+  nodes: Record<string, Module>;
+  edges: Edge[];
+}

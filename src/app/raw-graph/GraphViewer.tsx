@@ -62,7 +62,7 @@ export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
       elements.push({
         data: {
           id: String(node.id),
-          label: node.properties.code ?? node.properties.type ?? String(node.id),
+          label: node.properties.code ?? `${node.properties.type}: ${node.properties.threshold}` ?? String(node.id),
           originalId: node.id
         } as CytoscapeNodeData
       });
@@ -94,7 +94,7 @@ export default function GraphViewer({ data }: Readonly<GraphViewerProps>) {
             'text-halign': 'center',
             'background-color': (ele) => {
               const label = ele.data('label');
-              return label === 'OR' || label === 'AND' || label === 'NOF'
+              return label.includes('NOF')
                 ? '#F6B26B'
                 : '#6FA8DC';
             },

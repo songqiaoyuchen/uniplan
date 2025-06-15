@@ -19,7 +19,11 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/app/components/*"],
+      "@providers/*": ["./src/app/components/providers/*"],
+      "@ui/*": ["./src/app/components/ui/*"],
+      "@layout/*": ["./src/app/components/layout/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/components/GraphViewer"],
