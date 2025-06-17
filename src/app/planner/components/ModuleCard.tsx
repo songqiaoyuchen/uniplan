@@ -1,20 +1,33 @@
-// src/components/Timetable/ModuleCard.tsx
-import React from 'react';
-import { Card, CardContent, Typography } from '@mui/material';
+'use client';
+
+import { Box, Card, CardContent, Typography } from '@mui/material';
+import { ModuleData } from '@/types/plannerTypes';
+import { memo } from 'react';
 
 interface ModuleCardProps {
-  module: { id: string; code: string; title: string };
+  module: Pick<ModuleData, 'id' | 'code' | 'title'> | null;
 }
 
 const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
-  return (
-    <Card sx={{ backgroundColor: '#f5f5f5', cursor: 'pointer' }}>
-      <CardContent>
-        <Typography variant="subtitle1">{module.code}</Typography>
-        <Typography variant="body2" color="textSecondary">{module.title}</Typography>
-      </CardContent>
-    </Card>
-  );
+  if (module) {
+    return (
+      <Card variant='outlined' sx={{width: '200px', height: '200px'}}>
+        <CardContent>
+          <Typography variant="subtitle1" fontWeight="bold">{module.code}</Typography>
+          <Typography variant="body2">{module.title}</Typography>
+        </CardContent>
+      </Card>
+      );
+  } else {
+    return (
+      <Box sx={{width: '200px', height: '200px',
+        borderColor: 'secondary.main',
+        borderWidth: 1,
+        borderStyle: 'solid'
+      }} />
+    );
+  }
+  
 };
 
-export default ModuleCard;
+export default memo(ModuleCard);
