@@ -11,6 +11,7 @@ import Box from '@mui/material/Box';
 import PlannerModule from './PlannerModule';
 import { ModuleData } from '@/types/plannerTypes';
 import ModuleCard from './ModuleCard';
+import { memo } from 'react';
 
 interface PlannerSemesterProps {
   semesterIndex: number;
@@ -67,4 +68,4 @@ const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, module
   );
 };
 
-export default PlannerSemester;
+export default memo(PlannerSemester);

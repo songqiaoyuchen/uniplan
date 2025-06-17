@@ -2,11 +2,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setModules } from '@/store/plannerSlice';
 import PlannerContainer from './components/PlannerContainer';
 import { ModuleData } from '@/types/plannerTypes';
-import { RootState } from '@/store';
 
 const dummyModules: ModuleData[] = [
   { id: '1123', code: 'CS1101S', title: 'Programming Methodology', credits: 4, semestersOffered: 0, exam: { startTime: '2025-12-01T09:00:00Z', durationMinutes: 120 }, preclusions: [], plannedSemester: 0 },
@@ -25,14 +24,10 @@ const dummyModules: ModuleData[] = [
 
 export default function Page() {
   const dispatch = useDispatch();
-  const hasModules = useSelector((state: RootState) => Object.keys(state.planner.modules).length > 0);
 
   useEffect(() => {
-    // Only set initial modules if we don't have any yet
-    if (!hasModules) {
-      dispatch(setModules(dummyModules));
-    }
-  }, [dispatch, hasModules]);
+    dispatch(setModules(dummyModules));
+  }, [dispatch]);
 
   return (
     <main>

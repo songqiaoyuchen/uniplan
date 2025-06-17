@@ -17,25 +17,27 @@ const plannerSlice = createSlice({
   initialState,
   reducers: {
     setModules(state, action: PayloadAction<ModuleData[]>) {
-      // Only set initial state if we don't have any modules yet
-      if (Object.keys(state.modules).length === 0) {
-        state.modules = Object.fromEntries(action.payload.map((mod) => [mod.id, mod]));
-        state.semesters = Array.from({ length: 8 }, () => []); // Reset state
+      // avoid overwriting a user's persisted state
+      // if (Object.keys(state.modules).length > 0) {
+      //   return;
+      // }
+      
+      state.modules = Object.fromEntries(action.payload.map((mod) => [mod.id, mod]));
+      state.semesters = Array.from({ length: 8 }, () => []); // Reset state
 
-        action.payload.forEach((mod) => {
-          if (
-            mod.plannedSemester >= 0 &&
-            mod.plannedSemester < state.semesters.length
-          ) {
-            state.semesters[mod.plannedSemester].push(mod.id);
-          } else {
-            console.error(
-              `Module with ID ${mod.id} has an invalid plannedSemester: ${mod.plannedSemester}. 
-              It must be between 1 and ${state.semesters.length}.`
-            );
-          }
-        });
-      }
+      action.payload.forEach((mod) => {
+        if (
+          mod.plannedSemester >= 0 &&
+          mod.plannedSemester < state.semesters.length
+        ) {
+          state.semesters[mod.plannedSemester].push(mod.id);
+        } else {
+          console.error(
+            `Module with ID ${mod.id} has an invalid plannedSemester: ${mod.plannedSemester}. 
+            It must be between 1 and ${state.semesters.length}.`
+          );
+        }
+      });
     },
 
     moveModule(state, action: PayloadAction<{
@@ -43,7 +45,7 @@ const plannerSlice = createSlice({
       to: { semester: number; index: number };
       moduleId: string;
     }>) {
-      const { from, to, moduleId } = action.payload;
+      const { from, to } = action.payload;
       const fromList = state.semesters[from.semester];
       const toList = state.semesters[to.semester];
       
@@ -53,8 +55,10 @@ const plannerSlice = createSlice({
       // --- Add module to the destination list ---
       toList.splice(to.index, 0, movedModuleId);
       
-      // --- Always update the module's plannedSemester to match its new position ---
-      state.modules[movedModuleId].plannedSemester = to.semester;
+      // --- If it's a new semester, update the module's internal state ---
+      if (from.semester !== to.semester) {
+        state.modules[movedModuleId].plannedSemester = to.semester;
+      }
     },
   },
 });

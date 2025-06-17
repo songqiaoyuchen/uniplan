@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react'; 
+import { useCallback, useState } from 'react'; 
 import { 
   DndContext, 
   PointerSensor, 
@@ -9,7 +9,8 @@ import {
   DragOverlay, 
   DragStartEvent,
   DragEndEvent,
-  DragOverEvent
+  DragOverEvent,
+  rectIntersection
 } from '@dnd-kit/core'; 
 import { LayoutView } from './PlannerContainer';
 import { ModuleData } from '@/types/plannerTypes';
@@ -27,139 +28,122 @@ interface TimetableProps {
 }
 
 const Timetable: React.FC<TimetableProps> = ({ layout }) => {
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10, // pixels to move before drag starts
+      },
+    })
+  );
+
   const [activeModule, setActiveModule] = useState<ModuleData | null>(null);
   const dispatch = useDispatch();
 
   const semesters = useSelector((state: RootState) => state.planner.semesters);
   const modules = useSelector((state: RootState) => state.planner.modules);
 
-  // Track the current drag over state for preview
-  const [overSemester, setOverSemester] = useState<number | null>(null);
-  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const [tempSemesters, setTempSemesters] = useState<string[][]>(() =>
+  semesters.map((semester) => [...semester])
+);
 
   function onDragStart(event: DragStartEvent) {
-    if (event.active.data.current?.type === 'module') {
-      setActiveModule(event.active.data.current.module);
-    }
+    setActiveModule(event.active.data.current?.module);
   }
 
   function onDragOver(event: DragOverEvent) {
     const { active, over } = event;
-    
-    if (!over) {
-      setOverSemester(null);
-      setOverIndex(null);
+    if (!over) return;
+
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+
+    // Prepare the new tempSemesters
+    let newTempSemesters = tempSemesters.map(semester => semester.filter(id => id !== activeId));
+
+    if (over.data.current?.type === 'semester') {
+      // Dropping over empty space of a semester → Append to end
+      const targetSemesterIndex = parseInt(overId); // assuming overId is the semester index
+
+      if (targetSemesterIndex < 0 || targetSemesterIndex >= tempSemesters.length) return;
+
+      newTempSemesters[targetSemesterIndex].push(activeId);
+
+      // Update state
+      setTempSemesters(newTempSemesters);
       return;
     }
 
-    const activeId = active.id;
-    const overId = over.id;
+    if (over.data.current?.type === 'module') {
+      const overSemesterIndex = tempSemesters.findIndex(semester => semester.includes(overId));
+      const overPosition = tempSemesters[overSemesterIndex]?.indexOf(overId);
 
-    if (activeId === overId) return;
+      if (overSemesterIndex === -1 || overPosition === -1) return;
 
-    const overData = over.data.current;
+      // Insert activeId into the semester at the new position
+      newTempSemesters[overSemesterIndex].splice(overPosition, 0, activeId);
 
-    // SCENARIO 1: We are hovering over a semester container
-    if (overData?.type === 'semester') {
-      const semesterIndex = parseInt(overId as string);
-      const moduleCount = semesters[semesterIndex]?.length ?? 0;
-
-      setOverSemester(semesterIndex);
-      setOverIndex(moduleCount); // Placeholder goes at the end
-    } 
-    // SCENARIO 2: We are hovering over another module
-    else if (overData?.type === 'module') {
-      const targetModuleId = overId as string;
-      const targetModule = modules[targetModuleId];
-
-      if (!targetModule) return;
-
-      const semesterIndex = targetModule.plannedSemester;
-      const moduleIndex = semesters[semesterIndex]?.indexOf(targetModuleId);
-
-      if (moduleIndex !== -1) {
-        setOverSemester(semesterIndex);
-        setOverIndex(moduleIndex); // Placeholder goes at this module's position
-      }
+      // Update state
+      setTempSemesters(newTempSemesters);
+      return;
     }
+
+    // If neither, do nothing
   }
 
   function onDragEnd(event: DragEndEvent) {
-    console.log("dragend begin")
+    console.log("dragend begin");
     const { active, over } = event;
+
     if (!over) {
       setActiveModule(null);
-      setOverSemester(null);
-      setOverIndex(null);
       return;
     }
 
-    const activeId = active.id;
-    const overId = over.id;
+    const activeId = active.id.toString();
+    const moduleId = activeId;
 
-    if (activeId === overId) {
+    // Find final position in tempSemesters
+    let toSemester = -1;
+    let toIndex = -1;
+
+    for (let i = 0; i < tempSemesters.length; i++) {
+      const index = tempSemesters[i].indexOf(moduleId);
+      if (index !== -1) {
+        toSemester = i;
+        toIndex = index;
+        break;
+      }
+    }
+
+    if (toSemester === -1 || toIndex === -1) {
+      console.error('Final drop position not found in tempSemesters.');
       setActiveModule(null);
-      setOverSemester(null);
-      setOverIndex(null);
       return;
     }
 
-    const moduleId = activeId as string;
+    // Find original position in semesters
     const fromSemester = modules[moduleId]?.plannedSemester;
 
     if (fromSemester === undefined) {
       console.error('Source module not found.');
       setActiveModule(null);
-      setOverSemester(null);
-      setOverIndex(null);
       return;
     }
 
     const fromIndex = semesters[fromSemester].indexOf(moduleId);
+
     if (fromIndex === -1) {
       console.error('Source module position not found.');
       setActiveModule(null);
-      setOverSemester(null);
-      setOverIndex(null);
       return;
     }
 
-    // Determine target semester and index
-    let toSemester: number;
-    let toIndex: number;
-
-    if (over.data.current?.type === 'semester') {
-      // Dropping into an empty area of a semester
-      toSemester = parseInt(overId as string);
-      toIndex = semesters[toSemester].length; // Add to end
-    } else {
-      // Dropping onto another module
-      const targetModuleId = over.id as string;
-      const targetModule = modules[targetModuleId];
-
-      if (!targetModule) {
-        console.error('Target module not found.');
-        setActiveModule(null);
-        setOverSemester(null);
-        setOverIndex(null);
-        return;
-      }
-
-      toSemester = targetModule.plannedSemester;
-      toIndex = semesters[toSemester].indexOf(targetModuleId);
-
-      if (toIndex === -1) {
-        console.error('Target module position not found.');
-        setActiveModule(null);
-        setOverSemester(null);
-        setOverIndex(null);
-        return;
-      }
-    }
-
-    console.log("dragend finish")
-    // Always dispatch moveModule, regardless of whether it's same semester or not
+    console.log("Dispatching moveModule");
+    console.log({
+        from: { semester: fromSemester, index: fromIndex },
+        to: { semester: toSemester, index: toIndex },
+        moduleId,
+      })
     dispatch(
       moveModule({
         from: { semester: fromSemester, index: fromIndex },
@@ -168,10 +152,7 @@ const Timetable: React.FC<TimetableProps> = ({ layout }) => {
       })
     );
 
-    // Clean up state after dispatching
     setActiveModule(null);
-    setOverSemester(null);
-    setOverIndex(null);
   }
 
   return (
@@ -192,15 +173,18 @@ const Timetable: React.FC<TimetableProps> = ({ layout }) => {
           onDragEnd={onDragEnd} 
           onDragOver={onDragOver}
           sensors={sensors}
+          collisionDetection={rectIntersection}
         >
-          {Array.from({length: 8}).map((_, index) => (
-            <PlannerSemester
-              key={index}
-              semesterIndex={index}
-              moduleIds={semesters[index] || []}
-              layout={layout}
-            />
-          ))}
+          {Array.from({length: 10}).map((_, index) => {
+            return (
+              <PlannerSemester
+                key={index}
+                semesterIndex={index}
+                moduleIds={tempSemesters[index] || []}
+                layout={layout}
+              />
+            );
+          })}
 
           {createPortal(
             <DragOverlay>
