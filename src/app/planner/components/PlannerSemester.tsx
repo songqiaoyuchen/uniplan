@@ -14,21 +14,16 @@ import ModuleCard from './ModuleCard';
 
 interface PlannerSemesterProps {
   semesterIndex: number;
-  placeholderIndex: number | null;
+  moduleIds: string[];
   layout: LayoutView;
 }
 
-const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, placeholderIndex, layout }) => {
+const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, moduleIds, layout }) => {
 
-  const moduleIds = useSelector((state: RootState) => state.planner.semesters[semesterIndex] || []);
   const allModules = useSelector((state: RootState) => state.planner.modules);
-  const modules: (ModuleData | null)[] = moduleIds.map((id) => allModules[id]).filter(Boolean);
+  const modules = moduleIds.map((id) => allModules[id]).filter(Boolean);
 
   const isHorizontalLayout = layout === 'horizontal';
-
-  if (placeholderIndex !== null) {
-    modules.splice(placeholderIndex, 0, null);
-  }
 
   const { setNodeRef } = useDroppable({
     id: semesterIndex,
@@ -63,14 +58,9 @@ const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, placeh
         <SortableContext
           items={moduleIds}
         >
-          {modules.map((mod) => {
-            if (!mod) {
-              return (<ModuleCard module={null} />);
-            } else {
-              return (
-                <PlannerModule key={mod.id} module={mod} />
-              )
-            }})}
+          {modules.map((mod) => (
+            <PlannerModule key={mod.id} module={mod} />
+          ))}
         </SortableContext>
       </Stack>
     </Box>

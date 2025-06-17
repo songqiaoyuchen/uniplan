@@ -11,10 +11,6 @@ interface PlannerModuleProps {
 }
 
 const PlannerModule: React.FC<PlannerModuleProps> = ({ module }) => {
-  if (!module) {
-    return <ModuleCard module={null} />;
-  }
-
   const { 
     attributes, 
     listeners, 
@@ -36,8 +32,8 @@ const PlannerModule: React.FC<PlannerModuleProps> = ({ module }) => {
   };
 
   return (
-    <Box ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ModuleCard module={isDragging ? null : module} />
+    <Box ref={setNodeRef} style={style} {...attributes} {...listeners} sx={{opacity: isDragging ? 0.4 : 1}}>
+      <ModuleCard module={module} />
     </Box>
   );
 };
