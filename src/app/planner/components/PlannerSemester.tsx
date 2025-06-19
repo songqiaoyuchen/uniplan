@@ -9,40 +9,47 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import PlannerModule from './PlannerModule';
-import { ModuleData } from '@/types/plannerTypes';
-import ModuleCard from './ModuleCard';
 import { memo } from 'react';
+import { shallowEqual } from 'react-redux';
 
 interface PlannerSemesterProps {
   semesterIndex: number;
-  moduleIds: string[];
   layout: LayoutView;
+  isActive: boolean; // highlight on hover
 }
 
-const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, moduleIds, layout }) => {
-
+const PlannerSemester: React.FC<PlannerSemesterProps> = ({
+  semesterIndex,
+  layout,
+  isActive,
+}) => {
+  const moduleIds = useSelector(
+    (state: RootState) => state.planner.semesters[semesterIndex],
+    shallowEqual
+  );
   const allModules = useSelector((state: RootState) => state.planner.modules);
   const modules = moduleIds.map((id) => allModules[id]).filter(Boolean);
-
   const isHorizontalLayout = layout === 'horizontal';
 
   const { setNodeRef } = useDroppable({
     id: semesterIndex,
-    data: {
-      type: 'semester',
-    },
+    data: { type: 'semester' },
   });
 
   return (
     <Box
       sx={{
-        minWidth: isHorizontalLayout ? '200px' : '100%',
+        minWidth: isHorizontalLayout ? '210px' : '100%',
         display: 'flex',
         flexDirection: 'column',
+        border: '1px solid',
+        borderColor: isActive ? 'secondary.main' : 'transparent',
+        borderRadius: 1.5,
+        transition: 'border 0.2s ease',
       }}
     >
-      <Typography variant="h6" gutterBottom>
-        {semesterIndex}
+      <Typography variant="h6" gutterBottom textAlign="center">
+        Semester {semesterIndex + 1}
       </Typography>
       <Stack
         ref={setNodeRef}
@@ -54,11 +61,10 @@ const PlannerSemester: React.FC<PlannerSemesterProps> = ({ semesterIndex, module
           overflowX: isHorizontalLayout ? 'hidden' : 'auto',
           minHeight: isHorizontalLayout ? '1000px' : 'auto',
           minWidth: isHorizontalLayout ? 'auto' : '100%',
+          p: 1,
         }}
       >
-        <SortableContext
-          items={moduleIds}
-        >
+        <SortableContext items={moduleIds}>
           {modules.map((mod) => (
             <PlannerModule key={mod.id} module={mod} />
           ))}

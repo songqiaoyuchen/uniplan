@@ -1,6 +1,7 @@
 // src/store/plannerSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { ModuleData } from '@/types/plannerTypes';
+import { arrayMove } from '@dnd-kit/sortable';
 
 type PlannerState = {
   modules: Record<string, ModuleData>; 
@@ -41,31 +42,45 @@ const plannerSlice = createSlice({
     },
 
     moveModule(state, action: PayloadAction<{
-      from: { semester: number; index: number };
-      to: { semester: number; index: number };
       moduleId: string;
+      fromSemester: number;
+      toSemester: number
     }>) {
-      const { from, to } = action.payload;
-      const fromList = state.semesters[from.semester];
-      const toList = state.semesters[to.semester];
+      const { moduleId, fromSemester, toSemester } = action.payload;
+      const fromList = state.semesters[fromSemester];
+      const toList = state.semesters[toSemester];
       
       // --- Remove module from the source list ---
-      const [movedModuleId] = fromList.splice(from.index, 1);
+      state.semesters[fromSemester] = fromList.filter(id => id !== moduleId)
 
       // --- Add module to the destination list ---
-      toList.splice(to.index, 0, movedModuleId);
+      toList.push(moduleId)
       
       // --- If it's a new semester, update the module's internal state ---
-      if (from.semester !== to.semester) {
-        state.modules[movedModuleId].plannedSemester = to.semester;
-      }
+      state.modules[moduleId].plannedSemester = toSemester;
     },
+
+    reorderModules(
+      state,
+      action: PayloadAction<{ semesterIndex: number; activeId: string; overId: string }>
+    ) {
+      const { semesterIndex, activeId, overId } = action.payload;
+      const semester = state.semesters[semesterIndex];
+
+      const oldIndex = semester.indexOf(activeId);
+      const newIndex = semester.indexOf(overId);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      state.semesters[semesterIndex] = arrayMove(semester, oldIndex, newIndex);
+    }
   },
 });
 
 export const {
   setModules,
   moveModule,
+  reorderModules,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;
