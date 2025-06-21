@@ -6,11 +6,13 @@ import { arrayMove } from '@dnd-kit/sortable';
 type PlannerState = {
   modules: Record<string, ModuleData>; 
   semesters: string[][];
+  selectedModuleId: string | null;
 };
 
 const initialState: PlannerState = {
   modules: {},
   semesters: Array.from({ length: 8 }, () => []),
+  selectedModuleId: null,
 };
 
 const plannerSlice = createSlice({
@@ -73,7 +75,11 @@ const plannerSlice = createSlice({
       if (oldIndex === -1 || newIndex === -1) return;
 
       state.semesters[semesterIndex] = arrayMove(semester, oldIndex, newIndex);
-    }
+    },
+
+    selectModule: (state, action: PayloadAction<string | null>) => {
+      state.selectedModuleId = action.payload;
+    },
   },
 });
 
@@ -81,6 +87,7 @@ export const {
   setModules,
   moveModule,
   reorderModules,
+  selectModule
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;

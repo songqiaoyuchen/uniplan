@@ -7,6 +7,8 @@ export type ModuleData = {
   exam: Exam | null, 
   preclusions: string[], // module id
   plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
+  grade: string | null
+  status: ModuleStatus
 }
 
 export type Exam = {
@@ -15,7 +17,14 @@ export type Exam = {
 }
 
 export enum SemesterOffering {
-  Both = 0,
-  First = 1,
-  Second = 2,
+  Both,
+  First,
+  Second,
+}
+
+export enum ModuleStatus {
+  Completed, // already taken
+  Unlocked, // all prereq present and satisfied
+  Locked, // prereq missing
+  Blocked, // all prereq present but may not be satisfied
 }

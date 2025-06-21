@@ -8,9 +8,6 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import Menu from '@mui/material/Menu';
 import MenuIcon from '@mui/icons-material/Menu';
-import Container from '@mui/material/Container';
-import Avatar from '@mui/material/Avatar';
-import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Navlink from '../ui/Navlink';
 import List from '@mui/material/List';
@@ -46,14 +43,15 @@ function Navbar() {
   };
 
   return (
-    <AppBar position="fixed">
+    <AppBar position="fixed" elevation={0} sx={{height: '64px'}}>
       <Toolbar
         disableGutters
         sx={{ 
           display: 'flex', 
           justifyContent: 'space-between',
           alignItems: 'center',
-          mx: { xs: 2, md: 4 }
+          mx: { xs: 2, md: 4 },
+          height: '64px'
          }}
       >
         {/* Left side */}
@@ -106,6 +104,7 @@ function Navbar() {
             open={mobileNavOpen}
             onOpen={toggleMobileNav(true)}
             onClose={toggleMobileNav(false)}
+            disableSwipeToOpen={true} 
             slotProps={{
               paper: {
                 sx: {
@@ -171,11 +170,11 @@ function Navbar() {
         <Box sx={{ flexGrow: 0, display: 'flex', alignItems: 'center', gap: 1 }}>
           {/* Theme Toggle for Desktop */}
           <ThemeToggle />
-          <Tooltip title="Open Profile Menu" arrow>
+          {/* <Tooltip title="Open Profile Menu" arrow>
             <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
               <Avatar alt="Remy Sharp" src="user.png" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Menu
             sx={{ mt: '45px' }}
             id="menu-appbar"

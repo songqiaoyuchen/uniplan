@@ -12,9 +12,7 @@ import {
   DragOverEvent,
   rectIntersection,
 } from '@dnd-kit/core';
-import { LayoutView } from './PlannerContainer';
 import PlannerSemester from './PlannerSemester';
-import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import { createPortal } from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,13 +20,9 @@ import PlannerModule from './PlannerModule';
 import { RootState } from '@/store';
 import { moveModule, reorderModules } from '@/store/plannerSlice';
 
-interface TimetableProps {
-  layout: LayoutView;
-}
-
-const Timetable: React.FC<TimetableProps> = ({ layout }) => {
+const Timetable: React.FC = () => {
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 10 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const dispatch = useDispatch();
@@ -36,9 +30,8 @@ const Timetable: React.FC<TimetableProps> = ({ layout }) => {
   const modules = useSelector((state: RootState) => state.planner.modules);
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [overSemesterId, setOverSemesterId] = useState<string | null>(null);
-
   const activeModule = activeId ? modules[activeId] : null;
+  const [overSemesterId, setOverSemesterId] = useState<string | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id.toString());
@@ -64,75 +57,78 @@ const Timetable: React.FC<TimetableProps> = ({ layout }) => {
     }
   };
 
-const handleDragEnd = (event: DragEndEvent) => {
-  const { active, over } = event;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  if (!over) {
+    if (!over) {
+      setActiveId(null);
+      setOverSemesterId(null);
+      return;
+    }
+
+    const moduleId = active.id.toString();
+    const fromSemester = active.data.current?.module?.plannedSemester;
+    const overSemester = over.data.current?.type === 'semester'
+      ? Number(over.id)
+      : over.data.current?.module?.plannedSemester;
+
+    if (fromSemester === overSemester) {
+      if (active.id !== over.id) {
+        dispatch(reorderModules({
+          semesterIndex: fromSemester,
+          activeId: active.id.toString(),
+          overId: over.id.toString(),
+        }));
+      }
+    } else {
+      // Moving across semesters
+      dispatch(moveModule({ moduleId, fromSemester, toSemester: overSemester }));
+    }
+
     setActiveId(null);
     setOverSemesterId(null);
-    return;
-  }
+  };
 
-  const moduleId = active.id.toString();
-  const fromSemester = active.data.current?.module?.plannedSemester;
-  const overSemester = over.data.current?.type === 'semester'
-    ? Number(over.id)
-    : over.data.current?.module?.plannedSemester;
+return (
+<Box
+  sx={{
+    width: '100%',
+    display: 'flex',
+    minHeight: '650px',
+    flexDirection: 'row',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+    p: 2,
+    gap: 0,
+    boxShadow: 2,
+    backgroundColor: 'background.paper',
+    borderRadius: 1,
+  }}
+>
+  <DndContext
+    onDragStart={handleDragStart}
+    onDragOver={handleDragOver}
+    onDragEnd={handleDragEnd}
+    sensors={sensors}
+    collisionDetection={rectIntersection}
+  >
+    {semesters.map((_, index) => (
+      <PlannerSemester
+        key={index}
+        semesterIndex={index}
+        isActive={overSemesterId === index.toString()}
+      />
+    ))}
 
-  if (fromSemester === overSemester) {
-    if (active.id !== over.id) {
-      dispatch(reorderModules({
-        semesterIndex: fromSemester,
-        activeId: active.id.toString(),
-        overId: over.id.toString(),
-      }));
-    }
-  } else {
-    // Moving across semesters
-    dispatch(moveModule({ moduleId, fromSemester, toSemester: overSemester }));
-  }
+    {createPortal(
+      <DragOverlay>{activeModule && <PlannerModule module={activeModule} />}</DragOverlay>,
+      document.body
+    )}
+  </DndContext>
+</Box>
 
-  setActiveId(null);
-  setOverSemesterId(null);
-};
+);
 
-  return (
-    <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: layout === 'horizontal' ? 'row' : 'column',
-          overflowX: layout === 'horizontal' ? 'auto' : 'hidden',
-          overflowY: layout === 'horizontal' ? 'hidden' : 'auto',
-          p: 2,
-          gap: 2,
-          minHeight: '400px',
-        }}
-      >
-        <DndContext
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-          sensors={sensors}
-          collisionDetection={rectIntersection}
-        >
-          {semesters.map((moduleIds, index) => (
-            <PlannerSemester
-              key={index}
-              semesterIndex={index}
-              layout={layout}
-              isActive={overSemesterId === index.toString()}
-            />
-          ))}
-
-          {createPortal(
-            <DragOverlay>{activeModule && <PlannerModule module={activeModule} />}</DragOverlay>,
-            document.body
-          )}
-        </DndContext>
-      </Box>
-    </Paper>
-  );
 };
 
 export default Timetable;

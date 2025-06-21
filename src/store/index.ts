@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage';
 
 import themeReducer from './themeSlice';
 import plannerReducer from './plannerSlice';
+import sidebarReducer from './sidebarSlice';
 
 const persistConfig = {
   key: 'root',
@@ -13,6 +14,7 @@ const persistConfig = {
 const rootReducer = combineReducers({
   theme: themeReducer,
   planner: plannerReducer, 
+  sidebar: sidebarReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

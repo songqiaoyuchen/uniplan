@@ -21,7 +21,7 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <Providers>
             <Navbar />
-            <Toolbar /> {/* Spacer for fixed AppBar */}
+            <Toolbar sx={{height: '64px'}}/> {/* Spacer for fixed AppBar */}
               {children}
           </Providers>
         </AppRouterCacheProvider>

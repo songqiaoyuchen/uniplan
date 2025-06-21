@@ -1,45 +1,36 @@
 'use client';
 
-import { useState } from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import ViewWeekIcon from '@mui/icons-material/ViewWeek';
-import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import Timetable from './Timetable';
-
-export type LayoutView = 'horizontal' | 'vertical';
+import Sidebar from './Sidebar';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
 
 const PlannerContainer: React.FC = () => {
-  const [layout, setLayout] = useState<LayoutView>('horizontal');
-
-  const toggleLayout = () => {
-    setLayout((prevLayout) => (prevLayout === 'horizontal' ? 'vertical' : 'horizontal'));
-  };
+  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
+  const sidebarWidth = isOpen ? 300 : 36;
 
   return (
-    <Box
-      sx={{
-        mx: 'auto',
-        padding: { xs: 2, md: 4 },
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        width: '100%'
-      }}
-    >
-      {/* conntrol panel */}
-      <Box sx={{ width: '20%', border: '1px solid white', borderRadius: 1}}>
-        <Button
-          variant="outlined"
-          onClick={toggleLayout}
-          startIcon={layout === 'horizontal' ? <ViewStreamIcon /> : <ViewWeekIcon />}
-        >
-          {layout === 'horizontal' ? 'Vertical View' : 'Horizontal View'}
-        </Button>
-      </Box>
+    <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+      <Sidebar />
 
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Timetable layout={layout} />
+      {/* Main Content - pushes right based on sidebar width */}
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          p: 0,
+          my: '16px',
+          marginRight: { xs: 2, md: 4 },
+          marginLeft: `${sidebarWidth + 32}px`, // Push based on sidebar width
+          transition: 'margin-left 0.3s', // Smooth transition when sidebar toggles
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        <Timetable />
+        <Box height={500}></Box>
       </Box>
     </Box>
   );
