@@ -7,7 +7,7 @@ export type ModuleData = {
   exam: Exam | null, 
   preclusions: string[], // module id
   plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
-  grade: string | null
+  grade?: string, // e.g. A+, B, C, etc.
   status: ModuleStatus
 }
 

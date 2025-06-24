@@ -124,18 +124,6 @@ function Navbar() {
                     </ListItemButton>
                   </ListItem>
                 ))}
-                <ListItem disablePadding>
-                  <ListItemButton onClick={handleOpenUserMenu}>
-                    <ListItemText primary="Profile" />
-                  </ListItemButton>
-                </ListItem>
-                {/* Theme Toggle in Mobile Drawer */}
-                <ListItem disablePadding>
-                  <ListItemButton>
-                    <ThemeToggle />
-                    <ListItemText primary="Toggle Theme" sx={{ ml: 1 }} />
-                  </ListItemButton>
-                </ListItem>
               </List>
             </Box>
           </SwipeableDrawer>

@@ -2,7 +2,7 @@
 
 import { RootState } from '@/store';
 import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
-import { useTheme } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
@@ -13,38 +13,62 @@ interface ModuleCardProps {
   module: Pick<ModuleData, 'id' | 'code' | 'title' | 'status'>;
 }
 
-const moduleStatusColors: Record<ModuleStatus, string> = {
-  [ModuleStatus.Completed]: 'success.main',
-  [ModuleStatus.Unlocked]: 'primary.main',
-  [ModuleStatus.Locked]: 'error.main',
-  [ModuleStatus.Blocked]: 'warning.main',
-};
-
 const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
+  const theme = useTheme();
   const selectedModuleId = useSelector((state: RootState) => state.planner.selectedModuleId);
   const isSelected = selectedModuleId === module.id;
 
+  const { 
+    selectedBorderWidth, 
+    selectedGlowWidth, backgroundColors, 
+    borderColors 
+  } = theme.palette.custom.moduleCard;
+
+  const backgroundColorMap: Record<ModuleStatus, string> = {
+    [ModuleStatus.Completed]: backgroundColors.completed,
+    [ModuleStatus.Unlocked]: backgroundColors.unlocked,
+    [ModuleStatus.Locked]: backgroundColors.locked,
+    [ModuleStatus.Blocked]: backgroundColors.blocked,
+  };
+
+  const borderColorMap: Record<ModuleStatus, string> = {
+    [ModuleStatus.Completed]: borderColors.completed,
+    [ModuleStatus.Unlocked]: borderColors.unlocked,
+    [ModuleStatus.Locked]: borderColors.locked,
+    [ModuleStatus.Blocked]: borderColors.blocked,
+  };
+
   return (
-    <Card sx={{
-      width: '100%',
-      height: '110px',
-      useSelect: 'none',
-      cursor: 'pointer',
-      backgroundColor: moduleStatusColors[module.status],
-      border: '2px solid',
-      color: 'black',
-      borderColor: isSelected ? 'secondary.main' : 'transparent',
-      '&:hover': {
+    <Card
+      sx={{
+        width: '100%',
+        height: '110px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        backgroundColor: backgroundColorMap[module.status],
+        border: isSelected
+          ? `${selectedBorderWidth} solid ${theme.palette.custom.moduleCard.selectedBorderColor}`
+          : `2px solid ${borderColorMap[module.status]}`,
+        boxShadow: isSelected
+          ? `0 0 0 ${selectedGlowWidth} ${theme.palette.custom.moduleCard.selectedBorderColor}80`
+          : undefined,
+        transition: 'all 0.2s ease',
+        '&:hover': {
           boxShadow: 6,
-          opacity: 0.85,
         },
-    }}>
+        color: theme.palette.text.primary,
+      }}
+    >
       <CardContent>
-        <Typography variant='subtitle2' fontWeight='bold' display='inline'>{module.code}</Typography> 
-        <Typography variant="body2" display='inline'>&nbsp;&nbsp;{module.title}</Typography>
+        <Typography variant='subtitle2' fontWeight='bold' display='inline'>
+          {module.code}
+        </Typography>
+        <Typography variant='body2' display='inline' sx={{ ml: 1 }}>
+          {module.title}
+        </Typography>
       </CardContent>
     </Card>
-    );
+  );
 };
 
 export default memo(ModuleCard);

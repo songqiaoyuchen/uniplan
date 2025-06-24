@@ -23,7 +23,7 @@ const PlannerContainer: React.FC = () => {
           p: 0,
           my: '16px',
           marginRight: { xs: 2, md: 4 },
-          marginLeft: `${sidebarWidth + 32}px`, // Push based on sidebar width
+          marginLeft: { xs: 2, md: `${sidebarWidth + 32}px` }, // Push based on sidebar width
           transition: 'margin-left 0.3s', // Smooth transition when sidebar toggles
           flex: 1,
           minWidth: 0,
