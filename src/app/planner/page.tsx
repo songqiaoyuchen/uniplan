@@ -31,7 +31,7 @@ const dummyModules: ModuleData[] = [
   {
     id: '5312312', code: 'CS2030S', title: 'OOP', credits: 4, semestersOffered: 1, exam: { startTime: '2026-05-07T14:00:00Z', durationMinutes: 120 }, preclusions: [], plannedSemester: 1,
     grade: undefined,
-    status: ModuleStatus.Completed
+    status: ModuleStatus.Unlocked
   },
   {
     id: '6312312', code: 'CS2040S', title: 'Data Structures', credits: 4, semestersOffered: 1, exam: { startTime: '2026-05-09T14:00:00Z', durationMinutes: 120 }, preclusions: [], plannedSemester: 1,

@@ -1,80 +1,97 @@
 'use client';
 
-import { ModuleData, SemesterOffering } from '@/types/plannerTypes';
+import { ModuleData, SemesterOffering, ModuleStatus } from '@/types/plannerTypes';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { useTheme } from '@mui/material';
+import ExpandableText from '@/app/components/ui/ExpandableText';
 
 interface ModuleDetailsProps {
   module: ModuleData;
 }
 
 const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
-
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 1,
+        gap: 1.2,
         width: '100%',
+        px: 1,
         whiteSpace: 'normal',
-        wordBreak: 'break-word', 
+        wordBreak: 'break-word',
       }}
     >
-      {/* Module Code (Title) */}
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        sx={{ width: '100%', wordBreak: 'break-word' }} 
-      >
+      {/* Header */}
+      <Typography variant="h5" fontWeight={700}>
         {module.code}
       </Typography>
 
-      {/* Module Title (Subtitle) */}
-      <Typography
-        variant="subtitle2"
-        fontWeight={500}
-        color='text.secondary'
-        sx={{ width: '100%', wordBreak: 'break-word'}}
-      >
+      <Typography variant="subtitle2" color='primary.extraLight'>{module.credits}MC</Typography>
+
+      <Typography variant="subtitle2" fontWeight={500} color="text.secondary">
         {module.title}
       </Typography>
 
-      <Divider flexItem sx={{ my: 1 }} />
-
-      {/* Details */}
-      <Typography variant="body1" sx={{ width: '100%' }}>
-        Credits: {module.credits}
-      </Typography>
-
-      <Typography variant="body1" sx={{ width: '100%' }}>
-        Offered: {formatSemesterOffering(module.semestersOffered)}
-      </Typography>
-
-      {module.exam && (
-        <Typography variant="body1" sx={{ width: '100%' }}>
-          Exam: {formatExam(module.exam.startTime)} ({module.exam.durationMinutes} min)
+      {module.faculty && (
+        <Typography variant="body2" color="text.secondary">
+          Faculty: {module.faculty}
         </Typography>
       )}
 
-      <Typography variant="body1" sx={{ width: '100%' }}>
-        Status: {module.status}
+      {module.department && (
+        <Typography variant="body2" color="text.secondary">
+          Department: {module.department}
+        </Typography>
+      )}
+      
+      {module.description && (
+        <ExpandableText text={module.description} />
+      )}
+
+      <Divider flexItem sx={{ my: 1.5 }} />
+
+      {/* Details */}
+      <Typography variant="body1">
+        Offered: {formatSemesterOffering(module.semestersOffered)}
       </Typography>
 
-      <Typography variant="body1" sx={{ width: '100%' }}>
-        Planned Sem: {module.plannedSemester + 1}
+      {module.exam ? (
+        <Typography variant="body1">
+          Exam: {formatExam(module.exam.startTime)} ({module.exam.durationMinutes} min)
+        </Typography>
+      ) : (
+        <Typography variant="body1">Exam: Not Available</Typography>
+      )}
+
+      <Typography variant="body1">
+        Status: {formatModuleStatus(module.status)}
       </Typography>
+
+      <Typography variant="body1">
+        Planned Semester: {module.plannedSemester > 0 ? `Y${Math.floor((module.plannedSemester + 1) / 2)}S${((module.plannedSemester + 1) % 2) || 2}` : 'Unplanned'}
+      </Typography>
+
+      {module.grade && (
+        <Typography variant="body1">Grade: {module.grade}</Typography>
+      )}
+
+      {module.preclusions?.length > 0 && (
+        <Typography variant="body2" color="text.secondary">
+          Preclusions: {module.preclusions.join(', ')}
+        </Typography>
+      )}
     </Box>
   );
 };
 
 export default ModuleDetails;
 
-// Helper Functions
-function formatSemesterOffering(offering: SemesterOffering): string {
-  switch (offering) {
+// pasers
+
+function formatSemesterOffering(sem: SemesterOffering): string {
+  switch (sem) {
     case SemesterOffering.Both:
       return 'Sem 1 & 2';
     case SemesterOffering.First:
@@ -82,11 +99,28 @@ function formatSemesterOffering(offering: SemesterOffering): string {
     case SemesterOffering.Second:
       return 'Sem 2';
     default:
-      return '';
+      return 'Unplanned';
   }
 }
 
 function formatExam(isoString: string): string {
   const date = new Date(isoString);
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  return date.toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function formatModuleStatus(status?: ModuleStatus): string {
+  switch (status) {
+    case ModuleStatus.Locked:
+      return 'Locked';
+    case ModuleStatus.Unlocked:
+      return 'Unlocked';
+    case ModuleStatus.Completed:
+      return 'Completed';
+    default:
+      return 'Unplanned';
+  }
 }

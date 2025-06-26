@@ -45,10 +45,10 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
         height: '110px',
         cursor: 'pointer',
         userSelect: 'none',
-        backgroundColor: backgroundColorMap[module.status],
+        backgroundColor: backgroundColorMap[module.status ?? ModuleStatus.Unlocked], // Default to Unlocked
         border: isSelected
           ? `${selectedBorderWidth} solid ${theme.palette.custom.moduleCard.selectedBorderColor}`
-          : `2px solid ${borderColorMap[module.status]}`,
+          : `2px solid ${borderColorMap[module.status ?? ModuleStatus.Unlocked]}`,
         boxShadow: isSelected
           ? `0 0 0 ${selectedGlowWidth} ${theme.palette.custom.moduleCard.selectedBorderColor}80`
           : undefined,

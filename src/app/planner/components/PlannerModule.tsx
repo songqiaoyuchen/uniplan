@@ -5,7 +5,7 @@ import { CSS } from '@dnd-kit/utilities';
 import ModuleCard from './ModuleCard';
 import { ModuleData } from '@/types/plannerTypes';
 import Box from '@mui/material/Box';
-import { closeSidebar, openSidebar, toggleSidebar } from '@/store/sidebarSlice';
+import { closeSidebar, openSidebar } from '@/store/sidebarSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectModule } from '@/store/plannerSlice';
 import { RootState } from '@/store';

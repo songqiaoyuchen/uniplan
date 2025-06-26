@@ -8,7 +8,10 @@ export type ModuleData = {
   preclusions: string[], // module id
   plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
   grade?: string, // e.g. A+, B, C, etc.
-  status: ModuleStatus
+  status?: ModuleStatus,
+  description?: string, // optional description
+  faculty?: string, // optional faculty name
+  department?: string, // optional department name
 }
 
 export type Exam = {

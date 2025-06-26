@@ -138,7 +138,7 @@ export const darkTheme = createTheme({
           '*::-webkit-scrollbar-track': { background: '#2d2d2d' },
           '*::-webkit-scrollbar-thumb': { backgroundColor: '#555555', borderRadius: '4px' },
           '*::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888888' },
-          '*': { scrollbarColor: '#555555 #2d2d2d', scrollbarWidth: 'normal' },
+          '*': { scrollbarColor: '#555555 #2d2d2d', scrollbarWidth: 'thin' },
         },
       },
     },
