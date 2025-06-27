@@ -5,12 +5,40 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import ExpandableText from '@/app/components/ui/ExpandableText';
+import AddIcon from '@mui/icons-material/Add';
+import IconButton from '@mui/material/IconButton';
+import { useDraggable } from '@dnd-kit/core';
+import { useDispatch } from 'react-redux';
+import { addModule } from '@/store/plannerSlice';
+import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+
+
 
 interface ModuleDetailsProps {
   module: ModuleData;
 }
 
 const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
+  const dispatch = useDispatch();
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id: module.id + '-sidebar',
+    data: {
+      type: 'module',
+      module,
+      isNew: true,
+    },
+  });
+
+  useEffect(() => {
+    dispatch(addModule(module));
+  }, [dispatch, module]);
+
+  const isPlanned = useSelector((state: RootState) =>
+    state.planner.semesters.some((sem) => sem.includes(module.id))
+  );
+
   return (
     <Box
       sx={{
@@ -24,9 +52,28 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
       }}
     >
       {/* Header */}
-      <Typography variant="h5" fontWeight={700}>
+      <Typography variant="h5" fontWeight={700} display="flex" alignItems="center">
         {module.code}
+        {!isPlanned && (
+        <Box
+          component="span"
+          ref={setNodeRef}
+          {...listeners}
+          {...attributes}
+          sx={{
+            ml: 1,
+            display: 'inline-flex',
+            alignItems: 'center',
+            cursor: 'grab',
+            '&:active': { cursor: 'grabbing' },
+          }}
+        >
+          <IconButton size="small" sx={{ p: 0.5 }}>
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Box>)}
       </Typography>
+
 
       <Typography variant="subtitle2" color='primary.extraLight'>{module.credits}MC</Typography>
 

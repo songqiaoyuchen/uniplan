@@ -9,6 +9,10 @@ import Box from '@mui/material/Box';
 import PlannerModule from './PlannerModule';
 import { memo } from 'react';
 import { shallowEqual } from 'react-redux';
+import { useDraggable } from '@dnd-kit/core';
+import { IconButton } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { Typography } from '@mui/material';
 
 interface PlannerSemesterProps {
   semesterIndex: number;

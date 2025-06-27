@@ -93,7 +93,6 @@ const Sidebar: React.FC = () => {
         borderColor: 'divider',
         transform: isOpen ? 'translateX(0)' : `translateX(-${sidebarWidth - 38}px)`,
         transition: 'transform 0.3s',
-        zIndex: 1200,
       }}
     >
       <IconButton

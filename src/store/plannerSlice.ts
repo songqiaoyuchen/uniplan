@@ -45,21 +45,25 @@ const plannerSlice = createSlice({
 
     moveModule(state, action: PayloadAction<{
       moduleId: string;
-      fromSemester: number;
-      toSemester: number
+      fromSemester: number | null | undefined;
+      toSemester: number;
     }>) {
       const { moduleId, fromSemester, toSemester } = action.payload;
-      const fromList = state.semesters[fromSemester];
-      const toList = state.semesters[toSemester];
-      
-      // --- Remove module from the source list ---
-      state.semesters[fromSemester] = fromList.filter(id => id !== moduleId)
 
-      // --- Add module to the destination list ---
-      toList.push(moduleId)
-      
-      // --- If it's a new semester, update the module's internal state ---
-      state.modules[moduleId].plannedSemester = toSemester;
+      // Remove from old semester if valid
+      if (typeof fromSemester === 'number' && fromSemester >= 0 && fromSemester < state.semesters.length) {
+        state.semesters[fromSemester] = state.semesters[fromSemester].filter(id => id !== moduleId);
+      }
+
+      // Add to new semester if valid
+      if (toSemester >= 0 && toSemester < state.semesters.length) {
+        state.semesters[toSemester].push(moduleId);
+      }
+
+      // Update module's internal state
+      if (state.modules[moduleId]) {
+        state.modules[moduleId].plannedSemester = toSemester;
+      }
     },
 
     reorderModules(
@@ -80,6 +84,13 @@ const plannerSlice = createSlice({
     selectModule: (state, action: PayloadAction<string | null>) => {
       state.selectedModuleId = action.payload;
     },
+
+    addModule(state, action: PayloadAction<ModuleData>) {
+      const mod = action.payload;
+      if (!state.modules[mod.id]) {
+        state.modules[mod.id] = mod;
+      }
+    },
   },
 });
 
@@ -87,7 +98,8 @@ export const {
   setModules,
   moveModule,
   reorderModules,
-  selectModule
+  selectModule,
+  addModule,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;

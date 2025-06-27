@@ -67,6 +67,7 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
       value={value}
       onInputChange={(_, val) => setQuery(val)}
       onChange={handleSearch}
+      popupIcon={null}
       renderInput={(params) => (
         <TextField
           {...params}
@@ -75,6 +76,7 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
           variant="outlined"
           inputRef={inputRef}
           sx={{
+            width: '100%',
             '& .MuiOutlinedInput-root': {
               borderRadius: '9999px',
               '& fieldset': {

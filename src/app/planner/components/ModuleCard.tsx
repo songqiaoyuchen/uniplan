@@ -41,7 +41,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
   return (
     <Card
       sx={{
-        width: '100%',
+        width: '216px',
         height: '110px',
         cursor: 'pointer',
         userSelect: 'none',

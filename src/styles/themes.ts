@@ -113,7 +113,7 @@ export const darkTheme = createTheme({
       moduleCard: {
         selectedBorderWidth: '2px',
         selectedGlowWidth: '1px',
-        selectedBorderColor: '#9582ff',
+        selectedBorderColor: '#ff80c8',
         backgroundColors: {
           completed: '#265e33',
           unlocked: '#3d2d66',

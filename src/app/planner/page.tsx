@@ -2,10 +2,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setModules } from '@/store/plannerSlice';
 import PlannerContainer from './components/PlannerContainer';
 import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
+import { RootState } from '@/store';
 
 const dummyModules: ModuleData[] = [
   {
@@ -72,10 +73,13 @@ const dummyModules: ModuleData[] = [
 
 export default function Page() {
   const dispatch = useDispatch();
+  const modulesLoaded = useSelector((state: RootState) => Object.keys(state.planner.modules).length > 0);
 
   useEffect(() => {
-    dispatch(setModules(dummyModules));
-  }, [dispatch]);
+    if (!modulesLoaded) {
+      dispatch(setModules(dummyModules));
+    }
+  }, [dispatch, modulesLoaded]);
 
   return (
     <main>
