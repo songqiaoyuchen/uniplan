@@ -1,79 +1,105 @@
 // src/store/plannerSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PlannerModule } from '@/types/plannerTypes';
+import { ModuleData } from '@/types/plannerTypes';
+import { arrayMove } from '@dnd-kit/sortable';
 
 type PlannerState = {
-  modules: Record<string, PlannerModule>;
-  semesters: Record<number, string[]>; // key: semester number, value: ordered module IDs
+  modules: Record<string, ModuleData>; 
+  semesters: string[][];
+  selectedModuleId: string | null;
 };
 
 const initialState: PlannerState = {
   modules: {},
-  semesters: Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, []])),
+  semesters: Array.from({ length: 8 }, () => []),
+  selectedModuleId: null,
 };
 
 const plannerSlice = createSlice({
   name: 'planner',
   initialState,
   reducers: {
-    setModules(state, action: PayloadAction<PlannerModule[]>) {
+    setModules(state, action: PayloadAction<ModuleData[]>) {
+      // avoid overwriting a user's persisted state
+      // if (Object.keys(state.modules).length > 0) {
+      //   return;
+      // }
+      
       state.modules = Object.fromEntries(action.payload.map((mod) => [mod.id, mod]));
-      state.semesters = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, []]));
+      state.semesters = Array.from({ length: 8 }, () => []); // Reset state
+
       action.payload.forEach((mod) => {
-        if (mod.plannedSemester != null) {
+        if (
+          mod.plannedSemester >= 0 &&
+          mod.plannedSemester < state.semesters.length
+        ) {
           state.semesters[mod.plannedSemester].push(mod.id);
+        } else {
+          console.error(
+            `Module with ID ${mod.id} has an invalid plannedSemester: ${mod.plannedSemester}. 
+            It must be between 1 and ${state.semesters.length}.`
+          );
         }
       });
     },
-    addModuleToSemester(state, action: PayloadAction<{ semester: number; moduleId: string }>) {
-      const { semester, moduleId } = action.payload;
-      if (!state.semesters[semester]) {
-        state.semesters[semester] = [];
+
+    moveModule(state, action: PayloadAction<{
+      moduleId: string;
+      fromSemester: number | null | undefined;
+      toSemester: number;
+    }>) {
+      const { moduleId, fromSemester, toSemester } = action.payload;
+
+      // Remove from old semester if valid
+      if (typeof fromSemester === 'number' && fromSemester >= 0 && fromSemester < state.semesters.length) {
+        state.semesters[fromSemester] = state.semesters[fromSemester].filter(id => id !== moduleId);
       }
-      if (!state.semesters[semester].includes(moduleId)) {
-        state.semesters[semester].push(moduleId);
-        state.modules[moduleId].plannedSemester = semester;
+
+      // Add to new semester if valid
+      if (toSemester >= 0 && toSemester < state.semesters.length) {
+        state.semesters[toSemester].push(moduleId);
+      }
+
+      // Update module's internal state
+      if (state.modules[moduleId]) {
+        state.modules[moduleId].plannedSemester = toSemester;
       }
     },
-    removeModuleFromSemester(state, action: PayloadAction<{ semester: number; moduleId: string }>) {
-      const { semester, moduleId } = action.payload;
-      state.semesters[semester] = state.semesters[semester].filter((id) => id !== moduleId);
-      state.modules[moduleId].plannedSemester = null;
-    },
-    moveModuleWithinSemester(state, action: PayloadAction<{ semester: number; oldIndex: number; newIndex: number }>) {
-      const { semester, oldIndex, newIndex } = action.payload;
-      const moduleList = state.semesters[semester];
-      const [moved] = moduleList.splice(oldIndex, 1);
-      moduleList.splice(newIndex, 0, moved);
-    },
-    moveModuleToAnotherSemester(state, action: PayloadAction<{ fromSemester: number; toSemester: number; oldIndex: number; newIndex: number }>) {
-      const { fromSemester, toSemester, oldIndex, newIndex } = action.payload;
 
-      const fromList = state.semesters[fromSemester];
-      const toList = state.semesters[toSemester] || [];
+    reorderModules(
+      state,
+      action: PayloadAction<{ semesterIndex: number; activeId: string; overId: string }>
+    ) {
+      const { semesterIndex, activeId, overId } = action.payload;
+      const semester = state.semesters[semesterIndex];
 
-      const [moved] = fromList.splice(oldIndex, 1);
-      toList.splice(newIndex, 0, moved);
+      const oldIndex = semester.indexOf(activeId);
+      const newIndex = semester.indexOf(overId);
 
-      state.semesters[toSemester] = toList;
-      state.modules[moved].plannedSemester = toSemester;
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      state.semesters[semesterIndex] = arrayMove(semester, oldIndex, newIndex);
     },
-    clearPlanner(state) {
-      Object.values(state.modules).forEach((module) => {
-        module.plannedSemester = null;
-      });
-      state.semesters = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i + 1, []]));
+
+    selectModule: (state, action: PayloadAction<string | null>) => {
+      state.selectedModuleId = action.payload;
+    },
+
+    addModule(state, action: PayloadAction<ModuleData>) {
+      const mod = action.payload;
+      if (!state.modules[mod.id]) {
+        state.modules[mod.id] = mod;
+      }
     },
   },
 });
 
 export const {
   setModules,
-  addModuleToSemester,
-  removeModuleFromSemester,
-  moveModuleWithinSemester,
-  moveModuleToAnotherSemester,
-  clearPlanner,
+  moveModule,
+  reorderModules,
+  selectModule,
+  addModule,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;

@@ -1,5 +1,6 @@
 import { createTheme, ThemeOptions } from "@mui/material/styles";
 
+// ================= COMMON OPTIONS =================
 const commonOptions: Partial<ThemeOptions> = {
   typography: {
     fontFamily: "Roboto, Arial, sans-serif",
@@ -31,6 +32,7 @@ const commonOptions: Partial<ThemeOptions> = {
   },
 };
 
+// ================= LIGHT THEME =================
 export const lightTheme = createTheme({
   ...commonOptions,
   palette: {
@@ -38,14 +40,44 @@ export const lightTheme = createTheme({
     primary: { main: '#6741c3' },
     secondary: { main: '#ff80c8' },
     info: { main: '#40ace6' },
-    success: { main: '#60c565' },
-    warning: { main: '#fd8421' },
-    error: { main: '#ec3636' },
-    background: { default: '#ffffff', paper: '#f5f5f5' },
+    success: { main: '#40ed48' },
+    warning: { main: '#ef8937' },
+    error: { main: '#f7523f' },
+    background: { default: '#ffffff', paper: '#ececec' },
     text: { primary: '#000000', secondary: '#333333' },
+    custom: {
+      moduleCard: {
+        selectedBorderWidth: '2px',
+        selectedGlowWidth: '1px',
+        selectedBorderColor: '#6856ce',
+        backgroundColors: {
+          completed: '#b3f4bd',
+          unlocked: '#c1aff3',
+          locked: '#fcadad',
+          blocked: '#f8ca96',
+        },
+        borderColors: {
+          completed: '#4fe058',
+          unlocked: '#764fd1',
+          locked: '#f04040',
+          blocked: '#f18329',
+        }
+      }
+    }
   },
   components: {
     ...commonOptions.components,
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          '*::-webkit-scrollbar': { width: '8px', height: '8px' },
+          '*::-webkit-scrollbar-track': { background: '#f5f5f5' },
+          '*::-webkit-scrollbar-thumb': { backgroundColor: '#bbbbbb', borderRadius: '4px' },
+          '*::-webkit-scrollbar-thumb:hover': { backgroundColor: '#999999' },
+          '*': { scrollbarColor: '#bbbbbb #f5f5f5', scrollbarWidth: 'normal' },
+        },
+      },
+    },
     MuiInputLabel: {
       styleOverrides: {
         root: { color: '#000000' },
@@ -56,32 +88,60 @@ export const lightTheme = createTheme({
         input: { color: '#000000' },
         notchedOutline: { borderColor: '#ffffff' },
         root: {
-          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#bea6f7' }, // primary.extraLight
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6741c3' }, // primary.main
         },
       },
     },
   },
 });
 
+// ================= DARK THEME =================
 export const darkTheme = createTheme({
   ...commonOptions,
   palette: {
     mode: 'dark',
-    primary: { 
-      main: '#6741c3',
-      extraLight: '#bea6f7',
-    },
+    primary: { main: '#6741c3', extraLight: '#bea6f7' },
     secondary: { main: '#ff80c8' },
     info: { main: '#40ace6' },
-    success: { main: '#60c565' },
-    warning: { main: '#fd8421' },
-    error: { main: '#ec3636' },
-    background: { default: '#171717', paper: '#1f1f1f' },
-    text: { primary: '#ededed', secondary: '#cfcfcf' },
+    success: { main: '#40ed48' },
+    warning: { main: '#ef8937' },
+    error: { main: '#f7523f' },
+    background: { default: '#1f1f1f', paper: '#2b2b2b' },
+    text: { primary: '#ececec', secondary: '#acacac' },
+    custom: {
+      moduleCard: {
+        selectedBorderWidth: '2px',
+        selectedGlowWidth: '1px',
+        selectedBorderColor: '#ff80c8',
+        backgroundColors: {
+          completed: '#265e33',
+          unlocked: '#3d2d66',
+          locked: '#611d1d',
+          blocked: '#553616',
+        },
+        borderColors: {
+          completed: '#4fe058',
+          unlocked: '#764fd1',
+          locked: '#f04040',
+          blocked: '#f18329',
+        }
+      }
+    }
   },
   components: {
     ...commonOptions.components,
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          '*::-webkit-scrollbar': { width: '8px', height: '8px' },
+          '*::-webkit-scrollbar-track': { background: '#2d2d2d' },
+          '*::-webkit-scrollbar-thumb': { backgroundColor: '#555555', borderRadius: '4px' },
+          '*::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888888' },
+          '*': { scrollbarColor: '#555555 #2d2d2d', scrollbarWidth: 'thin' },
+        },
+      },
+    },
     MuiInputLabel: {
       styleOverrides: {
         root: { color: '#ededed' },
@@ -89,11 +149,11 @@ export const darkTheme = createTheme({
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        input: { color: '#ededed' },
-        notchedOutline: { borderColor: '#333333' },
+        input: { color: '#ececec' },
+        notchedOutline: { borderColor: '#2b2b2b' },
         root: {
-          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
-          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#1976d2' },
+          '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#bea6f7' }, // primary.extraLight
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#6741c3' }, // primary.main
         },
       },
     },
