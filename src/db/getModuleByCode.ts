@@ -3,6 +3,51 @@
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
 import { ModuleData } from '@/types/plannerTypes';
 
+// function convertSemesterNumberToLabel(n: number): SemesterLabel {
+//   switch (n) {
+//     case 1: return "First";
+//     case 2: return "Second";
+//     case 3: return "Special Term 1";
+//     case 4: return "Special Term 2";
+//     default: return "Unplanned"
+//   }
+// }
+
+// function extractSemestersOffered(semesterData?: RawSemesterInfo[]): SemesterLabel[] {
+//   return (semesterData ?? []).map(s => convertSemesterNumberToLabel(s.semester));
+// }
+
+// function extractExam(semesterData?: RawSemesterInfo[]): Exam | null {
+//   const entry = (semesterData ?? []).find(s => s.examDate);
+//   return entry && entry.examDate
+//     ? {
+//         startTime: entry.examDate,
+//         durationMinutes: entry.examDuration ?? 0,
+//       }
+//     : null;
+// }
+
+// function parsePreclusion(raw?: string): string[] {
+//   if (!raw) return [];
+//   return raw.match(/[A-Z]{2,3}\d{4}[A-Z]?/g) ?? [];
+// }
+
+//     const module: ModuleData = {
+//       id: node.identity.toString(),
+//       code: props.moduleCode,
+//       title: props.title,
+//       credits: parseInt(props.moduleCredit, 10),
+//       semestersOffered: extractSemestersOffered(props.semesterData),
+//       exam: extractExam(props.semesterData),
+//       preclusions: parsePreclusion(props.preclusion),
+//       plannedSemester: -1,
+//       grade: props.gradingBasisDescription ?? undefined,
+//       status: undefined,
+//       description: props.description,
+//       faculty: props.faculty,
+//       department: props.department,
+//     };
+
 export async function getModuleByCode(moduleCode: string): Promise<ModuleData | null> {
   const { driver, session } = await connectToNeo4j();
 

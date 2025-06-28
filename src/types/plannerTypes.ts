@@ -14,16 +14,19 @@ export type ModuleData = {
   department?: string, // optional department name
 }
 
+export type MiniModuleData = {
+  code: string, // e.g. CS1101S
+  title: string, // e.g. Data Structures and Algorithms
+}
+
 export type Exam = {
   startTime: string // ISO 8601 format (e.g. '2025-12-01T09:00:00Z')
   durationMinutes: number
 }
 
-export enum SemesterOffering {
-  Both,
-  First,
-  Second,
-}
+export type SemesterLabel = "First" | "Second" | "Special Term 1" | "Special Term 2" | "Unplanned";
+
+export type SemesterOffering = SemesterLabel[];
 
 export enum ModuleStatus {
   Completed, // already taken

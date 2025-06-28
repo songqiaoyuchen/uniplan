@@ -7,14 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "getPrereq": "ts-node --project tsconfig.node.json src/utils/getPrereq.ts",
-    "resetDB": "ts-node --project tsconfig.node.json src/utils/staging/resetDB.ts",
-    "getModuleInfo": "ts-node --project tsconfig.node.json src/utils/getModuleInfo.ts",
-    "updateModuleInfo": "ts-node --project tsconfig.node.json src/utils/updateModuleInfo.ts",
-    "updatePrereqTree": "ts-node --project tsconfig.node.json src/utils/updatePrereqTree.ts",
-    "dryRunGroupModules": "ts-node --project tsconfig.node.json src/utils/dryRunGroupModules.ts",
-    "applyModuleGrouping": "ts-node --project tsconfig.node.json src/utils/staging/applyModuleGrouping.ts",
-    "testschedule": "ts-node --project tsconfig.node.json src/logic/schedulePlanner/scheduleModules.ts"
+    "resetDB": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/resetDB.ts",
+    "downloadData": "ts-node --project tsconfig.node.json src/scripts/scrapers/downloadData.ts",
+    "testschedule": "ts-node --project tsconfig.node.json src/logic/schedulePlanner/scheduleModules.ts",
+    "dedup": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/deduplicateLogicNodes.ts",
+    "prereq": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/uploadPrerequisites.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

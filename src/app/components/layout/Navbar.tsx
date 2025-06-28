@@ -52,7 +52,7 @@ function Navbar() {
           alignItems: 'center',
           mx: { xs: 2, md: 4 },
           height: '64px'
-         }}
+        }}
       >
         {/* Left side */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>

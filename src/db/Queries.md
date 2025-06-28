@@ -7,7 +7,7 @@ This guide provides practical Cypher queries to help you explore and debug your 
 ## 📘 1. View a Specific Module and Its Prerequisites
 
 ```cypher
-MATCH (m:Module {code: "CS2030S"})-[:HAS_PREREQ]->(logic)
+MATCH (m:Module {moduleCode: "CS2030S"})-[:HAS_PREREQ]->(logic)
 OPTIONAL MATCH (logic)-[*]->(descendant)
 RETURN m, logic, descendant
 ```
@@ -17,7 +17,7 @@ RETURN m, logic, descendant
 ## 🌲 2. Visualize the Full Prerequisite Subgraph Recursively (APOC)
 
 ```cypher
-MATCH (m:Module {code: "CS2030S"})
+MATCH (m:Module {moduleCode: "CS2030S"})
 CALL apoc.path.subgraphAll(m, {
   relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
   labelFilter: "Module|Logic"
@@ -34,8 +34,8 @@ RETURN nodes, relationships
 
 ```cypher
 MATCH (m:Module)-[:HAS_PREREQ]->(:Logic)
-RETURN m.code
-ORDER BY m.code
+RETURN m.moduleCode
+ORDER BY m.moduleCode
 ```
 
 ---
@@ -55,7 +55,7 @@ ORDER BY count DESC
 ```cypher
 MATCH (m:Module)
 WHERE m.deprecated = true
-RETURN m.code
+RETURN m.moduleCode
 ```
 
 ---
@@ -85,7 +85,7 @@ DETACH DELETE l
 MATCH (m:Module)-[:HAS_PREREQ]->(l:Logic)
 WITH m, count(l) AS logicCount
 WHERE logicCount > 1
-RETURN m.code, logicCount
+RETURN m.moduleCode, logicCount
 ```
 
 ---
@@ -95,18 +95,18 @@ RETURN m.code, logicCount
 ```cypher
 MATCH (m:Module)
 WHERE NOT (m)-[:HAS_PREREQ]->()
-RETURN m.code
-ORDER BY m.code
+RETURN m.moduleCode
+ORDER BY m.moduleCode
 ```
 
 ---
 
-## 🎯 10. Search Modules by Code Prefix
+## 🎯 10. Search Modules by moduleCode Prefix
 
 ```cypher
 MATCH (m:Module)
-WHERE m.code STARTS WITH "CS"
-RETURN m.code
+WHERE m.moduleCode STARTS WITH "CS"
+RETURN m.moduleCode
 ```
 
 ---
@@ -114,7 +114,7 @@ RETURN m.code
 ## 🔍 11. Full Path Between Module and All Dependent Modules
 
 ```cypher
-MATCH path = (m:Module {code: "CS2030S"})-[:HAS_PREREQ|REQUIRES|OPTION*]->(desc)
+MATCH path = (m:Module {moduleCode: "CS2030S"})-[:HAS_PREREQ|REQUIRES|OPTION*]->(desc)
 RETURN path
 ```
 
@@ -126,7 +126,7 @@ RETURN path
 MATCH (l:Logic)-[:OPTION|REQUIRES]->(m:Module)
 WHERE NOT (m)-[:HAS_PREREQ]->()
   AND m.deprecated IS NULL
-RETURN DISTINCT m.code
+RETURN DISTINCT m.moduleCode
 ```
 
 ---
@@ -134,7 +134,7 @@ RETURN DISTINCT m.code
 ## 📎 13. Check if a Module Is a Prerequisite for Any Other Module
 
 ```cypher
-MATCH (m:Module {code: "CS1101S"})<-[:OPTION|REQUIRES]-()
+MATCH (m:Module {moduleCode: "CS1101S"})<-[:OPTION|REQUIRES]-()
 RETURN count(*) > 0 AS isPrerequisite
 ```
 
@@ -143,7 +143,7 @@ RETURN count(*) > 0 AS isPrerequisite
 ## 📐 14. Get Depth of a Prerequisite Tree
 
 ```cypher
-MATCH (m:Module {code: "CS2100"})-[:HAS_PREREQ]->(l:Logic)
+MATCH (m:Module {moduleCode: "CS2100"})-[:HAS_PREREQ]->(l:Logic)
 CALL apoc.path.spanningTree(l, {
   relationshipFilter: "OPTION>|REQUIRES>",
   labelFilter: "Logic|Module"
