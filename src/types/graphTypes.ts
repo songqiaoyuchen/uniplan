@@ -51,3 +51,15 @@ export type FinalGraph = {
   nodes: Record<string, Module>;
   edges: Edge[];
 }
+
+export type LogicStatus = {
+  satisfied: boolean;
+  requires: number;
+  satisfiedCount: number;
+};
+
+export type PlannerState = {
+  availableModules: Set<string>;
+  completedModules: Set<string>;
+  logicStatus: Record<string, LogicStatus>;
+};

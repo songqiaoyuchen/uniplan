@@ -109,12 +109,20 @@ async function buildLogicGate(
 
   for (const child of children) {
     const childId = await processTree(child, session);
-    const rel = typeof child === 'string' ? 'OPTION' : 'REQUIRES';
-
     if (childId === null) {
       console.warn(`⚠️ Skipping child in ${type} due to missing module`);
       continue;
     }
+
+    // Dynamically determine edge type based on actual label of the returned node
+    const labelRes = await session.run(
+      `MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels`,
+      { id: childId }
+    );
+
+    const labels = labelRes.records[0]?.get('labels') as string[];
+    const isModule = labels?.includes('Module');
+    const rel = isModule ? 'OPTION' : 'REQUIRES';
 
     await session.run(
       `MATCH (l:Logic) WHERE id(l) = $lid
