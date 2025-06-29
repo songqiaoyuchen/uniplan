@@ -21,17 +21,12 @@ export type RawGraph = {
 
 export type Node = 
   | { id: string; type: 'single'; info: Module }
-  | { id: string; type: 'group'; info: ModuleGroup }
   | { id: string; type: 'logic'; requires: number };
 
 export type Edge = {
   id: string;
   from: string;
   to: string;
-};
-
-export type ModuleGroup = {
-  list: Module[];
 };
 
 export type Module = {

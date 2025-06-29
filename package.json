@@ -11,7 +11,8 @@
     "downloadData": "ts-node --project tsconfig.node.json src/scripts/scrapers/downloadData.ts",
     "testschedule": "ts-node --project tsconfig.node.json src/logic/schedulePlanner/scheduleModules.ts",
     "dedup": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/deduplicateLogicNodes.ts",
-    "prereq": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/uploadPrerequisites.ts"
+    "prereq": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/uploadPrerequisites.ts",
+    "deleteYSC": "ts-node --project tsconfig.node.json src/scripts/neo4j/reset/deleteYSCModules.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

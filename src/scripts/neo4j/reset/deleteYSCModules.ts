@@ -20,3 +20,10 @@ export async function deleteYSCModules() {
     await closeNeo4jConnection(driver, session);
   }
 }
+
+if (require.main === module) {
+  deleteYSCModules().catch(err => {
+    console.error('❌ Failed to delete YSC modules:', err);
+    process.exit(1);
+  });
+}
