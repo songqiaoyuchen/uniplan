@@ -27,7 +27,7 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
 
   const requiredModuleIds = new Set<string>();
   for (const node of nodes) {
-    if (node.labels.includes('Module') && requiredCodes.includes(node.properties.code)) {
+    if (node.labels.includes('Module') && requiredCodes.includes(node.properties.moduleCode)) {
       requiredModuleIds.add(node.id);
     }
   }

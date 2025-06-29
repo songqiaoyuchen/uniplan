@@ -67,7 +67,7 @@ export async function getModuleByCode(moduleCode: string): Promise<ModuleData | 
       code: node.properties.code,
       title: node.properties.title,
       credits: parseInt(node.properties.moduleCredit),
-      semestersOffered: parseInt(node.properties.offeredIn.length > 1 ? 2 : node.properties.offeredIn[0]),
+      semestersOffered: [],
       // no map currently
       exam: node.properties.exam ? {
         startTime: node.properties.exam.startTime,

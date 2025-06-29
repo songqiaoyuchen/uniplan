@@ -11,7 +11,6 @@ import {
   Node,
   FormattedGraph,
 } from '@/types/graphTypes';
-import { mergeModules } from './mergeModules';
 
 export function formatGraph(raw: RawGraph): FormattedGraph {
   const nodes: Record<string, Node> = {};
@@ -19,16 +18,15 @@ export function formatGraph(raw: RawGraph): FormattedGraph {
 
   for (const node of raw.nodes) {
     if (node.labels.includes("Module")) {
-      const { code, title, offeredIn, description, moduleCredit } = node.properties;
+      const { moduleCode, title, offeredIn, moduleCredit } = node.properties;
       nodes[node.id] = {
         id: node.id,
         type: "single",
         info: {
           id: node.id,
-          code,
+          code: moduleCode,
           title,
           offeredIn,
-          description,
           moduleCredit,
         },
       };

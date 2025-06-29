@@ -3,7 +3,7 @@ export type ModuleData = {
   code: string, // e.g. CS1101S
   title: string, // e.g. Data Structures and Algorithms
   credits: number, // number of MC
-  semestersOffered: SemesterOffering
+  semestersOffered: SemesterLabel[], // e.g. ["First", "Second"]
   exam: Exam | null, 
   preclusions: string[], // module id
   plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
@@ -24,9 +24,7 @@ export type Exam = {
   durationMinutes: number
 }
 
-export type SemesterLabel = "First" | "Second" | "Special Term 1" | "Special Term 2" | "Unplanned";
-
-export type SemesterOffering = SemesterLabel[];
+export type SemesterLabel = "First" | "Second" | "Special Term 1" | "Special Term 2";
 
 export enum ModuleStatus {
   Completed, // already taken

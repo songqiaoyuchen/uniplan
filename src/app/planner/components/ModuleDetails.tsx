@@ -1,6 +1,6 @@
 'use client';
 
-import { ModuleData, SemesterOffering, ModuleStatus } from '@/types/plannerTypes';
+import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
@@ -101,7 +101,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 
       {/* Details */}
       <Typography variant="body1">
-        Offered: {formatSemesterOffering(module.semestersOffered)}
+        Offered: {module.semestersOffered}
       </Typography>
 
       {module.exam ? (
@@ -134,27 +134,6 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 };
 
 export default ModuleDetails;
-
-// parsers
-
-function formatSemesterOffering(sem: SemesterOffering): string {
-  switch (sem) {
-  case SemesterOffering.Both:
-    return 'Sem 1 & 2';
-  case SemesterOffering.First:
-    return 'Sem 1';
-  case SemesterOffering.Second:
-    return 'Sem 2';
-  default:
-    return 'Unplanned';
-  }
-}
-
-// function formatSemesterOffering(sem: SemesterOffering): string {
-//   console.log("🧪 formatSemesterOffering input:", sem);
-//   if (!Array.isArray(sem) || sem.length === 0) return 'Unplanned';
-//   return sem.join(' & ');
-// }
 
 function formatExam(isoString: string): string {
   const date = new Date(isoString);
