@@ -53,7 +53,7 @@ export async function getModuleByCode(moduleCode: string): Promise<ModuleData | 
 
   try {
     const result = await session.run(
-      `MATCH (m:Module {code: $code}) RETURN m`,
+      `MATCH (m:Module {moduleCode: $code}) RETURN m`,
       { code: moduleCode }
     );
 

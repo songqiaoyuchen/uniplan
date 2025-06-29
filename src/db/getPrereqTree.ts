@@ -18,7 +18,7 @@ export async function getPrereqTree(moduleCode: string) {
   try {
     const result = await session.run(
       `
-      MATCH (m:Module {code: $code})
+      MATCH (m:Module {moduleCode: $code})
       CALL apoc.path.subgraphAll(m, {
         relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
         labelFilter: "Module|Logic"
