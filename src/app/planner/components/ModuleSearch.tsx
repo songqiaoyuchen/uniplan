@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { Autocomplete, Box, TextField } from "@mui/material";
-import moduleList from "@/data/moduleList.json";
+import moduleData from "@/data/miniModuleData.json";
 import { useDispatch } from "react-redux";
 import { fetchModule } from "@/services/planner/fetchModule";
 import { ModuleData } from "@/types/plannerTypes";
@@ -24,7 +24,7 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
   const inputRef = useRef<HTMLInputElement>(null); // for blurring
 
   const fuse = useMemo(() => {
-    return new Fuse<Module>(moduleList, {
+    return new Fuse<Module>(moduleData, {
       keys: ["code", "title"],
       threshold: 0.3,
     });
@@ -111,7 +111,7 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
                 </InputAdornment>
               ),
             }
-      }}
+          }}
 
         />
       )}

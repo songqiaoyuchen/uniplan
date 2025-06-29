@@ -1,6 +1,6 @@
 
 import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
-import { attachPrereqTree} from '../scripts/neo4j/attachPrereqTree';
+import { attachPrereqTree} from '../scripts/neo4j/reset/uploadPrerequisites';
 /**
  * @author Kevin Zhang
  * @description Updates a given module's prerequisite tree in Neo4j. (Buggy, I havn't checked for correctness)

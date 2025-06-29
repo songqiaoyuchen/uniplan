@@ -10,10 +10,10 @@ export default function ThemeToggle() {
   const { mode, toggleTheme } = useThemeMode();
 
   return (
-  <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
-    <IconButton onClick={toggleTheme}>
-      {mode === 'light' ? <DarkModeIcon /> : <Brightness7Icon />}
-    </IconButton>
-  </Tooltip>
-);
+    <Tooltip title={mode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}>
+      <IconButton onClick={toggleTheme}>
+        {mode === 'light' ? <DarkModeIcon /> : <Brightness7Icon />}
+      </IconButton>
+    </Tooltip>
+  );
 }

@@ -22,9 +22,9 @@ export default function PlannerViewer() {
 
     const label =
       pos === 0 ? `Semester ${Math.floor(index / 2)%2 + 1}` :
-      pos === 1 ? `Semester ${Math.floor(index / 2)%2 + 1}` :
-      pos === 2 ? `Special Term 1` :
-      `Special Term 2`;
+        pos === 1 ? `Semester ${Math.floor(index / 2)%2 + 1}` :
+          pos === 2 ? `Special Term 1` :
+            `Special Term 2`;
 
     return `Year ${year} – ${label}`;
   }

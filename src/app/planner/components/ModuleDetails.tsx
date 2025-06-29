@@ -55,23 +55,23 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
       <Typography variant="h5" fontWeight={700} display="flex" alignItems="center">
         {module.code}
         {!isPlanned && (
-        <Box
-          component="span"
-          ref={setNodeRef}
-          {...listeners}
-          {...attributes}
-          sx={{
-            ml: 1,
-            display: 'inline-flex',
-            alignItems: 'center',
-            cursor: 'grab',
-            '&:active': { cursor: 'grabbing' },
-          }}
-        >
-          <IconButton size="small" sx={{ p: 0.5 }}>
-            <AddIcon fontSize="small" />
-          </IconButton>
-        </Box>)}
+          <Box
+            component="span"
+            ref={setNodeRef}
+            {...listeners}
+            {...attributes}
+            sx={{
+              ml: 1,
+              display: 'inline-flex',
+              alignItems: 'center',
+              cursor: 'grab',
+              '&:active': { cursor: 'grabbing' },
+            }}
+          >
+            <IconButton size="small" sx={{ p: 0.5 }}>
+              <AddIcon fontSize="small" />
+            </IconButton>
+          </Box>)}
       </Typography>
 
 
@@ -135,20 +135,26 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 
 export default ModuleDetails;
 
-// pasers
+// parsers
 
 function formatSemesterOffering(sem: SemesterOffering): string {
   switch (sem) {
-    case SemesterOffering.Both:
-      return 'Sem 1 & 2';
-    case SemesterOffering.First:
-      return 'Sem 1';
-    case SemesterOffering.Second:
-      return 'Sem 2';
-    default:
-      return 'Unplanned';
+  case SemesterOffering.Both:
+    return 'Sem 1 & 2';
+  case SemesterOffering.First:
+    return 'Sem 1';
+  case SemesterOffering.Second:
+    return 'Sem 2';
+  default:
+    return 'Unplanned';
   }
 }
+
+// function formatSemesterOffering(sem: SemesterOffering): string {
+//   console.log("🧪 formatSemesterOffering input:", sem);
+//   if (!Array.isArray(sem) || sem.length === 0) return 'Unplanned';
+//   return sem.join(' & ');
+// }
 
 function formatExam(isoString: string): string {
   const date = new Date(isoString);
@@ -161,13 +167,13 @@ function formatExam(isoString: string): string {
 
 function formatModuleStatus(status?: ModuleStatus): string {
   switch (status) {
-    case ModuleStatus.Locked:
-      return 'Locked';
-    case ModuleStatus.Unlocked:
-      return 'Unlocked';
-    case ModuleStatus.Completed:
-      return 'Completed';
-    default:
-      return 'Unplanned';
+  case ModuleStatus.Locked:
+    return 'Locked';
+  case ModuleStatus.Unlocked:
+    return 'Unlocked';
+  case ModuleStatus.Completed:
+    return 'Completed';
+  default:
+    return 'Unplanned';
   }
 }

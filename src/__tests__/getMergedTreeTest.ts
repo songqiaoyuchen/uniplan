@@ -1,5 +1,6 @@
+import { RawRelationship, RawNode } from '@/types/graphTypes';
 import { getMergedTree } from '../db/getMergedTree';
-import { getPrereqTree } from '../scripts/neo4j/getPrereqTree';
+import { getPrereqTree } from '../db/getPrereqTree';
 import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
 import type { Driver, Session } from 'neo4j-driver';
 
@@ -27,14 +28,14 @@ describe('getMergedTree integration with Neo4j', () => {
     const expectedNodeIds = new Set<number>();
     const expectedRelIds = new Set<number>();
     separate.forEach(g => {
-      g.nodes.forEach(n => expectedNodeIds.add(n.id));
-      g.relationships.forEach(r => expectedRelIds.add(r.id));
+      g.nodes.forEach(n => expectedNodeIds.add(Number(n.id)));
+      g.relationships.forEach(r => expectedRelIds.add(Number(r.id)));
     });
 
     // Fetch merged graph
     const merged = await getMergedTree(modules);
-    const mergedNodeIds = new Set(merged.nodes.map(n => n.id));
-    const mergedRelIds = new Set(merged.relationships.map(r => r.id));
+    const mergedNodeIds = new Set(merged.nodes.map(n => Number(n.id)));
+    const mergedRelIds = new Set(merged.relationships.map(r => Number(r.id)));
 
     // Compare counts
     expect(mergedNodeIds.size).toBe(expectedNodeIds.size);
@@ -47,21 +48,32 @@ describe('getMergedTree integration with Neo4j', () => {
   it('matches the raw subgraph from getPrereqTree for a single module', async () => {
     const module = 'CS2040';
     // Retrieve the raw Neo4j record
-    const rawRecord = await getPrereqTree(module, session);
+    const rawRecord = await getPrereqTree(module);
     expect(rawRecord).not.toBeNull();
 
     // Extract raw nodes and relationships
-    const rawNodes = (rawRecord!.get('nodes') as any[]) ;
-    const rawRels  = (rawRecord!.get('relationships') as any[]);
+    const rawNodes = rawRecord!.nodes.map((node: any): RawNode => ({
+      id: node.identity.toString(),
+      labels: node.labels,
+      properties: node.properties,
+    }));
 
-    // Map to sorted ID arrays
-    const rawNodeIds = rawNodes.map(n => n.identity.toInt()).sort((a, b) => a - b);
-    const rawRelIds  = rawRels.map(r => r.identity.toInt()).sort((a, b) => a - b);
+    const rawRels = rawRecord!.relationships.map((rel: any): RawRelationship => ({
+      id: rel.identity.toString(),
+      startNode: rel.start.toString(),
+      endNode: rel.end.toString(),
+      type: rel.type,
+      properties: rel.properties,
+    }));
+
+    // If you want to sort by numeric IDs
+    const rawNodeIds = rawNodes.map(n => parseInt(n.id)).sort((a, b) => a - b);
+    const rawRelIds  = rawRels.map(r => parseInt(r.id)).sort((a, b) => a - b);
 
     // Fetch merged graph for single module
     const merged = await getMergedTree([module]);
-    const mergedNodeIds = merged.nodes.map(n => n.id).sort((a, b) => a - b);
-    const mergedRelIds  = merged.relationships.map(r => r.id).sort((a, b) => a - b);
+    const mergedNodeIds = merged.nodes.map(n => Number(n.id)).sort((a, b) => a - b);
+    const mergedRelIds  = merged.relationships.map(r => Number(r.id)).sort((a, b) => a - b);
 
     // IDs must match exactly
     expect(mergedNodeIds).toEqual(rawNodeIds);

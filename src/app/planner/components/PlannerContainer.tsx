@@ -27,7 +27,7 @@ const PlannerContainer: React.FC = () => {
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
   const sidebarWidth = isOpen ? 300 : 36;
 
-    const sensors = useSensors(
+  const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
@@ -135,17 +135,17 @@ const PlannerContainer: React.FC = () => {
         >
           {/* semesters */}
           <Box sx={{
-              width: '100%',
-              display: 'flex',
-              minHeight: '650px',
-              flexDirection: 'row',
-              overflowX: 'auto',
-              overflowY: 'hidden',
-              p: 2,
-              gap: 0,
-              boxShadow: 2,
-              backgroundColor: 'background.paper',
-              borderRadius: 1,
+            width: '100%',
+            display: 'flex',
+            minHeight: '650px',
+            flexDirection: 'row',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            p: 2,
+            gap: 0,
+            boxShadow: 2,
+            backgroundColor: 'background.paper',
+            borderRadius: 1,
           }}>
             {semesters.map((_, index) => (
               <PlannerSemester
