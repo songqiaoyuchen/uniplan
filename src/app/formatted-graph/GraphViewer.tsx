@@ -31,7 +31,7 @@ export default function GraphViewer({ data }: GraphViewerProps) {
       if ("type" in node) {
         // Logic node
         if (node.type === "NOF") {
-          label = `${node.requires}OF`;
+          label = `${node.n}OF`;
         } else {
           label = node.type;
         }

@@ -59,7 +59,7 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
       const parentNode = nodes[parent];
       if (!parentNode || !('type' in parentNode)) continue;
 
-      if (parentNode.requires == 1 && outgoingEdges[parent] && outgoingEdges[parent].length > 1) {
+      if (parentNode.n == 1 && outgoingEdges[parent] && outgoingEdges[parent].length > 1) {
         const siblings = outgoingEdges[parent] || [];
         for (const sibEdge of siblings) {
           if (!requiredModuleIds.has(sibEdge.to)) {
@@ -78,17 +78,17 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
         removeNode(parent);
       }
 
-      else if (parentNode.requires > 1 && outgoingEdges[parent] && outgoingEdges[parent].length > parentNode.requires) {
+      else if (parentNode.n > 1 && outgoingEdges[parent] && outgoingEdges[parent].length > parentNode.n) {
         const childrenEdges = outgoingEdges[parent] || [];
         const requiredChildren = childrenEdges.filter(e => requiredModuleIds.has(e.to));
 
-        if (requiredChildren.length < parentNode.requires) {
-          parentNode.requires -= requiredChildren.length;
+        if (requiredChildren.length < parentNode.n) {
+          parentNode.n -= requiredChildren.length;
 
           const newAND = {
             id: uuid(),
             type: "NOF",
-            requires: parentNode.requires,
+            n: parentNode.n,
           }  as NofNode;
           nodes[newAND.id] = newAND;
           incomingEdges[newAND.id] = [];
@@ -133,13 +133,13 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
           const newAND = {
             id: uuid(),
             type: "NOF",
-            requires: parentNode.requires,
+            n: parentNode.n,
           } as NofNode;
           nodes[newAND.id] = newAND;
           incomingEdges[newAND.id] = [];
           outgoingEdges[newAND.id] = [];
 
-          const selectedChildren = requiredChildren.slice(0, parentNode.requires);
+          const selectedChildren = requiredChildren.slice(0, parentNode.n);
           for (const childEdge of selectedChildren) {
             const newRel = {
               id: uuid(),
@@ -169,13 +169,13 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
       const parentNode = nodes[rel.from];
       if (!parentNode || !('type' in parentNode)) continue;
 
-      if (parentNode.requires == 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > 1) {
+      if (parentNode.n == 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > 1) {
         return true;
       }
-      else if (parentNode.requires > 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > parentNode.requires) {
+      else if (parentNode.n > 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > parentNode.n) {
         const childrenEdges = outgoingEdges[parentNode.id] || [];
         const requiredChildrenCount = childrenEdges.filter(e => requiredModuleIds.has(e.to)).length;
-        if (requiredChildrenCount < parentNode.requires) {
+        if (requiredChildrenCount < parentNode.n) {
           return true; // NOF not satisfied yet
         }
       }

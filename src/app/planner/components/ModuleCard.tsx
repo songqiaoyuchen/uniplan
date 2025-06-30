@@ -29,6 +29,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
     [ModuleStatus.Unlocked]: backgroundColors.unlocked,
     [ModuleStatus.Locked]: backgroundColors.locked,
     [ModuleStatus.Blocked]: backgroundColors.blocked,
+    [ModuleStatus.Conflicted]: backgroundColors.conflicted, 
   };
 
   const borderColorMap: Record<ModuleStatus, string> = {
@@ -36,6 +37,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
     [ModuleStatus.Unlocked]: borderColors.unlocked,
     [ModuleStatus.Locked]: borderColors.locked,
     [ModuleStatus.Blocked]: borderColors.blocked,
+    [ModuleStatus.Conflicted]: borderColors.conflicted,
   };
 
   return (

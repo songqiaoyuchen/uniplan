@@ -18,29 +18,17 @@ export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGra
     // Single Cypher query to unwind, collect, and dedupe subgraphs
     const result = await session.run(
       `
-      UNWIND $moduleCodes AS code
-      MATCH (m:Module { moduleCode: code })
-
-      CALL apoc.path.subgraphAll(
-        m,
-        {
-          relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
-          labelFilter: "Module|Logic"
-        }
-      ) YIELD nodes, relationships
-
-      WITH collect(nodes) AS listOfNodeLists, collect(relationships) AS listOfRelLists
-      WITH apoc.coll.flatten(listOfNodeLists) AS allNodesWithDups, apoc.coll.flatten(listOfRelLists) AS allRelsWithDups
-
-      UNWIND allNodesWithDups AS n
-      WITH collect(DISTINCT n) AS finalNodes, allRelsWithDups
-      UNWIND allRelsWithDups AS r
-      WITH finalNodes, collect(DISTINCT r) AS finalRels
-
-      RETURN finalNodes AS nodes, finalRels AS relationships
+        UNWIND $moduleCodes AS code
+        MATCH (m:Module { moduleCode: code })
+        OPTIONAL MATCH path = (m)-[:HAS_PREREQ|REQUIRES|OPTION*0..]->(n)
+        WITH collect(DISTINCT m) + collect(DISTINCT n) AS allNodes, collect(DISTINCT relationships(path)) AS allRels
+        WITH apoc.coll.flatten(allNodes) AS nodes, apoc.coll.flatten(allRels) AS rels
+        RETURN nodes, rels AS relationships
       `,
       { moduleCodes }
     );
+
+    console.log("Neo4j raw result:", JSON.stringify(result, null, 2));
 
     if (!result.records.length || !result.records[0].has('nodes')) {
       return { nodes: {}, relationships: [] };
@@ -50,7 +38,12 @@ export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGra
     const neoNodes = record.get('nodes') as NeoNode[];
     const neoRels  = record.get('relationships') as NeoRel[];
 
-    return mapGraph({ nodes: neoNodes, relationships: neoRels });
+    console.log("Neo4j nodes:", JSON.stringify(neoNodes, null, 2));
+    console.log("Neo4j rels:", JSON.stringify(neoRels, null, 2));
+
+    const mapped = mapGraph({ nodes: neoNodes, relationships: neoRels });
+    console.log("Mapped graph:", JSON.stringify(mapped, null, 2));
+    return mapped;
   } finally {
     await closeNeo4jConnection(driver, session);
   }

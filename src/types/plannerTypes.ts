@@ -12,6 +12,8 @@ export type ModuleData = {
   description?: string, // optional description
   faculty?: string, // optional faculty name
   department?: string, // optional department name
+  requires?: string[], // module codes that this module requires (e.g. CS1010)
+  unlocks?: string[], // module codes that this module unlocks (e.g. CS1101S)
 }
 
 export type MiniModuleData = {
@@ -33,7 +35,14 @@ export enum SemesterLabel {
 
 export enum ModuleStatus {
   Completed, // already taken
-  Unlocked, // all prereq present and satisfied
+  Unlocked, // all prereq present and satisfied (i.e. can be taken at that semester)
   Locked, // prereq missing
-  Blocked, // all prereq present but may not be satisfied
+  Blocked, // all prereq present but may not be satisfied (blcocked, conflicted or locked)
+  Conflicted, // conflict due to [exam clash, semester not offered, perclusion]
 }
+
+type LogicNode =
+  | { type: 'module'; moduleCode: string }
+  | { type: 'AND'; children: LogicNode[] }
+  | { type: 'OR'; children: LogicNode[] }
+  | { type: 'NOF'; n: number; children: LogicNode[] };

@@ -22,12 +22,14 @@ declare module '@mui/material/styles' {
           unlocked: string;
           locked: string;
           blocked: string;
+          conflicted: string;
         };
         borderColors: {
           completed: string;
           unlocked: string;
           locked: string;
           blocked: string;
+          conflicted: string;
         };
       };
     };
@@ -45,12 +47,14 @@ declare module '@mui/material/styles' {
           unlocked?: string;
           locked?: string;
           blocked?: string;
+          conflicted?: string;
         };
         borderColors?: {
           completed?: string;
           unlocked?: string;
           locked?: string;
           blocked?: string;
+          conflicted?: string;
         };
       };
     };

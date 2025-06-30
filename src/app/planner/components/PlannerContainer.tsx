@@ -85,7 +85,7 @@ const PlannerContainer: React.FC = () => {
     }
 
     const fromSemester = module.plannedSemester;
-    if (fromSemester === toSemester) {
+    if (fromSemester === toSemester && fromSemester !== null) {
       if (active.id !== over.id) {
         dispatch(reorderModules({
           semesterIndex: fromSemester,

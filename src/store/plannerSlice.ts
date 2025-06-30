@@ -45,7 +45,7 @@ const plannerSlice = createSlice({
 
     moveModule(state, action: PayloadAction<{
       moduleId: string;
-      fromSemester: number | null | undefined;
+      fromSemester: number | null;
       toSemester: number;
     }>) {
       const { moduleId, fromSemester, toSemester } = action.payload;

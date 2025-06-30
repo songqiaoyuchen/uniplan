@@ -6,7 +6,7 @@ export type LogicNode = OrNode | AndNode | NofNode;
 
 export type OrNode = { id: string, type: "OR" } 
 export type AndNode = { id: string, type: "AND" }
-export type NofNode = { id: string, type: "NOF", requires: number }
+export type NofNode = { id: string, type: "NOF", n: number }
 
 export type Edge = {
   id: string;

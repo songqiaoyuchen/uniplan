@@ -30,7 +30,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
         elements.push({
           data: {
             id,
-            label: `${node.requires}OF`,
+            label: `${node.n}OF`,
             originalId: id,
           }
         });

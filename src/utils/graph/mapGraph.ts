@@ -12,11 +12,8 @@ import { Exam, ModuleData, ModuleStatus, SemesterLabel } from "@/types/plannerTy
 export function mapGraph(graph: Neo4jGraph): FormattedGraph {
   const { nodes: neo4jNodes, relationships: neo4jRels } = graph;
   const nodes: Record<string, ModuleData | LogicNode> = {};
-  const relationships: Edge[] = neo4jRels.map(rel => ({
-    id: rel.elementId,
-    from: rel.startNodeElementId,
-    to: rel.endNodeElementId,
-  }));
+  const seen = new Set();
+  const relationships: Edge[] = [];
 
   for (const node of neo4jNodes) {
     const id = node.elementId;
@@ -30,8 +27,20 @@ export function mapGraph(graph: Neo4jGraph): FormattedGraph {
       } else if (type === "OR") {
         nodes[id] = { id, type: "OR" };
       } else if (type === "NOF") {
-        nodes[id] = { id, type: "NOF", requires: node.properties.threshold ?? 1 };
+        nodes[id] = { id, type: "NOF", n: node.properties.threshold ?? 1 };
       }
+    }
+  }
+
+  for (const rel of neo4jRels) {
+    const key = `${rel.startNodeElementId}->${rel.endNodeElementId}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      relationships.push({
+        id: rel.elementId,
+        from: rel.startNodeElementId,
+        to: rel.endNodeElementId,
+      });
     }
   }
 

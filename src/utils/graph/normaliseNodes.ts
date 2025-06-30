@@ -35,13 +35,13 @@ export function normaliseNodes(graph: FormattedGraph): NormalisedGraph {
         nodes[id] = {
           id,
           type: 'NOF',
-          requires: out,
+          n: out,
         };
       } else if (node.type === 'OR') {
         nodes[id] = {
           id,
           type: 'NOF',
-          requires: 1,
+          n: 1,
         };
       }
     }
@@ -63,7 +63,7 @@ export function normaliseNodes(graph: FormattedGraph): NormalisedGraph {
       const nofNode: NofNode = {
         id: nofId,
         type: 'NOF',
-        requires: 1,
+        n: 1,
       };
 
       newNodes[nofId] = nofNode;
