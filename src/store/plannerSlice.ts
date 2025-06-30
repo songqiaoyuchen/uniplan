@@ -30,7 +30,7 @@ const plannerSlice = createSlice({
 
       action.payload.forEach((mod) => {
         if (
-          mod.plannedSemester >= 0 &&
+          mod.plannedSemester != null &&
           mod.plannedSemester < state.semesters.length
         ) {
           state.semesters[mod.plannedSemester].push(mod.id);

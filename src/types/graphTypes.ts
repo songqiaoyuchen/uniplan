@@ -1,40 +1,12 @@
 // src/types/graphTypes.ts
 
-export type RawNode = {
-  id: string;
-  labels: string[];
-  properties: Record<string, any>;
-};
+import { ModuleData } from "./plannerTypes";
 
-export type RawRelationship = {
-  id: string;
-  startNode: string;
-  endNode: string;
-  type: string;
-  properties: Record<string, any>;
-};
+export type LogicNode = OrNode | AndNode | NofNode;
 
-export type RawGraph = {
-  nodes: RawNode[];
-  relationships: RawRelationship[];
-};
-
-export type ModuleGroup = {
-  list: Module[];
-};
-
-export type Module = {
-  id: string;
-  code: string;
-  title: string;
-  offeredIn: number[];
-  moduleCredit: string;
-};
-
-export type Node = 
-  | { id: string; type: 'single'; info: Module }
-  | { id: string; type: 'group'; info: ModuleGroup }
-  | { id: string; type: 'logic'; requires: number };
+export type OrNode = { id: string, type: "OR" } 
+export type AndNode = { id: string, type: "AND" }
+export type NofNode = { id: string, type: "NOF", requires: number }
 
 export type Edge = {
   id: string;
@@ -43,12 +15,17 @@ export type Edge = {
 };
 
 export type FormattedGraph = {
-  nodes: Record<string, Node>;
+  nodes: Record<string, ModuleData | LogicNode>;
+  relationships: Edge[];
+};
+
+export type NormalisedGraph = {
+  nodes: Record<string, ModuleData | NofNode>;
   edges: Edge[];
 };
 
 export type FinalGraph = {
-  nodes: Record<string, Module>;
+  nodes: Record<string, ModuleData>;
   edges: Edge[];
 }
 

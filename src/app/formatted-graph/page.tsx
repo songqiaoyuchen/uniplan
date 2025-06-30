@@ -4,7 +4,7 @@
 
 import { useState } from "react";
 import { fetchFormattedGraph } from "@/services/planner/fetchGraph";
-import FormattedGraphViewer from "./FormattedGraphViewer";
+import GraphViewer from "./GraphViewer";
 import {
   Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
 } from "@mui/material";
@@ -56,7 +56,7 @@ export default function GraphPage() {
         </DialogActions>
       </Dialog>
 
-      {neo4jData && <FormattedGraphViewer graph={neo4jData} />}
+      {neo4jData && <GraphViewer data={neo4jData} />}
     </div>
   );
 }

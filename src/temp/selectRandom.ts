@@ -6,7 +6,7 @@
  */
 
 import { Edge, FinalGraph, FormattedGraph } from '@/types/graphTypes';
-import { finaliseGraph } from './finaliseGraph';
+import { finaliseGraph } from '../utils/graph/finaliseGraph';
 
 export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): FinalGraph {
   const { nodes, edges } = graph;

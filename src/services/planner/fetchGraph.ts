@@ -3,9 +3,9 @@
 
 import axios from 'axios';
 
-export async function fetchRawGraph(moduleCodes: string[]) {
+export async function fetchFormattedGraph(moduleCodes: string[]) {
   try {
-    const response = await axios.get('/api/rawGraph', {
+    const response = await axios.get('/api/formattedGraph', {
       params: { moduleCodes: moduleCodes.join(',') },
     });
     return response.data;
@@ -18,9 +18,9 @@ export async function fetchRawGraph(moduleCodes: string[]) {
   }
 }
 
-export async function fetchFormattedGraph(moduleCodes: string[]) {
+export async function fetchNormalisedGraph(moduleCodes: string[]) {
   try {
-    const response = await axios.get('/api/formattedGraph', {
+    const response = await axios.get('/api/normalisedGraph', {
       params: { moduleCodes: moduleCodes.join(',') },
     });
     return response.data;

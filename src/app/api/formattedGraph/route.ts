@@ -4,12 +4,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getMergedTree } from '@/db/getMergedTree';
-import { FormattedGraph } from '@/types/graphTypes';
+import { FormattedGraph, NormalisedGraph } from '@/types/graphTypes';
 import { ErrorResponse } from '@/types/errorTypes';
-import { formatGraph } from '@/utils/graph/formatGraph';
+import { formatGraph } from '@/temp/formatGraph';
 import { cleanGraph } from '@/utils/graph/cleanGraph';
 import { normaliseNodes } from '@/utils/graph/normaliseNodes';
-import { selectRandom } from '@/utils/graph/selectRandom';
+import { selectRandom } from '@/temp/selectRandom';
+import { mapGraph } from '@/utils/graph/mapGraph';
 
 export async function GET(request: NextRequest)
 : Promise<NextResponse<FormattedGraph | ErrorResponse>> {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest)
 
   try {
     const graph = await getMergedTree(codes);
-    return NextResponse.json(formatGraph(normaliseNodes(cleanGraph(graph, codes))));
+    return NextResponse.json(graph);
   } catch (err) {
     console.error('exportGraph error:', err);
     return NextResponse.json(

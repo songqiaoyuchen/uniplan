@@ -6,7 +6,7 @@ export type ModuleData = {
   semestersOffered: SemesterLabel[], // e.g. ["First", "Second"]
   exam: Exam | null, 
   preclusions: string[], // module id
-  plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
+  plannedSemester: number | null; // e.g. 5 = y3s2, 0 = y1s1
   grade?: string, // e.g. A+, B, C, etc.
   status?: ModuleStatus,
   description?: string, // optional description
@@ -24,7 +24,12 @@ export type Exam = {
   durationMinutes: number
 }
 
-export type SemesterLabel = "First" | "Second" | "Special Term 1" | "Special Term 2";
+export enum SemesterLabel {
+  First,
+  Second,
+  SpecialTerm1, 
+  SpecialTerm2
+} 
 
 export enum ModuleStatus {
   Completed, // already taken
