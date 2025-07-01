@@ -12,7 +12,7 @@ export type ModuleData = {
   description?: string, // optional description
   faculty?: string, // optional faculty name
   department?: string, // optional department name
-  requires?: string[], // module codes that this module requires (e.g. CS1010)
+  requires?: Node | null, // module codes that this module requires (e.g. CS1010)
   unlocks?: string[], // module codes that this module unlocks (e.g. CS1101S)
 }
 
@@ -41,8 +41,8 @@ export enum ModuleStatus {
   Conflicted, // conflict due to [exam clash, semester not offered, perclusion]
 }
 
-type LogicNode =
+type Node =
   | { type: 'module'; moduleCode: string }
-  | { type: 'AND'; children: LogicNode[] }
-  | { type: 'OR'; children: LogicNode[] }
-  | { type: 'NOF'; n: number; children: LogicNode[] };
+  | { type: 'AND'; children: Node[] }
+  | { type: 'OR'; children: Node[] }
+  | { type: 'NOF'; n: number; children: Node[] };

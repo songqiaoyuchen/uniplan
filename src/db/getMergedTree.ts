@@ -17,18 +17,24 @@ export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGra
   try {
     // Single Cypher query to unwind, collect, and dedupe subgraphs
     const result = await session.run(
-      `
+      ` 
         UNWIND $moduleCodes AS code
         MATCH (m:Module { moduleCode: code })
-        OPTIONAL MATCH path = (m)-[:HAS_PREREQ|REQUIRES|OPTION*0..]->(n)
-        WITH collect(DISTINCT m) + collect(DISTINCT n) AS allNodes, collect(DISTINCT relationships(path)) AS allRels
-        WITH apoc.coll.flatten(allNodes) AS nodes, apoc.coll.flatten(allRels) AS rels
-        RETURN nodes, rels AS relationships
+        CALL apoc.path.subgraphAll(
+          m,
+          {
+            relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
+            labelFilter: "Module|Logic"
+          }
+        ) YIELD nodes, relationships
+
+        WITH collect(nodes) AS groupedNodes, collect(relationships) AS groupedRels
+        WITH apoc.coll.toSet(apoc.coll.flatten(groupedNodes)) AS nodes,
+            apoc.coll.toSet(apoc.coll.flatten(groupedRels)) AS relationships
+        RETURN nodes, relationships
       `,
       { moduleCodes }
     );
-
-    console.log("Neo4j raw result:", JSON.stringify(result, null, 2));
 
     if (!result.records.length || !result.records[0].has('nodes')) {
       return { nodes: {}, relationships: [] };
@@ -38,11 +44,7 @@ export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGra
     const neoNodes = record.get('nodes') as NeoNode[];
     const neoRels  = record.get('relationships') as NeoRel[];
 
-    console.log("Neo4j nodes:", JSON.stringify(neoNodes, null, 2));
-    console.log("Neo4j rels:", JSON.stringify(neoRels, null, 2));
-
     const mapped = mapGraph({ nodes: neoNodes, relationships: neoRels });
-    console.log("Mapped graph:", JSON.stringify(mapped, null, 2));
     return mapped;
   } finally {
     await closeNeo4jConnection(driver, session);
