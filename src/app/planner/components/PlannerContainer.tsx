@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Sidebar from './Sidebar';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
@@ -19,9 +19,11 @@ import {
 import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
 import PlannerModule from './PlannerModule';
-import { addModule, moveModule, reorderModules } from '@/store/plannerSlice';
+import { addModule, moveModule, reorderModules, setModules } from '@/store/plannerSlice';
 import PlannerSemester from './PlannerSemester';
 import { ModuleData } from '@/types/plannerTypes';
+import { checkConflicts } from '@/utils/planner/checkConflicts';
+import { updateModules } from '@/store/plannerSlice'; 
 
 const PlannerContainer: React.FC = () => {
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
@@ -80,8 +82,12 @@ const PlannerContainer: React.FC = () => {
       ? Number(over.id)
       : over.data.current?.module?.plannedSemester;
 
+    let modulesChanged = false;
+    let nextModules = { ...modules };
+
     if (isNew && !modules[moduleId]) {
       dispatch(addModule(module));
+      nextModules[moduleId] = module;
     }
 
     const fromSemester = module.plannedSemester;
@@ -98,7 +104,18 @@ const PlannerContainer: React.FC = () => {
         moduleId,
         fromSemester: module.plannedSemester,
         toSemester,
-      }));    
+      }));
+      // Update the module's plannedSemester in the local copy
+      nextModules[moduleId] = {
+        ...nextModules[moduleId],
+        plannedSemester: toSemester,
+      };
+      modulesChanged = true;
+    }
+
+    if (modulesChanged) {
+      const updatedModules = checkConflicts(nextModules);
+      dispatch(updateModules(updatedModules));
     }
 
     setActiveId(null);

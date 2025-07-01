@@ -159,8 +159,6 @@ function formatModuleStatus(status?: ModuleStatus): string {
 }
 
 function formatSemesters(semesters: SemesterLabel[]): string {
-  console.log("semestersOffered", semesters);
-
   return semesters.map((s) => {
     switch (s) {
       case SemesterLabel.First: return "Semester 1";

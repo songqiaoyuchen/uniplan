@@ -91,6 +91,32 @@ const plannerSlice = createSlice({
         state.modules[mod.id] = mod;
       }
     },
+
+    updateModules: (state, action: PayloadAction<Record<string, ModuleData>>) => {
+      state.modules = action.payload;
+      // Create a new semesters array, preserving order for modules that remain
+      const newSemesters = Array.from({ length: 8 }, () => [] as string[]);
+      // First, add modules that are still in the same semester in the same order
+      state.semesters.forEach((semester, semIdx) => {
+        semester.forEach((modId) => {
+          const mod = state.modules[modId];
+          if (mod && mod.plannedSemester === semIdx) {
+            newSemesters[semIdx].push(modId);
+          }
+        });
+      });
+      // Then, append any modules whose plannedSemester changed or are new
+      Object.values(state.modules).forEach((mod) => {
+        if (
+          mod.plannedSemester != null &&
+          mod.plannedSemester < newSemesters.length &&
+          !newSemesters[mod.plannedSemester].includes(mod.id)
+        ) {
+          newSemesters[mod.plannedSemester].push(mod.id);
+        }
+      });
+      state.semesters = newSemesters;
+    },
   },
 });
 
@@ -100,6 +126,7 @@ export const {
   reorderModules,
   selectModule,
   addModule,
+  updateModules
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;

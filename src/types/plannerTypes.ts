@@ -41,7 +41,7 @@ export enum ModuleStatus {
   Conflicted, // conflict due to [exam clash, semester not offered, perclusion]
 }
 
-type Node =
+export type Node =
   | { type: 'module'; moduleCode: string }
   | { type: 'AND'; children: Node[] }
   | { type: 'OR'; children: Node[] }

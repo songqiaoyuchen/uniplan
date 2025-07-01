@@ -6,6 +6,8 @@ import type { NextRequest } from 'next/server';
 import { getModuleByCode } from '@/db/getModuleByCode';
 import { ModuleData } from '@/types/plannerTypes';
 import { ErrorResponse } from '@/types/errorTypes';
+import { get } from 'http';
+import { getModuleRequires } from '@/db/getModuleRequires';
 
 export async function GET(request: NextRequest)
 : Promise<NextResponse<ModuleData | ErrorResponse>> {
@@ -29,7 +31,8 @@ export async function GET(request: NextRequest)
       );
     }
 
-    return NextResponse.json(module);
+    const requires = await getModuleRequires(moduleCode.trim().toUpperCase());
+    return NextResponse.json({...module, requires}, { status: 200 });
 
   } catch (err) {
     console.error('getModule error:', err);
