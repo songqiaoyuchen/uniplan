@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { addModule } from '@/store/plannerSlice';
 import { useEffect } from 'react';
 import { RootState } from '@/store';
+import PrereqTreeView from './PrereqTree';
 
 interface ModuleDetailsProps {
   module: ModuleData;
@@ -20,7 +21,7 @@ interface ModuleDetailsProps {
 const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
   const dispatch = useDispatch();
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: module.id + '-sidebar',
+    id: module.code + '-sidebar',
     data: {
       type: 'module',
       module,
@@ -29,11 +30,12 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
   });
 
   useEffect(() => {
+    // Only add the module if it's not already in the planner state
     dispatch(addModule(module));
   }, [dispatch, module]);
 
   const isPlanned = useSelector((state: RootState) =>
-    state.planner.semesters.some((sem) => sem.includes(module.id))
+    state.planner.semesters.some((sem) => sem.includes(module.code))
   );
 
   return (
@@ -94,10 +96,20 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 
       <Divider flexItem sx={{ my: 1.5 }} />
 
+      {/* Prerequisite Tree Section */}
+      {module.requires && (
+        <>
+          <Typography variant="subtitle1" fontWeight={600}>Prerequisites</Typography>
+          <Box sx={{ ml: 2, mt: 1 }}>
+            <PrereqTreeView prereqTree={module.requires} />
+          </Box>
+          <Divider flexItem sx={{ my: 1.5 }} />
+        </>
+      )}
+
       <Typography variant="body1">
         Offered: {formatSemesters(module.semestersOffered)}
       </Typography>
-
 
       {module.exam ? (
         <Typography variant="body1">

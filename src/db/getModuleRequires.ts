@@ -1,9 +1,9 @@
 import { parsePrereq } from '@/utils/planner/parsePrereq';
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { Node } from '@/types/plannerTypes';
+import { PrereqTree } from '@/types/plannerTypes';
 
 
-export async function getModuleRequires(moduleCode: string): Promise<Node | null> {
+export async function getModuleRequires(moduleCode: string): Promise<PrereqTree | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {

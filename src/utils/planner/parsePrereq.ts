@@ -1,4 +1,4 @@
-import { Node } from '@/types/plannerTypes';
+import { PrereqTree } from '@/types/plannerTypes';
 
 type Neo4jNode = {
   identity: { low: number };
@@ -14,7 +14,7 @@ type Neo4jRel = {
 export function parsePrereq(
   rawNodes: Neo4jNode[],
   rawRels: Neo4jRel[]
-): Node | null {
+): PrereqTree | null {
   const nodesById: Record<number, Neo4jNode> = {};
   const childrenMap: Record<number, number[]> = {};
 
@@ -29,7 +29,7 @@ export function parsePrereq(
 
   const visited = new Set<number>();
 
-  function buildTree(id: number): Node | null {
+  function buildTree(id: number): PrereqTree | null {
     if (visited.has(id)) return null; // avoid cycles
     visited.add(id);
 
@@ -46,7 +46,7 @@ export function parsePrereq(
     const type = node.properties.type;
     const children = (childrenMap[id] || [])
       .map(buildTree)
-      .filter(Boolean) as Node[];
+      .filter(Boolean) as PrereqTree[];
 
     if ((type === 'AND' || type === 'OR') && children.length > 0) {
       return { type, children };
@@ -60,20 +60,35 @@ export function parsePrereq(
     return children.length === 1 ? children[0] : null;
   }
 
-  // Root logic nodes = directly linked to module
-  const logicRoots = rawRels
-    .filter((r) => {
-      const from = nodesById[r.start.low];
-      const to = nodesById[r.end.low];
-      return from?.labels.includes('Module') && to?.labels.includes('Logic');
-    })
-    .map((r) => r.end.low);
+  const rootModuleIds = new Set<number>();
+  const logicTrees: PrereqTree[] = [];
+  const moduleTrees: PrereqTree[] = [];
 
-  const trees = logicRoots
-    .map(buildTree)
-    .filter(Boolean) as Node[];
+  for (const rel of rawRels) {
+    const from = nodesById[rel.start.low];
+    const to = nodesById[rel.end.low];
 
-  if (trees.length === 0) return null;
-  if (trees.length === 1) return trees[0];
-  return { type: 'AND', children: trees };
+    if (!from || !to) continue;
+
+    // Module -> Logic
+    if (from.labels.includes('Module') && to.labels.includes('Logic')) {
+      const logicTree = buildTree(rel.end.low);
+      if (logicTree) logicTrees.push(logicTree);
+      rootModuleIds.add(rel.start.low);
+    }
+
+    // Module -> Module (direct)
+    if (from.labels.includes('Module') && to.labels.includes('Module')) {
+      moduleTrees.push({
+        type: 'module',
+        moduleCode: to.properties.moduleCode,
+      });
+      rootModuleIds.add(rel.start.low);
+    }
+  }
+
+  const allTrees = [...logicTrees, ...moduleTrees];
+  if (allTrees.length === 0) return null;
+  if (allTrees.length === 1) return allTrees[0];
+  return { type: 'AND', children: allTrees };
 }

@@ -4,27 +4,27 @@ import { useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import moduleData from "@/data/miniModuleData.json";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { fetchModule } from "@/services/planner/fetchModule";
-import { ModuleData } from "@/types/plannerTypes";
-import { selectModule } from "@/store/plannerSlice";
+import { MiniModuleData } from "@/types/plannerTypes";
+import { addFetchedModule, setActiveModule } from "@/store/plannerSlice";
 import SearchIcon from '@mui/icons-material/Search';
 import { InputAdornment } from '@mui/material'
+import { RootState } from "@/store";
+import { useRouter } from 'next/navigation';
 
-type Module = {
-  code: string;
-  title: string;
-};
-
-const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData) => void }) => {
+const ModuleSearch = () => {
+  const modules = useSelector((state: RootState) => state.planner.modules);
+  const fetchedModules = useSelector((state: RootState) => state.planner.fetchedModules);
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const [query, setQuery] = useState("");
-  const [value, setValue] = useState<Module | null>(null);
+  const [value, setValue] = useState<MiniModuleData | null>(null);
   const inputRef = useRef<HTMLInputElement>(null); // for blurring
 
   const fuse = useMemo(() => {
-    return new Fuse<Module>(moduleData, {
+    return new Fuse<MiniModuleData>(moduleData, {
       keys: ["code", "title"],
       threshold: 0.3,
     });
@@ -35,8 +35,19 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
     return fuse.search(query).map((r) => r.item).slice(0, 15);
   }, [fuse, query]);
 
-  const handleSearch = async (_: any, mod: Module | null) => {
+  const handleSearch = async (_: any, mod: MiniModuleData | null) => {
     if (!mod) return;
+
+    // If module already exists in modules or fetchedModules, do not fetch
+    if (modules[mod.code] || fetchedModules[mod.code]) {
+      dispatch(setActiveModule(mod.code));
+      setQuery("");
+      setValue(null);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+      return;
+    }
 
     try {
       // Clear both input and selected value
@@ -44,8 +55,15 @@ const ModuleSearch = ({ onModuleSearched }: { onModuleSearched: (mod: ModuleData
       setValue(null);
 
       const module = await fetchModule(mod.code);
-      onModuleSearched(module);
-      dispatch(selectModule(null));
+      console.log("Fetched module:", module);
+
+      // Save to fetchedModules if not already in modules
+      if (!modules[module.code]) {
+        dispatch(addFetchedModule(module));
+      }
+
+      dispatch(setActiveModule(module.code));
+      router.push(`?module=${mod.code}`, { scroll: false });
 
       // Blur the input manually
       if (inputRef.current) {

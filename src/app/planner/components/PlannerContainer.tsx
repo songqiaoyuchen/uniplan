@@ -37,12 +37,12 @@ const PlannerContainer: React.FC = () => {
   const semesters = useSelector((state: RootState) => state.planner.semesters);
   const modules = useSelector((state: RootState) => state.planner.modules);
 
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const activeModule = activeId ? modules[activeId] : null;
+  const [activeCode, setActiveCode] = useState<string | null>(null);
+  const activeModule = activeCode ? modules[activeCode] : null;
   const [overSemesterId, setOverSemesterId] = useState<string | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id.toString().split('-')[0].trim());
+    setActiveCode(event.active.id.toString().split('-')[0].trim());
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -69,12 +69,12 @@ const PlannerContainer: React.FC = () => {
     const { active, over } = event;
 
     if (!over) {
-      setActiveId(null);
+      setActiveCode(null);
       setOverSemesterId(null);
       return;
     }
 
-    const moduleId = active.id.toString().split('-')[0].trim();
+    const moduleCode = active.id.toString().split('-')[0].trim();
     const module = active.data.current?.module as ModuleData;
     const isNew = active.data.current?.isNew;
 
@@ -85,9 +85,9 @@ const PlannerContainer: React.FC = () => {
     let modulesChanged = false;
     let nextModules = { ...modules };
 
-    if (isNew && !modules[moduleId]) {
+    if (isNew && !modules[moduleCode]) {
       dispatch(addModule(module));
-      nextModules[moduleId] = module;
+      nextModules[moduleCode] = module;
     }
 
     const fromSemester = module.plannedSemester;
@@ -95,19 +95,18 @@ const PlannerContainer: React.FC = () => {
       if (active.id !== over.id) {
         dispatch(reorderModules({
           semesterIndex: fromSemester,
-          activeId: active.id.toString(),
-          overId: over.id.toString(),
+          activeCode: active.id.toString(),
+          overCode: over.id.toString(),
         }));
       }
     } else {
       dispatch(moveModule({
-        moduleId,
+        moduleCode,
         fromSemester: module.plannedSemester,
         toSemester,
       }));
-      // Update the module's plannedSemester in the local copy
-      nextModules[moduleId] = {
-        ...nextModules[moduleId],
+      nextModules[moduleCode] = {
+        ...nextModules[moduleCode],
         plannedSemester: toSemester,
       };
       modulesChanged = true;
@@ -118,7 +117,7 @@ const PlannerContainer: React.FC = () => {
       dispatch(updateModules(updatedModules));
     }
 
-    setActiveId(null);
+    setActiveCode(null);
     setOverSemesterId(null);
   };
 

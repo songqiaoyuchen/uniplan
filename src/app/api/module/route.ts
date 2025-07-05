@@ -6,7 +6,6 @@ import type { NextRequest } from 'next/server';
 import { getModuleByCode } from '@/db/getModuleByCode';
 import { ModuleData } from '@/types/plannerTypes';
 import { ErrorResponse } from '@/types/errorTypes';
-import { get } from 'http';
 import { getModuleRequires } from '@/db/getModuleRequires';
 
 export async function GET(request: NextRequest)

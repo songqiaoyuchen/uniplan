@@ -7,7 +7,7 @@ import { RootState } from '@/store';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import PlannerModule from './PlannerModule';
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { shallowEqual } from 'react-redux';
 import { useDraggable } from '@dnd-kit/core';
 import { IconButton } from '@mui/material';
@@ -23,12 +23,16 @@ const PlannerSemester: React.FC<PlannerSemesterProps> = ({
   semesterIndex,
   isActive,
 }) => {
-  const moduleIds = useSelector(
+  // Select only the module codes for this semester
+  const moduleCodes = useSelector(
     (state: RootState) => state.planner.semesters[semesterIndex],
     shallowEqual
   );
-  const allModules = useSelector((state: RootState) => state.planner.modules);
-  const modules = moduleIds.map((id) => allModules[id]).filter(Boolean);
+  // Select only the modules for this semester
+  const modules = useSelector(
+    (state: RootState) => moduleCodes.map((code) => state.planner.modules[code]).filter(Boolean),
+    shallowEqual
+  );
 
   const { setNodeRef } = useDroppable({
     id: semesterIndex,
@@ -59,9 +63,9 @@ const PlannerSemester: React.FC<PlannerSemesterProps> = ({
           height: '100%'
         }}
       >
-        <SortableContext items={moduleIds}>
+        <SortableContext items={moduleCodes}>
           {modules.map((mod) => (
-            <PlannerModule key={mod.id} module={mod} />
+            <PlannerModule key={mod.code} module={mod} />
           ))}
         </SortableContext>
       </Stack>

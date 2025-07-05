@@ -3,9 +3,10 @@
 
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { setModules } from '@/store/plannerSlice';
+import { setActiveModule, setModules } from '@/store/plannerSlice';
 import PlannerContainer from './components/PlannerContainer';
 import { ModuleData, ModuleStatus, SemesterLabel } from '@/types/plannerTypes';
+import { useSearchParams } from 'next/navigation';
 
 const sampleTimetable: ModuleData[] = [
   {
@@ -189,6 +190,15 @@ export default function Page() {
   useEffect(() => {
     dispatch(setModules(sampleTimetable));
   }, [dispatch]);
+
+  const params = useSearchParams();
+
+  useEffect(() => {
+    const code = params.get('module');
+    if (code) {
+      dispatch(setActiveModule(code));
+    }
+  }, [params, dispatch]);
 
 
   return (

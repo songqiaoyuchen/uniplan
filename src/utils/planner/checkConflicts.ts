@@ -37,9 +37,9 @@ export function checkConflicts(modules: Record<string, ModuleData>): Record<stri
   // Step 3: Update module statuses
   const updatedModules: Record<string, ModuleData> = {};
 
-  for (const [id, mod] of Object.entries(modules)) {
+  for (const [code, mod] of Object.entries(modules)) {
     if (mod.plannedSemester === null) {
-      updatedModules[id] = { ...mod }; // unchanged
+      updatedModules[code] = { ...mod }; // unchanged
       continue;
     }
 
@@ -62,7 +62,7 @@ export function checkConflicts(modules: Record<string, ModuleData>): Record<stri
       newStatus = mod.status ?? undefined;
     }
 
-    updatedModules[id] = {
+    updatedModules[code] = {
       ...mod,
       status: newStatus,
     };

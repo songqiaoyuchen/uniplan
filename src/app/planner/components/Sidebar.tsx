@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { RootState } from '@/store';
 import { toggleSidebar } from '@/store/sidebarSlice';
+import { addFetchedModule, setActiveModule } from '@/store/plannerSlice';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
@@ -13,34 +14,18 @@ import ModuleDetails from './ModuleDetails';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ModuleSearch from './ModuleSearch';
-import { ModuleData } from '@/types/plannerTypes';
+import { fetchModule } from '@/services/planner/fetchModule';
 
 const Sidebar: React.FC = () => {
   const dispatch = useDispatch();
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
-  const selectedModuleId = useSelector((state: RootState) => state.planner.selectedModuleId);
+  const activeModuleCode = useSelector((state: RootState) => state.planner.activeModuleCode);
   const modules = useSelector((state: RootState) => state.planner.modules);
+  const fetchedModules = useSelector((state: RootState) => state.planner.fetchedModules);
 
-  // Local state for search-selected module
-  const [searchedModule, setSearchedModule] = useState<ModuleData | null>(null);
-
-  // Reset search module on Redux card click
-  useEffect(() => {
-    if (selectedModuleId) {
-      setSearchedModule(null);
-    }
-  }, [selectedModuleId]);
-
-  // Clear on sidebar close
-  useEffect(() => {
-    if (!isOpen) {
-      setSearchedModule(null);
-    }
-  }, [isOpen]);
-
-
-  // Fallback logic: prefer searchedModule, else Redux selected
-  const resolvedModule = searchedModule ?? (selectedModuleId ? modules[selectedModuleId] : null);
+  const resolvedModule = activeModuleCode
+    ? modules[activeModuleCode] ?? fetchedModules[activeModuleCode] ?? null
+    : null;
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -49,9 +34,30 @@ const Sidebar: React.FC = () => {
 
   const handleToggle = () => dispatch(toggleSidebar());
 
-  const handleSearchSelect = (mod: ModuleData) => {
-    setSearchedModule(mod);
+  useEffect(() => {
+    if (!isOpen) {
+      dispatch(setActiveModule(null));
+    }
+  }, [isOpen, dispatch]);
+
+  useEffect(() => {
+  const fetchIfNeeded = async () => {
+    if (!activeModuleCode) return;
+    const exists = modules[activeModuleCode] || fetchedModules[activeModuleCode];
+    if (!exists) {
+      try {
+        const fetched = await fetchModule(activeModuleCode);
+        dispatch(addFetchedModule(fetched));
+        // You might not need to re-dispatch setActiveModule(fetched.code)
+        // unless you anticipate the code might change during fetch
+      } catch (err) {
+        console.error(`Failed to fetch module ${activeModuleCode}`, err);
+      }
+    }
   };
+
+  fetchIfNeeded();
+}, [activeModuleCode, modules, fetchedModules, dispatch]);
 
   return isMobile ? (
     <Box
@@ -73,8 +79,8 @@ const Sidebar: React.FC = () => {
       <IconButton onClick={handleToggle} size="small" sx={{ position: 'absolute', top: 8, right: 8 }}>
         <CloseIcon />
       </IconButton>
-      <Box sx={{ p: 2, gap: 2,}}>
-        { isOpen && <ModuleSearch onModuleSearched={handleSearchSelect} /> }
+      <Box sx={{ p: 2, gap: 2 }}>
+        {isOpen && <ModuleSearch />}
         {resolvedModule && <ModuleDetails module={resolvedModule} />}
       </Box>
     </Box>
@@ -127,7 +133,7 @@ const Sidebar: React.FC = () => {
           whiteSpace: 'normal',
         }}
       >
-        { isOpen && <ModuleSearch onModuleSearched={handleSearchSelect} /> }
+        {isOpen && <ModuleSearch />}
         {resolvedModule && isOpen && <ModuleDetails module={resolvedModule} />}
       </Box>
     </Box>

@@ -15,8 +15,8 @@ interface ModuleCardProps {
 
 const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
   const theme = useTheme();
-  const selectedModuleId = useSelector((state: RootState) => state.planner.selectedModuleId);
-  const isSelected = selectedModuleId === module.id;
+  const activeModuleCode = useSelector((state: RootState) => state.planner.activeModuleCode);
+  const isSelected = activeModuleCode === module.code;
 
   const { 
     selectedBorderWidth, 
