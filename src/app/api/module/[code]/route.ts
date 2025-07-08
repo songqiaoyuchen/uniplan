@@ -7,7 +7,7 @@ import { ErrorResponse } from '@/types/errorTypes';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { code: string } },
+  { params }: { params: Promise<{ code: string }> }
 ): Promise<NextResponse<ModuleData | ErrorResponse>> {
   const { code } = await params
   const moduleCode = code.toUpperCase()

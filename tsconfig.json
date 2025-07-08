@@ -29,5 +29,5 @@
     ".next/types/**/*.ts",
     "src/components/GraphViewer"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "temp"]
 }
