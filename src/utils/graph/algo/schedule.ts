@@ -1,4 +1,4 @@
-import { FormattedGraph } from '@/types/graphTypes';
+import { FormattedGraph, Module } from '@/types/graphTypes';
 import { initialise } from './initialise';
 import { prioritizeModules } from './prioritise';
 import { applySemester } from './update';
@@ -17,9 +17,9 @@ export function runScheduler(graph: FormattedGraph, targetModules: string[]): st
     let usedMCs = 0;
 
     for (const mod of prioritized) {
-      const node = Object.values(graph.nodes).find(n => n.type === 'single' && (n as any).info.code === mod.code);
+      const node = Object.values(graph.nodes).find(n => n.type === 'single' && n.info.code === mod.code);
       const mc = (node && node.type === 'single' && 'info' in node && node.info.moduleCredit)
-        ? parseInt((node as any).info.moduleCredit)
+        ? parseInt(node.info.moduleCredit)
         : 4;
 
       if (usedMCs + mc <= MAX_MCS) {
