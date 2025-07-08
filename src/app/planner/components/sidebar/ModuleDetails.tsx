@@ -9,7 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
 import { useDraggable } from "@dnd-kit/core";
 import { useDispatch, useSelector } from "react-redux";
-import { addModule } from "@/store/plannerSlice";
+import { addFetchedModule, addModule } from "@/store/plannerSlice";
 import { useEffect } from "react";
 import { RootState } from "@/store";
 import PrereqTreeView from "./PrereqTreeView";
@@ -31,7 +31,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 
   useEffect(() => {
     // Only add the module if it's not already in the planner state
-    dispatch(addModule(module));
+    dispatch(addFetchedModule(module));
   }, [dispatch, module]);
 
   const isPlanned = useSelector((state: RootState) =>

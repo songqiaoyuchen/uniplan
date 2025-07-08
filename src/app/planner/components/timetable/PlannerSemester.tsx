@@ -1,64 +1,66 @@
-"use client";
+'use client';
 
-import { useDroppable } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import Stack from "@mui/material/Stack";
-import Box from "@mui/material/Box";
-import PlannerModule from "./PlannerModule";
-import { memo } from "react";
-import { shallowEqual } from "react-redux";
-import { selectSemesterModules } from "@/store/plannerSlice";
-import { ModuleData } from "@/types/plannerTypes";
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext } from '@dnd-kit/sortable';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import PlannerModule from './PlannerModule';
+import { memo } from 'react';
+import { shallowEqual } from 'react-redux';
 
 interface PlannerSemesterProps {
   semesterIndex: number;
-  isActive: boolean;
+  isActive: boolean; // highlight on hover
 }
 
 const PlannerSemester: React.FC<PlannerSemesterProps> = ({
   semesterIndex,
   isActive,
 }) => {
-  console.log("Rendering Semester...");
-
+  // Select only the module codes for this semester
+  const moduleCodes = useSelector(
+    (state: RootState) => state.planner.semesters[semesterIndex],
+    shallowEqual
+  );
+  // Select only the modules for this semester
   const modules = useSelector(
-    (state: RootState) => selectSemesterModules(state, semesterIndex),
-    shallowEqual,
-  ) as ModuleData[];
+    (state: RootState) => moduleCodes.map((code) => state.planner.modules[code]).filter(Boolean),
+    shallowEqual
+  );
 
   const { setNodeRef } = useDroppable({
     id: semesterIndex,
-    data: { type: "semester" },
+    data: { type: 'semester' },
   });
 
   return (
     <Box
       sx={{
-        minWidth: { xs: "200px", md: "240px" },
-        display: "flex",
-        flexDirection: "column",
-        border: "2px solid",
-        borderColor: isActive ? "primary.main" : "transparent",
+        minWidth: { xs: '200px', md: '240px' },
+        display: 'flex',
+        flexDirection: 'column',
+        border: '2px solid',
+        borderColor: isActive ? 'primary.main' : 'transparent',
         borderRadius: 1.5,
-        padding: "2px",
-        transition: "border 0.2s ease",
-        userSelect: "none",
+        padding: '2px',
+        transition: 'border 0.2s ease',
+        userSelect: 'none'
       }}
     >
       <Stack
         ref={setNodeRef}
         spacing={1}
-        direction={"column"}
+        direction={'column'}
         sx={{
           p: 1,
           gap: 1,
-          height: "100%",
+          height: '100%'
         }}
       >
-        <SortableContext items={modules.map((mod) => mod.code)}>
-          {modules.map((mod: ModuleData) => (
+        <SortableContext items={moduleCodes}>
+          {modules.map((mod) => (
             <PlannerModule key={mod.code} module={mod} />
           ))}
         </SortableContext>

@@ -19,7 +19,6 @@ import { useCallback } from "react";
 // Import your types and actions
 import { RootState } from "@/store";
 import { addModule, moveModule, reorderModules, updateModules } from "@/store/plannerSlice";
-import { ModuleData } from "@/types/plannerTypes";
 import { checkConflicts } from "@/utils/planner/checkConflicts";
 import { fetchModule } from "@/services/planner/fetchModule";
 
@@ -50,95 +49,78 @@ const PlannerContainer: React.FC = () => {
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { over } = event;
+
     if (!over) {
       setOverSemesterId(null);
       return;
     }
+
     const overType = over.data.current?.type;
-    let semesterId: string | null = null;
-    if (overType === "semester") {
-      semesterId = over.id.toString();
-    } else if (overType === "module") {
+
+    if (overType === 'semester') {
+      setOverSemesterId(over.id.toString());
+    } else if (overType === 'module') {
       const moduleSemesterId = over.data.current?.module?.plannedSemester?.toString();
-      if (moduleSemesterId !== undefined) {
-        semesterId = moduleSemesterId;
+      if (moduleSemesterId !== undefined && moduleSemesterId !== null) {
+        setOverSemesterId(moduleSemesterId);
       }
     }
-    setOverSemesterId(semesterId);
   }, []);
 
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
-    const cleanup = () => {
+
+    if (!over) {
       setActiveCode(null);
       setOverSemesterId(null);
-    };
+      return;
+    }
 
-    if (!over) return cleanup();
+    const moduleCode = active.id.toString().split('-')[0].trim();
+    const module = active.data.current?.module ?? await fetchModule(active.data.current?.moduleCode);
+    const isNew = active.data.current?.isNew;
 
-    const rawId = active.id.toString().split("-")[0].trim();
-    const currentData = active.data.current;
-    const moduleCode =
-      currentData?.module?.code || currentData?.moduleCode || rawId;
-    const isNew = currentData?.isNew;
+    const toSemester = over.data.current?.type === 'semester'
+      ? Number(over.id)
+      : over.data.current?.module?.plannedSemester;
 
-    const toSemester =
-      over.data.current?.type === "semester"
-        ? Number(over.id)
-        : over.data.current?.module?.plannedSemester;
+    let modulesChanged = false;
+    let nextModules = { ...modules };
 
-    if (toSemester === null || toSemester === undefined) return cleanup();
-
-    let module: ModuleData | undefined = currentData?.module;
-
-    if (!module) {
-      module = modules[moduleCode] || fetchedModules[moduleCode];
-      if (!module) {
-        try {
-          const fetched = await fetchModule(moduleCode);
-          module = { ...fetched, plannedSemester: toSemester };
-        } catch (err) {
-          console.error(`Failed to fetch module ${moduleCode}`, err);
-          return cleanup();
-        }
-      }
+    if (isNew && !modules[moduleCode]) {
+      dispatch(addModule(module));
+      nextModules[moduleCode] = module;
     }
 
     const fromSemester = module.plannedSemester;
-
-    if (isNew && !modules[moduleCode]) {
-      dispatch(addModule({ ...module, plannedSemester: toSemester }));
-    }
-
     if (fromSemester === toSemester && fromSemester !== null) {
       if (active.id !== over.id) {
-        dispatch(
-          reorderModules({
-            semesterIndex: fromSemester,
-            activeCode: active.id.toString(),
-            overCode: over.id.toString(),
-          }),
-        );
+        dispatch(reorderModules({
+          semesterIndex: fromSemester,
+          activeCode: active.id.toString(),
+          overCode: over.id.toString(),
+        }));
       }
     } else {
-      dispatch(
-        moveModule({
-          moduleCode,
-          fromSemester: fromSemester ?? null,
-          toSemester,
-        }),
-      );
-    }
-    
-    const newModules = {
-      ...modules,
-      [moduleCode]: {
-        ...module,
+      dispatch(moveModule({
+        moduleCode,
+        fromSemester: module.plannedSemester,
+        toSemester,
+      }));
+      nextModules[moduleCode] = {
+        ...nextModules[moduleCode],
         plannedSemester: toSemester,
-      },
-    };
-    dispatch(updateModules(checkConflicts(newModules)));
-    cleanup();
+      };
+      modulesChanged = true;
+    }
+
+    if (modulesChanged) {
+      const updatedModules = checkConflicts(nextModules);
+      dispatch(updateModules(updatedModules));
+    }
+
+    setActiveCode(null);
+    setOverSemesterId(null);
   }, [dispatch, modules, fetchedModules]);
 
   return (
