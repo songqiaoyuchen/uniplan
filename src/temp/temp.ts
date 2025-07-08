@@ -3,12 +3,12 @@
  * @param graph: RawGraph,
  *        required mode codes: string[]
  * @returns cleaned graph: RawGraph
- * @description cleans the graph to include only the nodes and relationships 
+ * @description cleans the graph to include only the nodes and relationships
  * that are required based on the provided list of module codes.
-*/
+ */
 
-import { RawGraph, RawNode, RawRelationship } from '@/types/graphTypes';
-import { v4 as uuid } from 'uuid';
+import { RawGraph, RawNode, RawRelationship } from "@/types/graphTypes";
+import { v4 as uuid } from "uuid";
 
 export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
   const { nodes, relationships } = raw;
@@ -27,7 +27,10 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
 
   const requiredModuleIds = new Set<string>();
   for (const node of nodes) {
-    if (node.labels.includes('Module') && requiredCodes.includes(node.properties.code)) {
+    if (
+      node.labels.includes("Module") &&
+      requiredCodes.includes(node.properties.code)
+    ) {
       requiredModuleIds.add(node.id);
     }
   }
@@ -36,17 +39,22 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
 
   function cleanOrNof(nodeId: string) {
     const inEdges = incomingEdges[nodeId] || [];
-    for (const parent of inEdges.map(r => r.startNode)) {
-      if (nodeMap[parent].labels.includes('Logic') && nodeMap[parent].properties.type === 'OR') {
+    for (const parent of inEdges.map((r) => r.startNode)) {
+      if (
+        nodeMap[parent].labels.includes("Logic") &&
+        nodeMap[parent].properties.type === "OR"
+      ) {
         // If the parent is a OR, remove all its peers that are not required
         const outEdges = outgoingEdges[parent] || [];
         for (const outEdge of outEdges) {
           if (!requiredModuleIds.has(outEdge.endNode)) {
-            nodesToRemove.add(outEdge.endNode); 
+            nodesToRemove.add(outEdge.endNode);
           }
         }
         nodesToRemove.add(parent); // Remove the OR parent itself
-        incomingEdges[nodeId] = incomingEdges[nodeId].filter(edge => edge.startNode !== parent);
+        incomingEdges[nodeId] = incomingEdges[nodeId].filter(
+          (edge) => edge.startNode !== parent,
+        );
 
         for (const edge of incomingEdges[parent] ?? []) {
           // redirect relationships to parent to the required module
@@ -54,18 +62,23 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
         }
       }
 
-      if (nodeMap[parent].labels.includes('Logic') && nodeMap[parent].properties.type === 'NOF') {
+      if (
+        nodeMap[parent].labels.includes("Logic") &&
+        nodeMap[parent].properties.type === "NOF"
+      ) {
         // If the parent is a NOF, check if it has enough required children
         const outEdges = outgoingEdges[parent] || [];
-        const requiredChildren = outEdges.filter(r => requiredModuleIds.has(r.endNode));
+        const requiredChildren = outEdges.filter((r) =>
+          requiredModuleIds.has(r.endNode),
+        );
         if (requiredChildren.length < nodeMap[parent].properties.threshold) {
           nodeMap[parent].properties.threshold -= requiredChildren.length; // reduce the threshold
           // create a new AND node
           const newAND = {
             id: uuid(),
-            labels: ['Logic'],
-            properties: { type: 'AND' },
-          }
+            labels: ["Logic"],
+            properties: { type: "AND" },
+          };
           nodeMap[newAND.id] = newAND;
           incomingEdges[newAND.id] = [];
           outgoingEdges[newAND.id] = [];
@@ -74,12 +87,12 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
             edge.endNode = newAND.id;
           }
           // connect the new AND node to the required children
-          for (const childId of requiredChildren.map(r => r.endNode)) {
+          for (const childId of requiredChildren.map((r) => r.endNode)) {
             const newANDToRequired = {
               id: uuid(),
               startNode: newAND.id,
               endNode: childId,
-              type: 'REQUIRES',
+              type: "REQUIRES",
               properties: {},
             };
             outgoingEdges[newAND.id].push(newANDToRequired);
@@ -91,15 +104,16 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
             id: uuid(),
             startNode: newAND.id,
             endNode: parent,
-            type: 'REQUIRES',
+            type: "REQUIRES",
             properties: {},
           };
           outgoingEdges[newAND.id].push(newANDToNOF);
           incomingEdges[parent].push(newANDToNOF);
           relationships.push(newANDToNOF); // add the new relationship to the graph
-        } else { // If the NOF has enough required children, we can remove it
+        } else {
+          // If the NOF has enough required children, we can remove it
           nodesToRemove.add(parent); // mark NOF for removal
-          for (const child of outEdges.map(r => r.endNode)) {
+          for (const child of outEdges.map((r) => r.endNode)) {
             if (!requiredModuleIds.has(child)) {
               nodesToRemove.add(child); // mark non-required children for removal
             }
@@ -107,20 +121,20 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
           // create a new AND node to connect the required children
           const newAND = {
             id: uuid(),
-            labels: ['Logic'],
-            properties: { type: 'AND' },
+            labels: ["Logic"],
+            properties: { type: "AND" },
           };
           nodeMap[newAND.id] = newAND;
           incomingEdges[newAND.id] = [];
           outgoingEdges[newAND.id] = [];
           // connect the new AND node to the required children
           requiredChildren.length = nodeMap[parent].properties.threshold; // ensure we only connect the required number of children
-          for (const childId of requiredChildren.map(r => r.endNode)) {
+          for (const childId of requiredChildren.map((r) => r.endNode)) {
             const newANDToRequired = {
               id: uuid(),
               startNode: newAND.id,
               endNode: childId,
-              type: 'REQUIRES',
+              type: "REQUIRES",
               properties: {},
             };
             outgoingEdges[newAND.id].push(newANDToRequired);
@@ -138,9 +152,12 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
 
   function hasOrNofParent(nodeId: string): boolean {
     const inEdges = incomingEdges[nodeId] || [];
-    for (const parent of inEdges.map(r => r.startNode)) {
-      if (nodeMap[parent].labels.includes('Logic') && 
-          (nodeMap[parent].properties.type === 'OR' || nodeMap[parent].properties.type === 'NOF')) {
+    for (const parent of inEdges.map((r) => r.startNode)) {
+      if (
+        nodeMap[parent].labels.includes("Logic") &&
+        (nodeMap[parent].properties.type === "OR" ||
+          nodeMap[parent].properties.type === "NOF")
+      ) {
         return true;
       }
     }
@@ -158,17 +175,20 @@ export function cleanGraph(raw: RawGraph, requiredCodes: string[]): RawGraph {
     }
   }
 
-  return removeRedundantParts(nodes, relationships, requiredModuleIds, nodesToRemove);
+  return removeRedundantParts(
+    nodes,
+    relationships,
+    requiredModuleIds,
+    nodesToRemove,
+  );
 }
-
-
 
 // helper function to remove redundant parts of the graph created while selecting required nodes
 function removeRedundantParts(
   nodes: RawNode[],
   relationships: RawRelationship[],
   rootRequiredIds: Set<string>,
-  markedNodes: Set<string>
+  markedNodes: Set<string>,
 ): RawGraph {
   const adjacency = new Map<string, Array<{ node: string; relId: string }>>();
   for (const rel of relationships) {
@@ -192,7 +212,9 @@ function removeRedundantParts(
   }
 
   return {
-    nodes: nodes.filter(n => visitedNodes.has(n.id) || !markedNodes.has(n.id)),
-    relationships: relationships.filter(r => visitedrelationships.has(r.id))
-  }
+    nodes: nodes.filter(
+      (n) => visitedNodes.has(n.id) || !markedNodes.has(n.id),
+    ),
+    relationships: relationships.filter((r) => visitedrelationships.has(r.id)),
+  };
 }

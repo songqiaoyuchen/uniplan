@@ -1,5 +1,5 @@
-import { FormattedGraph } from '@/types/graphTypes';
-import { LogicStatus, PlannerState} from '@/types/graphTypes';
+import { FormattedGraph } from "@/types/graphTypes";
+import { LogicStatus, PlannerState } from "@/types/graphTypes";
 
 export function initialise(graph: FormattedGraph): PlannerState {
   const availableModules = new Set<string>();
@@ -15,13 +15,13 @@ export function initialise(graph: FormattedGraph): PlannerState {
 
   // Step 2: Process each node
   for (const [id, node] of Object.entries(graph.nodes)) {
-    if (node.type === 'logic') {
+    if (node.type === "logic") {
       logicStatus[id] = {
         satisfied: false,
         requires: node.requires,
         satisfiedCount: 0,
       };
-    } else if (node.type === 'single') {
+    } else if (node.type === "single") {
       const moduleCode = node.info.code;
       const hasPrereqs = incomingEdgesCount[id] > 0;
 
@@ -29,8 +29,8 @@ export function initialise(graph: FormattedGraph): PlannerState {
         availableModules.add(moduleCode);
       }
     } else {
-        // Module groups are not handled in this function yet
-        console.warn(`Unknown node type for ${id}: ${node.type}`);
+      // Module groups are not handled in this function yet
+      console.warn(`Unknown node type for ${id}: ${node.type}`);
     }
   }
 

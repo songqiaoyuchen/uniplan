@@ -3,14 +3,23 @@
  * @param graph: FormattedGraph,
  *        required mode codes: Set<string>
  * @returns finalised graph: FinalGraph
- * @description clean the graph to include only the nodes and relationships 
+ * @description clean the graph to include only the nodes and relationships
  * that are required based on the provided list of module codes,
  * check only single nodes exists, and format the graph to FinalGraph
-*/
+ */
 
-import { Edge, FormattedGraph, Node, Module, FinalGraph } from "@/types/graphTypes";
+import {
+  Edge,
+  FormattedGraph,
+  Node,
+  Module,
+  FinalGraph,
+} from "@/types/graphTypes";
 
-export function finaliseGraph(graph: FormattedGraph, requiredIds: Set<string>): FinalGraph {
+export function finaliseGraph(
+  graph: FormattedGraph,
+  requiredIds: Set<string>,
+): FinalGraph {
   const visited = new Set<string>();
   const adjacency: Record<string, string[]> = {};
 
@@ -24,10 +33,10 @@ export function finaliseGraph(graph: FormattedGraph, requiredIds: Set<string>): 
   function dfs(nodeId: string) {
     if (visited.has(nodeId)) return;
     const node = graph.nodes[nodeId];
-    if (!node || node.type !== 'single') {
+    if (!node || node.type !== "single") {
       console.warn(`Node ${nodeId} is not a single node, which it should be.`);
       return;
-    };
+    }
 
     visited.add(nodeId);
 
@@ -46,7 +55,7 @@ export function finaliseGraph(graph: FormattedGraph, requiredIds: Set<string>): 
   const prunedEdges: Edge[] = [];
 
   for (const id of visited) {
-    if (!graph.nodes[id] || graph.nodes[id].type !== 'single') {
+    if (!graph.nodes[id] || graph.nodes[id].type !== "single") {
       console.warn(`Node ${id} is not a single node, which it should be.`);
       continue;
     }

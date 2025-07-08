@@ -2,17 +2,19 @@
 // get prerequisite subgraphs for multiple modules and return a merged tree as RawGraph
 // merges prerequisite subgraphs for multiple modules using APOC subgraphAll from Neo4j.
 
-import type { Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
-import type { Record as NeoRecord} from 'neo4j-driver';
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { mapGraph } from '@/utils/graph/mapGraph';
-import { FormattedGraph } from '@/types/graphTypes';
+import type { Node as NeoNode, Relationship as NeoRel } from "neo4j-driver";
+import type { Record as NeoRecord } from "neo4j-driver";
+import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { mapGraph } from "@/utils/graph/mapGraph";
+import { FormattedGraph } from "@/types/graphTypes";
 
 /**
  * Merges prerequisite subgraphs for multiple modules in a single Cypher call,
  * eliminates duplicates via DISTINCT, and returns plain JSON arrays.
  */
-export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGraph> {
+export async function getMergedTree(
+  moduleCodes: string[],
+): Promise<FormattedGraph> {
   const { driver, session } = await connectToNeo4j();
   try {
     // Single Cypher query to unwind, collect, and dedupe subgraphs
@@ -33,16 +35,16 @@ export async function getMergedTree(moduleCodes: string[]): Promise<FormattedGra
             apoc.coll.toSet(apoc.coll.flatten(groupedRels)) AS relationships
         RETURN nodes, relationships
       `,
-      { moduleCodes }
+      { moduleCodes },
     );
 
-    if (!result.records.length || !result.records[0].has('nodes')) {
+    if (!result.records.length || !result.records[0].has("nodes")) {
       return { nodes: {}, relationships: [] };
     }
 
     const record: NeoRecord = result.records[0];
-    const neoNodes = record.get('nodes') as NeoNode[];
-    const neoRels  = record.get('relationships') as NeoRel[];
+    const neoNodes = record.get("nodes") as NeoNode[];
+    const neoRels = record.get("relationships") as NeoRel[];
 
     const mapped = mapGraph({ nodes: neoNodes, relationships: neoRels });
     return mapped;

@@ -9,12 +9,14 @@
  * arrays, or `null` if the module is not found.
  */
 
-import { mapGraph } from '@/utils/graph/mapGraph';
-import type { Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { FormattedGraph } from '@/types/graphTypes';
+import { mapGraph } from "@/utils/graph/mapGraph";
+import type { Node as NeoNode, Relationship as NeoRel } from "neo4j-driver";
+import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { FormattedGraph } from "@/types/graphTypes";
 
-export async function getPrereqTree(moduleCode: string): Promise<FormattedGraph | null> {
+export async function getPrereqTree(
+  moduleCode: string,
+): Promise<FormattedGraph | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -27,14 +29,14 @@ export async function getPrereqTree(moduleCode: string): Promise<FormattedGraph 
       }) YIELD nodes, relationships
       RETURN nodes, relationships
       `,
-      { code: moduleCode }
+      { code: moduleCode },
     );
 
     const record = result.records[0];
     if (!record) return null;
 
-    const neoNodes = record.get('nodes') as NeoNode[];
-    const neoRels  = record.get('relationships') as NeoRel[];
+    const neoNodes = record.get("nodes") as NeoNode[];
+    const neoRels = record.get("relationships") as NeoRel[];
 
     return mapGraph({ nodes: neoNodes, relationships: neoRels });
   } finally {

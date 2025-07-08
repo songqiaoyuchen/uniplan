@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "@/styles/globals.css";
-import Navbar from "@components/layout/Navbar";
+import Navbar from "@/components/layout/Navbar";
 import Toolbar from "@mui/material/Toolbar";
-import Providers from '@providers/Providers'
+import Providers from "@/providers";
 
 export const metadata: Metadata = {
   title: "Uniplan",
@@ -21,7 +21,7 @@ export default function RootLayout({
         <AppRouterCacheProvider>
           <Providers>
             <Navbar />
-            <Toolbar sx={{height: '64px'}}/> {/* Spacer for fixed AppBar */}
+            <Toolbar sx={{ height: "64px" }} /> {/* Spacer for fixed AppBar */}
             {children}
           </Providers>
         </AppRouterCacheProvider>

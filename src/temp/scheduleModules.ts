@@ -38,7 +38,7 @@ function evaluateGate(gate: LogicNode, scheduled: Set<string>): boolean {
 // Returns the minimal set of modules required to unlock the target modules,
 // based on logic gates. This avoids over-scheduling optional branches.
 function collectAllRequiredModules(input: SchedulingInput): Set<string> {
-  const picked = new Set<string>();  // Set of all modules we know are needed
+  const picked = new Set<string>(); // Set of all modules we know are needed
   const visited = new Set<string>(); // To prevent infinite loops in cyclic graphs (shouldn't happen)
 
   // Recursively mark a module and all of its minimally-required dependencies
@@ -92,10 +92,10 @@ function collectAllRequiredModules(input: SchedulingInput): Set<string> {
 export function scheduleModules(
   input: SchedulingInput,
   maxPerSem: number, // max number of modules allowed per semester
-  totalSems: number  // how many semesters to plan for (typically 16 = 4 years × 4 terms)
+  totalSems: number, // how many semesters to plan for (typically 16 = 4 years × 4 terms)
 ): ScheduleResult | null {
-  const scheduled = new Set<string>();     // Modules that have been scheduled so far
-  const result: ScheduleResult = {};       // Final plan: semester number → list of modules
+  const scheduled = new Set<string>(); // Modules that have been scheduled so far
+  const result: ScheduleResult = {}; // Final plan: semester number → list of modules
   const required = collectAllRequiredModules(input); // Get the minimal required set of modules
 
   // Loop through each semester
@@ -116,7 +116,7 @@ export function scheduleModules(
       if (!meta || !meta.offeredIn.includes(term)) continue;
 
       const gates = input.dependencies.get(mod) ?? [];
-      const canSchedule = gates.every(g => evaluateGate(g, scheduled));
+      const canSchedule = gates.every((g) => evaluateGate(g, scheduled));
 
       if (canSchedule && count < maxPerSem) {
         scheduled.add(mod);
@@ -128,7 +128,7 @@ export function scheduleModules(
 
   // After scheduling, check if any required module could not be placed.
   const trulyRequired = collectAllRequiredModules(input); // recompute for safety
-  const unscheduled = [...trulyRequired].filter(m => !scheduled.has(m));
+  const unscheduled = [...trulyRequired].filter((m) => !scheduled.has(m));
 
   if (unscheduled.length > 0) {
     console.warn("Some required modules could not be scheduled:", unscheduled);

@@ -28,11 +28,14 @@ type SchedulingInput = {
 export function convertToSchedulingInput(
   nodes: RawNode[],
   edges: RawEdge[],
-  targetCodes: string[]
+  targetCodes: string[],
 ): SchedulingInput {
   const idToCode = new Map<number, string>();
   const moduleMap = new Map<string, { code: string; offeredIn: number[] }>();
-  const logicDefs = new Map<number, { type: "AND" | "OR" | "NOF"; threshold: number }>();
+  const logicDefs = new Map<
+    number,
+    { type: "AND" | "OR" | "NOF"; threshold: number }
+  >();
   const logicToChildren = new Map<number, number[]>();
   const moduleToLogic = new Map<number, number[]>();
 

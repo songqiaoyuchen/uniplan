@@ -1,20 +1,15 @@
-/** 
+/**
  * @path src/utils/graph/mergeModules.ts
  * @param graph: FormattedGraph
  * @returns graph with equivalent modules merged to a ModuleGroup: FormattedGraph
  * @description merge equivalent modules into a ModuleGroup,
  * modules are considered equivalent if they have the same parents and children
-*/ 
+ */
 
-import {
-  Edge,
-  Module,
-  ModuleGroup,
-  FormattedGraph,
-} from '@/types/graphTypes';
+import { Edge, Module, ModuleGroup, FormattedGraph } from "@/types/graphTypes";
 
-import crypto from 'crypto';
-import { v4 as uuid } from 'uuid';
+import crypto from "crypto";
+import { v4 as uuid } from "uuid";
 
 export function mergeModules(graph: FormattedGraph): FormattedGraph {
   const { nodes, edges } = graph;
@@ -42,7 +37,10 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
 
     // Unique group key from sorted parents & children IDs
     const keyString = `${[...parentsSet].sort().join(",")}|${[...childrenSet].sort().join(",")}`;
-    const groupKey = crypto.createHash('sha256').update(keyString).digest('hex');
+    const groupKey = crypto
+      .createHash("sha256")
+      .update(keyString)
+      .digest("hex");
 
     if (!moduleGroupCandidates[groupKey]) {
       moduleGroupCandidates[groupKey] = [];
@@ -81,15 +79,15 @@ export function mergeModules(graph: FormattedGraph): FormattedGraph {
 
     // Add new edges to group node
     for (const pId of parentIds) {
-      newEdges.push({ id: uuid(), from: pId, to: groupId});
+      newEdges.push({ id: uuid(), from: pId, to: groupId });
     }
     for (const cId of childIds) {
-      newEdges.push({ id: uuid(), from: groupId, to: cId});
+      newEdges.push({ id: uuid(), from: groupId, to: cId });
     }
   }
 
   // filter edges once, keeping only those not from OR parents to grouped modules
-  const filteredEdges = edges.filter(edge => {
+  const filteredEdges = edges.filter((edge) => {
     // Remove edges from OR parents to grouped single modules
     if (groupedIds.has(edge.to)) {
       return false;

@@ -1,25 +1,28 @@
-import { LogicType } from '@/types/neo4jTypes';
-import { connectToNeo4j, closeNeo4jConnection } from '../../../db/neo4j';
-import { Session } from 'neo4j-driver';
+import { LogicType } from "@/types/neo4jTypes";
+import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { Session } from "neo4j-driver";
 
 export async function deduplicateLogicNodes() {
   let driver, session;
-  
+
   try {
     ({ driver, session } = await connectToNeo4j());
-    
-    const types = ['OR', 'AND', 'NOF'];
+
+    const types = ["OR", "AND", "NOF"];
     let globalChanged = true;
     let globalIteration = 1;
-    
+
     // Keep running until no changes occur across all types
     while (globalChanged) {
       console.log(`🔄 Global deduplication iteration ${globalIteration}`);
       globalChanged = false;
-      
+
       for (const logicType of types) {
         try {
-          const typeChanged = await deduplicateLogicType(session, logicType as LogicType);
+          const typeChanged = await deduplicateLogicType(
+            session,
+            logicType as LogicType,
+          );
           if (typeChanged) {
             globalChanged = true;
           }
@@ -29,7 +32,7 @@ export async function deduplicateLogicNodes() {
           continue;
         }
       }
-      
+
       if (globalChanged) {
         console.log(`🔄 Changes detected, running another global iteration...`);
         globalIteration++;
@@ -37,11 +40,12 @@ export async function deduplicateLogicNodes() {
         console.log(`🎉 No more duplicates found across all types!`);
       }
     }
-    
-    console.log(`🎉 All logic node deduplication completed successfully after ${globalIteration} global iterations.`);
-    
+
+    console.log(
+      `🎉 All logic node deduplication completed successfully after ${globalIteration} global iterations.`,
+    );
   } catch (err) {
-    console.error('❌ Failed to connect to Neo4j:', err);
+    console.error("❌ Failed to connect to Neo4j:", err);
     throw err;
   } finally {
     if (session && driver) {
@@ -52,40 +56,43 @@ export async function deduplicateLogicNodes() {
 
 async function deduplicateLogicType(session: Session, logicType: LogicType) {
   const cypher = buildDeduplicationQuery(logicType);
-  
+
   let totalMerged = 0;
   let mergedGroups = -1;
   let iteration = 1;
   let typeChanged = false;
-  
+
   while (mergedGroups !== 0) {
     const result = await session.run(cypher);
-    mergedGroups = result.records[0].get('mergedGroups').toNumber();
+    mergedGroups = result.records[0].get("mergedGroups").toNumber();
     totalMerged += mergedGroups;
-    
+
     if (mergedGroups > 0) {
       typeChanged = true;
-      console.log(`  ✅ ${logicType} iteration ${iteration}: Merged ${mergedGroups} groups`);
+      console.log(
+        `  ✅ ${logicType} iteration ${iteration}: Merged ${mergedGroups} groups`,
+      );
       iteration++;
     }
   }
-  
+
   if (totalMerged > 0) {
-    console.log(`  🚀 ${logicType} complete: ${totalMerged} total groups merged`);
+    console.log(
+      `  🚀 ${logicType} complete: ${totalMerged} total groups merged`,
+    );
   } else {
     console.log(`  ✓ ${logicType}: No duplicates found`);
   }
-  
+
   return typeChanged;
 }
-
 
 function buildDeduplicationQuery(logicType: LogicType) {
   // Build the initial MATCH and WITH clauses based on logic type
   let matchClause, withClause;
-  
+
   switch (logicType) {
-    case 'NOF':
+    case "NOF":
       // For NOF: group by threshold + ALL outgoing relationships
       matchClause = `MATCH (l:Logic {type: "NOF"})
                      OPTIONAL MATCH (l)-[:OPTION]->(opt)
@@ -95,8 +102,8 @@ function buildDeduplicationQuery(logicType: LogicType) {
                          apoc.coll.sort(collect(DISTINCT id(req))) AS requiresChildren
                     WITH threshold, optionChildren, requiresChildren, collect(l) AS logicGroup`;
       break;
-      
-    case 'AND':
+
+    case "AND":
       // For AND: group by ALL outgoing relationships
       matchClause = `MATCH (l:Logic {type: "AND"})
                      OPTIONAL MATCH (l)-[:REQUIRES]->(req)
@@ -106,8 +113,8 @@ function buildDeduplicationQuery(logicType: LogicType) {
                          apoc.coll.sort(collect(DISTINCT id(opt))) AS optionChildren
                     WITH requiresChildren, optionChildren, collect(l) AS logicGroup`;
       break;
-      
-    case 'OR':
+
+    case "OR":
     default:
       // For OR: group by ALL outgoing relationships
       matchClause = `MATCH (l:Logic {type: "OR"})
@@ -119,7 +126,7 @@ function buildDeduplicationQuery(logicType: LogicType) {
                     WITH optionChildren, requiresChildren, collect(l) AS logicGroup`;
       break;
   }
-  
+
   return `
     ${matchClause}
     ${withClause}
@@ -173,7 +180,7 @@ function buildDeduplicationQuery(logicType: LogicType) {
 if (require.main === module) {
   deduplicateLogicNodes()
     .then(() => console.log(`✅ Deduplication script completed successfully.`))
-    .catch(err => {
+    .catch((err) => {
       console.error(`❌ Deduplication script failed:`, err);
       process.exit(1);
     });

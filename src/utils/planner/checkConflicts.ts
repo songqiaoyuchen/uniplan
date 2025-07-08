@@ -4,9 +4,11 @@ import { ModuleData, ModuleStatus, SemesterLabel } from "@/types/plannerTypes";
  * @description Marks modules as conflicted if they have exam clashes, invalid semester placements, or preclusions. If a module was previously Conflicted but is no longer conflicted, set its status to Unlocked.
  */
 
-export function checkConflicts(modules: Record<string, ModuleData>): Record<string, ModuleData> {
+export function checkConflicts(
+  modules: Record<string, ModuleData>,
+): Record<string, ModuleData> {
   const moduleArray = Object.values(modules);
-  const moduleCodes = new Set(moduleArray.map(m => m.code));
+  const moduleCodes = new Set(moduleArray.map((m) => m.code));
 
   const examClashModules = new Set<string>();
   const examsBySemester: Record<number, Map<string, string[]>> = {};
@@ -29,7 +31,7 @@ export function checkConflicts(modules: Record<string, ModuleData>): Record<stri
   for (const map of Object.values(examsBySemester)) {
     for (const codes of map.values()) {
       if (codes.length > 1) {
-        codes.forEach(code => examClashModules.add(code));
+        codes.forEach((code) => examClashModules.add(code));
       }
     }
   }
@@ -43,13 +45,14 @@ export function checkConflicts(modules: Record<string, ModuleData>): Record<stri
       continue;
     }
 
-    const actualSem = mod.plannedSemester % 2 === 0
-      ? SemesterLabel.First
-      : SemesterLabel.Second;
+    const actualSem =
+      mod.plannedSemester % 2 === 0
+        ? SemesterLabel.First
+        : SemesterLabel.Second;
 
     const hasInvalidSemester = !mod.semestersOffered.includes(actualSem);
     const hasExamClash = examClashModules.has(mod.code);
-    const hasPreclusion = mod.preclusions.some(p => moduleCodes.has(p));
+    const hasPreclusion = mod.preclusions.some((p) => moduleCodes.has(p));
 
     const isConflicted = hasInvalidSemester || hasExamClash || hasPreclusion;
 

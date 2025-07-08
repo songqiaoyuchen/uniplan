@@ -1,4 +1,4 @@
-import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import { connectToNeo4j, closeNeo4jConnection } from "../db/neo4j";
 
 export async function applyModuleGrouping(): Promise<void> {
   const { driver, session } = await connectToNeo4j();
@@ -74,10 +74,10 @@ export async function applyModuleGrouping(): Promise<void> {
 
   try {
     const result = await session.run(cypher);
-    console.log('✅ Grouped module rewiring completed.');
+    console.log("✅ Grouped module rewiring completed.");
     console.log(result.records[0].toObject());
   } catch (err) {
-    console.error('❌ Error applying module grouping:', err);
+    console.error("❌ Error applying module grouping:", err);
   } finally {
     await closeNeo4jConnection(driver, session);
   }

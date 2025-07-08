@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { connectToNeo4j, closeNeo4jConnection } from '../db/neo4j';
+import fs from "fs";
+import path from "path";
+import { connectToNeo4j, closeNeo4jConnection } from "../db/neo4j";
 
 async function dryRunGroupModules(): Promise<void> {
   const { driver, session } = await connectToNeo4j();
@@ -37,31 +37,31 @@ async function dryRunGroupModules(): Promise<void> {
     const result = await session.run(cypher);
 
     const output = result.records.map((record, i) => {
-      const key = record.get('logicSignature');
-      const members: string[] = record.get('members');
+      const key = record.get("logicSignature");
+      const members: string[] = record.get("members");
 
-      const [requiresStr, usedByStr] = key.split('|');
-      const requires = requiresStr ? requiresStr.split(',').map(Number) : [];
-      const usedBy = usedByStr ? usedByStr.split(',').map(Number) : [];
+      const [requiresStr, usedByStr] = key.split("|");
+      const requires = requiresStr ? requiresStr.split(",").map(Number) : [];
+      const usedBy = usedByStr ? usedByStr.split(",").map(Number) : [];
 
       return {
         groupNumber: i + 1,
         groupSize: members.length,
         requires,
         usedBy,
-        members
+        members,
       };
     });
 
-    const outputDir = path.join(process.cwd(), 'output');
+    const outputDir = path.join(process.cwd(), "output");
     if (!fs.existsSync(outputDir)) fs.mkdirSync(outputDir);
 
-    const outputPath = path.join(outputDir, 'moduleGroupingDryRun.json');
-    fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), 'utf-8');
+    const outputPath = path.join(outputDir, "moduleGroupingDryRun.json");
+    fs.writeFileSync(outputPath, JSON.stringify(output, null, 2), "utf-8");
 
     console.log(`✅ Dry run grouping output written to ${outputPath}`);
   } catch (err) {
-    console.error('❌ Error during dry-run grouping:', err);
+    console.error("❌ Error during dry-run grouping:", err);
   } finally {
     await closeNeo4jConnection(driver, session);
   }

@@ -1,11 +1,12 @@
 // get prereq graph for a given module from Neo4j as FormattedGraph
 
-import { FormattedGraph } from '@/types/graphTypes';
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { mapGraph } from '@/utils/graph/mapGraph';
+import { FormattedGraph } from "@/types/graphTypes";
+import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { mapGraph } from "@/utils/graph/mapGraph";
 
-export async function getGraph(moduleCode: string)
-: Promise<FormattedGraph | null> {
+export async function getGraph(
+  moduleCode: string,
+): Promise<FormattedGraph | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -16,7 +17,7 @@ export async function getGraph(moduleCode: string)
          labelFilter: "Module|Logic"
        }) YIELD nodes, relationships
        RETURN nodes, relationships`,
-      { code: moduleCode }
+      { code: moduleCode },
     );
 
     if (result.records.length === 0) {
@@ -25,8 +26,8 @@ export async function getGraph(moduleCode: string)
 
     const record = result.records[0];
 
-    const neoNodes = record.get('nodes');
-    const neoRels  = record.get('relationships');
+    const neoNodes = record.get("nodes");
+    const neoRels = record.get("relationships");
 
     return mapGraph({ nodes: neoNodes, relationships: neoRels });
   } catch (err) {
@@ -36,4 +37,3 @@ export async function getGraph(moduleCode: string)
     await closeNeo4jConnection(driver, session);
   }
 }
-

@@ -1,13 +1,13 @@
 export type Neo4jMiniModuleData = {
-    moduleCode: string;
-    title: string;
+  moduleCode: string;
+  title: string;
 };
 
-import type { Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
+import type { Node as NeoNode, Relationship as NeoRel } from "neo4j-driver";
 
 export type Neo4jGraph = {
-    nodes: NeoNode[];
-    relationships: NeoRel[];
+  nodes: NeoNode[];
+  relationships: NeoRel[];
 };
 
 // Matches NUSMODS module data structure
@@ -52,4 +52,4 @@ export type Prerequisite = {
   [moduleCode: string]: PrereqTree | null; // null if no prerequisites
 };
 
-export type LogicType = 'AND' | 'OR' | 'NOF';
+export type LogicType = "AND" | "OR" | "NOF";

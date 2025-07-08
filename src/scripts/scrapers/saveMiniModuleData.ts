@@ -3,7 +3,9 @@ import path from "path";
 import { MiniModuleData } from "@/types/plannerTypes";
 
 // For frontend use
-export async function saveMiniModuleData(data: MiniModuleData[]): Promise<void> {
+export async function saveMiniModuleData(
+  data: MiniModuleData[],
+): Promise<void> {
   try {
     // Target output: src/data/moduleList.json
     const outputDir = path.join(process.cwd(), "src", "data");

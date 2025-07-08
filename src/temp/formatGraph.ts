@@ -1,16 +1,11 @@
-/** 
+/**
  * @path src/utils/graph/formatGraph.ts
  * @param raw: RawGraph
  * @returns formatted graph: FormattedGraph
  * @description formats the raw graph from neo4j into a more structured format
-*/ 
+ */
 
-import {
-  RawGraph,
-  Edge,
-  Node,
-  FormattedGraph,
-} from '@/types/graphTypes';
+import { RawGraph, Edge, Node, FormattedGraph } from "@/types/graphTypes";
 
 export function formatGraph(raw: RawGraph): FormattedGraph {
   const nodes: Record<string, Node> = {};
@@ -49,5 +44,5 @@ export function formatGraph(raw: RawGraph): FormattedGraph {
     });
   }
 
-  return {nodes, edges};
+  return { nodes, edges };
 }

@@ -8,14 +8,16 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchModule } from "@/services/planner/fetchModule";
 import { MiniModuleData } from "@/types/plannerTypes";
 import { addFetchedModule, setActiveModule } from "@/store/plannerSlice";
-import SearchIcon from '@mui/icons-material/Search';
-import { InputAdornment } from '@mui/material'
+import SearchIcon from "@mui/icons-material/Search";
+import { InputAdornment } from "@mui/material";
 import { RootState } from "@/store";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
 const ModuleSearch = () => {
   const modules = useSelector((state: RootState) => state.planner.modules);
-  const fetchedModules = useSelector((state: RootState) => state.planner.fetchedModules);
+  const fetchedModules = useSelector(
+    (state: RootState) => state.planner.fetchedModules,
+  );
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -32,7 +34,10 @@ const ModuleSearch = () => {
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    return fuse.search(query).map((r) => r.item).slice(0, 15);
+    return fuse
+      .search(query)
+      .map((r) => r.item)
+      .slice(0, 15);
   }, [fuse, query]);
 
   const handleSearch = async (_: any, mod: MiniModuleData | null) => {
@@ -41,6 +46,7 @@ const ModuleSearch = () => {
     // If module already exists in modules or fetchedModules, do not fetch
     if (modules[mod.code] || fetchedModules[mod.code]) {
       dispatch(setActiveModule(mod.code));
+      router.push(`?module=${mod.code}`, { scroll: false });
       setQuery("");
       setValue(null);
       if (inputRef.current) {
@@ -76,8 +82,8 @@ const ModuleSearch = () => {
 
   return (
     <Autocomplete
-      sx={{ width: "100%"}}
-      open={Boolean(query.trim())} 
+      sx={{ width: "100%" }}
+      open={Boolean(query.trim())}
       options={results}
       noOptionsText="No matching modules"
       getOptionLabel={(mod) => `${mod.code} ${mod.title}`}
@@ -94,17 +100,17 @@ const ModuleSearch = () => {
           variant="outlined"
           inputRef={inputRef}
           sx={{
-            width: '100%',
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '9999px',
-              '& fieldset': {
-                borderColor: 'primary.main',
+            width: "100%",
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "9999px",
+              "& fieldset": {
+                borderColor: "primary.main",
               },
-              '&:hover fieldset': {
-                borderColor: 'primary.light',
+              "&:hover fieldset": {
+                borderColor: "primary.light",
               },
-              '&.Mui-focused fieldset': {
-                borderColor: 'primary.main',
+              "&.Mui-focused fieldset": {
+                borderColor: "primary.main",
                 borderWidth: 2,
               },
             },
@@ -116,21 +122,20 @@ const ModuleSearch = () => {
                 <InputAdornment position="start">
                   <Box
                     sx={{
-                      backgroundColor: 'primary.main',
-                      borderRadius: '50%',
-                      padding: '4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      backgroundColor: "primary.main",
+                      borderRadius: "50%",
+                      padding: "4px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <SearchIcon sx={{ color: 'white', fontSize: 20 }} />
+                    <SearchIcon sx={{ color: "white", fontSize: 20 }} />
                   </Box>
                 </InputAdornment>
               ),
-            }
+            },
           }}
-
         />
       )}
       disablePortal

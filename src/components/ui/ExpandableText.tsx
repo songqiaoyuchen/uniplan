@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Typography, Link } from '@mui/material';
+import { useState, useEffect } from "react";
+import { Typography, Link } from "@mui/material";
 
 const ExpandableText = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -10,16 +10,15 @@ const ExpandableText = ({ text }: { text: string }) => {
   }, [text]);
 
   const shouldTruncate = text.length > limit;
-  const visibleText = expanded || !shouldTruncate
-    ? text
-    : text.slice(0, limit).trimEnd();
+  const visibleText =
+    expanded || !shouldTruncate ? text : text.slice(0, limit).trimEnd();
 
   return (
     <Typography variant="body2" color="text.secondary">
       {visibleText}
       {shouldTruncate && (
         <>
-          {!expanded && '... '}
+          {!expanded && "... "}
           <Link
             component="button"
             onClick={() => setExpanded((prev) => !prev)}
@@ -27,7 +26,7 @@ const ExpandableText = ({ text }: { text: string }) => {
             underline="none"
             sx={{ ml: 0.5 }}
           >
-            {expanded ? 'Show less' : 'Show more'}
+            {expanded ? "Show less" : "Show more"}
           </Link>
         </>
       )}

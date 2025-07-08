@@ -1,27 +1,23 @@
 // app/api/formattedGraph/route.ts
 // API route handler for graph fetching
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getMergedTree } from '@/db/getMergedTree';
-import { FormattedGraph, NormalisedGraph } from '@/types/graphTypes';
-import { ErrorResponse } from '@/types/errorTypes';
-import { formatGraph } from '@/temp/formatGraph';
-import { cleanGraph } from '@/utils/graph/cleanGraph';
-import { normaliseNodes } from '@/utils/graph/normaliseNodes';
-import { selectRandom } from '@/temp/selectRandom';
-import { mapGraph } from '@/utils/graph/mapGraph';
+import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { getMergedTree } from "@/db/getMergedTree";
+import { FormattedGraph } from "@/types/graphTypes";
+import { ErrorResponse } from "@/types/errorTypes";
 
-export async function GET(request: NextRequest)
-: Promise<NextResponse<FormattedGraph | ErrorResponse>> {
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<FormattedGraph | ErrorResponse>> {
   const { searchParams } = request.nextUrl;
-  const moduleCode = searchParams.get('moduleCode');
-  const moduleCodesParam = searchParams.get('moduleCodes');
+  const moduleCode = searchParams.get("moduleCode");
+  const moduleCodesParam = searchParams.get("moduleCodes");
 
   let codes: string[] = [];
   if (moduleCodesParam) {
     codes = moduleCodesParam
-      .split(',')
+      .split(",")
       .map((c) => c.trim().toUpperCase())
       .filter((c) => c);
   } else if (moduleCode) {
@@ -32,10 +28,10 @@ export async function GET(request: NextRequest)
     const graph = await getMergedTree(codes);
     return NextResponse.json(graph);
   } catch (err) {
-    console.error('exportGraph error:', err);
+    console.error("exportGraph error:", err);
     return NextResponse.json(
-      { error: 'Failed to build merged graph' },
-      { status: 500 }
+      { error: "Failed to build merged graph" },
+      { status: 500 },
     );
   }
 }

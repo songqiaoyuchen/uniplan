@@ -167,7 +167,8 @@ export default function FinalGraphViewer({ graph }: FinalGraphViewerProps) {
         }}
       >
         <div>
-          <strong>{stats.nodes}</strong> modules, <strong>{stats.edges}</strong> prerequisites
+          <strong>{stats.nodes}</strong> modules, <strong>{stats.edges}</strong>{" "}
+          prerequisites
         </div>
         <div style={{ marginTop: "4px", fontSize: "11px", color: "#555" }}>
           Click a module to focus. Double-click background to reset view.

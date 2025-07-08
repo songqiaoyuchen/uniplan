@@ -5,10 +5,13 @@
  * @description resolve all logic nodes by randomly selecting among sibling nodes
  */
 
-import { Edge, FinalGraph, FormattedGraph } from '@/types/graphTypes';
-import { finaliseGraph } from '../utils/graph/finaliseGraph';
+import { Edge, FinalGraph, FormattedGraph } from "@/types/graphTypes";
+import { finaliseGraph } from "../utils/graph/finaliseGraph";
 
-export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): FinalGraph {
+export function selectRandom(
+  graph: FormattedGraph,
+  requiredCodes: string[],
+): FinalGraph {
   const { nodes, edges } = graph;
 
   const outgoingMap: Record<string, Edge[]> = {};
@@ -19,7 +22,7 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
 
   const requiredModuleIds = new Set<string>();
   for (const node of Object.values(nodes)) {
-    if (node.type === 'single' && requiredCodes.includes(node.info.code)) {
+    if (node.type === "single" && requiredCodes.includes(node.info.code)) {
       requiredModuleIds.add(node.id);
     }
   }
@@ -29,8 +32,10 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
   function resolveChildren(nodeId: string) {
     const node = nodes[nodeId];
 
-    if (node.type === 'logic' || node.type === 'group') {
-      console.warn(`Node ${nodeId} is a logic or group node, shouldn't call resolveChildren on it directly.`);
+    if (node.type === "logic" || node.type === "group") {
+      console.warn(
+        `Node ${nodeId} is a logic or group node, shouldn't call resolveChildren on it directly.`,
+      );
       return;
     }
 
@@ -39,7 +44,7 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
       const childId = outEdge.to;
       const childNode = nodes[childId];
 
-      if (childNode.type === 'logic') {
+      if (childNode.type === "logic") {
         const logicChildren = outgoingMap[childId] ?? [];
         if (logicChildren.length === 0) continue;
 
@@ -52,7 +57,9 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
         }
 
         // Remove the edge from node to logic node
-        outgoingMap[nodeId] = outgoingMap[nodeId].filter(e => e.to !== childId);
+        outgoingMap[nodeId] = outgoingMap[nodeId].filter(
+          (e) => e.to !== childId,
+        );
         edgesToRemove.add(`${nodeId}-${childId}`);
 
         // Add new edges from node to selected logic children
@@ -60,7 +67,7 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
           const newEdge = {
             id: `${nodeId}-${edge.to}`,
             from: nodeId,
-            to: edge.to
+            to: edge.to,
           };
           outgoingMap[nodeId].push(newEdge);
           edges.push(newEdge);
@@ -69,7 +76,9 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
     }
 
     const hasLogicChildren = () =>
-      (outgoingMap[nodeId] || []).some(edge => nodes[edge.to].type === 'logic');
+      (outgoingMap[nodeId] || []).some(
+        (edge) => nodes[edge.to].type === "logic",
+      );
 
     while (hasLogicChildren()) {
       resolveChildren(nodeId); // keep resolving until all logic children gone
@@ -84,6 +93,11 @@ export function selectRandom(graph: FormattedGraph, requiredCodes: string[]): Fi
     resolveChildren(id);
   }
 
-  const remainingEdges = edges.filter(e => !edgesToRemove.has(`${e.from}-${e.to}`));
-  return finaliseGraph({ nodes: graph.nodes, edges: remainingEdges }, requiredModuleIds);
+  const remainingEdges = edges.filter(
+    (e) => !edgesToRemove.has(`${e.from}-${e.to}`),
+  );
+  return finaliseGraph(
+    { nodes: graph.nodes, edges: remainingEdges },
+    requiredModuleIds,
+  );
 }
