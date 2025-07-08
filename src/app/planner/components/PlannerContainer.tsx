@@ -4,7 +4,7 @@ import Box from '@mui/material/Box';
 import Sidebar from './Sidebar';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   DndContext,
   PointerSensor,
@@ -19,9 +19,11 @@ import {
 import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
 import PlannerModule from './PlannerModule';
-import { addModule, moveModule, reorderModules } from '@/store/plannerSlice';
+import { addModule, moveModule, reorderModules, setModules } from '@/store/plannerSlice';
 import PlannerSemester from './PlannerSemester';
 import { ModuleData } from '@/types/plannerTypes';
+import { checkConflicts } from '@/utils/planner/checkConflicts';
+import { updateModules } from '@/store/plannerSlice'; 
 
 const PlannerContainer: React.FC = () => {
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
@@ -35,12 +37,12 @@ const PlannerContainer: React.FC = () => {
   const semesters = useSelector((state: RootState) => state.planner.semesters);
   const modules = useSelector((state: RootState) => state.planner.modules);
 
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const activeModule = activeId ? modules[activeId] : null;
+  const [activeCode, setActiveCode] = useState<string | null>(null);
+  const activeModule = activeCode ? modules[activeCode] : null;
   const [overSemesterId, setOverSemesterId] = useState<string | null>(null);
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id.toString().split('-')[0].trim());
+    setActiveCode(event.active.id.toString().split('-')[0].trim());
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -67,12 +69,12 @@ const PlannerContainer: React.FC = () => {
     const { active, over } = event;
 
     if (!over) {
-      setActiveId(null);
+      setActiveCode(null);
       setOverSemesterId(null);
       return;
     }
 
-    const moduleId = active.id.toString().split('-')[0].trim();
+    const moduleCode = active.id.toString().split('-')[0].trim();
     const module = active.data.current?.module as ModuleData;
     const isNew = active.data.current?.isNew;
 
@@ -80,28 +82,42 @@ const PlannerContainer: React.FC = () => {
       ? Number(over.id)
       : over.data.current?.module?.plannedSemester;
 
-    if (isNew && !modules[moduleId]) {
+    let modulesChanged = false;
+    let nextModules = { ...modules };
+
+    if (isNew && !modules[moduleCode]) {
       dispatch(addModule(module));
+      nextModules[moduleCode] = module;
     }
 
     const fromSemester = module.plannedSemester;
-    if (fromSemester === toSemester) {
+    if (fromSemester === toSemester && fromSemester !== null) {
       if (active.id !== over.id) {
         dispatch(reorderModules({
           semesterIndex: fromSemester,
-          activeId: active.id.toString(),
-          overId: over.id.toString(),
+          activeCode: active.id.toString(),
+          overCode: over.id.toString(),
         }));
       }
     } else {
       dispatch(moveModule({
-        moduleId,
+        moduleCode,
         fromSemester: module.plannedSemester,
         toSemester,
-      }));    
+      }));
+      nextModules[moduleCode] = {
+        ...nextModules[moduleCode],
+        plannedSemester: toSemester,
+      };
+      modulesChanged = true;
     }
 
-    setActiveId(null);
+    if (modulesChanged) {
+      const updatedModules = checkConflicts(nextModules);
+      dispatch(updateModules(updatedModules));
+    }
+
+    setActiveCode(null);
     setOverSemesterId(null);
   };
 

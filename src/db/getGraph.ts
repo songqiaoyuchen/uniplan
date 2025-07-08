@@ -1,10 +1,11 @@
-// get prereq graph for a given module from Neo4j as RawGraph
+// get prereq graph for a given module from Neo4j as FormattedGraph
 
-import { RawGraph } from '@/types/graphTypes';
+import { FormattedGraph } from '@/types/graphTypes';
 import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
+import { mapGraph } from '@/utils/graph/mapGraph';
 
 export async function getGraph(moduleCode: string)
-: Promise<RawGraph | null> {
+: Promise<FormattedGraph | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -24,21 +25,10 @@ export async function getGraph(moduleCode: string)
 
     const record = result.records[0];
 
-    const nodes = record.get('nodes').map((node: any) => ({
-      id: node.identity.toInt(),
-      labels: node.labels,
-      properties: node.properties,
-    }));
+    const neoNodes = record.get('nodes');
+    const neoRels  = record.get('relationships');
 
-    const relationships = record.get('relationships').map((rel: any) => ({
-      id: rel.identity.toNumber(),
-      type: rel.type,
-      startNode: rel.start.toInt(),
-      endNode: rel.end.toInt(),
-      properties: rel.properties,
-    }));
-
-    return { nodes, relationships }; // ✅ return the RawGraph
+    return mapGraph({ nodes: neoNodes, relationships: neoRels });
   } catch (err) {
     console.error(`❌ Failed to query graph for ${moduleCode}:`, err);
     throw err;

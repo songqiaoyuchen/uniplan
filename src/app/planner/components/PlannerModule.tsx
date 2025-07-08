@@ -7,7 +7,7 @@ import { ModuleData } from '@/types/plannerTypes';
 import Box from '@mui/material/Box';
 import { closeSidebar, openSidebar } from '@/store/sidebarSlice';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectModule } from '@/store/plannerSlice';
+import { setActiveModule } from '@/store/plannerSlice';
 import { RootState } from '@/store';
 
 interface PlannerModuleProps {
@@ -22,7 +22,7 @@ const PlannerModule: React.FC<PlannerModuleProps> = ({ module }) => {
     transform, 
     transition, 
     isDragging } = useSortable({
-    id: module.id,
+    id: module.code,
     data: {
       type: 'module',
       module,
@@ -36,16 +36,16 @@ const PlannerModule: React.FC<PlannerModuleProps> = ({ module }) => {
   };
 
   const dispatch = useDispatch();
-  const selectedModuleId = useSelector((state: RootState) => state.planner.selectedModuleId);
-  const isSelected = selectedModuleId === module.id;
+  const activeModuleCode = useSelector((state: RootState) => state.planner.activeModuleCode);
+  const isSelected = activeModuleCode === module.code;
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     if (isSelected) {
       dispatch(closeSidebar());
-      dispatch(selectModule(null));
+      dispatch(setActiveModule(null));
     } else {
-      dispatch(selectModule(module.id));
+      dispatch(setActiveModule(module.code));
       dispatch(openSidebar());
     }
   };

@@ -1,6 +1,6 @@
 'use client';
 
-import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
+import { ModuleData, ModuleStatus, SemesterLabel } from '@/types/plannerTypes';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
@@ -8,13 +8,11 @@ import ExpandableText from '@/app/components/ui/ExpandableText';
 import AddIcon from '@mui/icons-material/Add';
 import IconButton from '@mui/material/IconButton';
 import { useDraggable } from '@dnd-kit/core';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addModule } from '@/store/plannerSlice';
 import { useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
-
-
+import PrereqTreeView from './PrereqTree';
 
 interface ModuleDetailsProps {
   module: ModuleData;
@@ -23,7 +21,7 @@ interface ModuleDetailsProps {
 const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
   const dispatch = useDispatch();
   const { attributes, listeners, setNodeRef } = useDraggable({
-    id: module.id + '-sidebar',
+    id: module.code + '-sidebar',
     data: {
       type: 'module',
       module,
@@ -32,11 +30,12 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
   });
 
   useEffect(() => {
+    // Only add the module if it's not already in the planner state
     dispatch(addModule(module));
   }, [dispatch, module]);
 
   const isPlanned = useSelector((state: RootState) =>
-    state.planner.semesters.some((sem) => sem.includes(module.id))
+    state.planner.semesters.some((sem) => sem.includes(module.code))
   );
 
   return (
@@ -71,11 +70,11 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
             <IconButton size="small" sx={{ p: 0.5 }}>
               <AddIcon fontSize="small" />
             </IconButton>
-          </Box>)}
+          </Box>
+        )}
       </Typography>
 
-
-      <Typography variant="subtitle2" color='primary.extraLight'>{module.credits}MC</Typography>
+      <Typography variant="subtitle2" color="primary.extraLight">{module.credits} MC</Typography>
 
       <Typography variant="subtitle2" fontWeight={500} color="text.secondary">
         {module.title}
@@ -92,16 +91,24 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
           Department: {module.department}
         </Typography>
       )}
-      
-      {module.description && (
-        <ExpandableText text={module.description} />
-      )}
+
+      {module.description && <ExpandableText text={module.description} />}
 
       <Divider flexItem sx={{ my: 1.5 }} />
 
-      {/* Details */}
+      {/* Prerequisite Tree Section */}
+      {module.requires && (
+        <>
+          <Typography variant="subtitle1" fontWeight={600}>Prerequisites</Typography>
+          <Box sx={{ ml: 2, mt: 1 }}>
+            <PrereqTreeView prereqTree={module.requires} />
+          </Box>
+          <Divider flexItem sx={{ my: 1.5 }} />
+        </>
+      )}
+
       <Typography variant="body1">
-        Offered: {module.semestersOffered}
+        Offered: {formatSemesters(module.semestersOffered)}
       </Typography>
 
       {module.exam ? (
@@ -117,7 +124,9 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
       </Typography>
 
       <Typography variant="body1">
-        Planned Semester: {module.plannedSemester > 0 ? `Y${Math.floor((module.plannedSemester + 1) / 2)}S${((module.plannedSemester + 1) % 2) || 2}` : 'Unplanned'}
+        Planned Semester: {module.plannedSemester != null && module.plannedSemester >= 0
+          ? formatSemesterIndex(module.plannedSemester)
+          : 'Unplanned'}
       </Typography>
 
       {module.grade && (
@@ -135,6 +144,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
 
 export default ModuleDetails;
 
+// Helpers
 function formatExam(isoString: string): string {
   const date = new Date(isoString);
   return date.toLocaleDateString(undefined, {
@@ -144,15 +154,30 @@ function formatExam(isoString: string): string {
   });
 }
 
+function formatSemesterIndex(index: number): string {
+  const year = Math.floor(index / 2) + 1;
+  const sem = index % 2 === 0 ? 1 : 2;
+  return `Y${year}S${sem}`;
+}
+
 function formatModuleStatus(status?: ModuleStatus): string {
   switch (status) {
-  case ModuleStatus.Locked:
-    return 'Locked';
-  case ModuleStatus.Unlocked:
-    return 'Unlocked';
-  case ModuleStatus.Completed:
-    return 'Completed';
-  default:
-    return 'Unplanned';
+    case ModuleStatus.Locked: return 'Locked';
+    case ModuleStatus.Unlocked: return 'Unlocked';
+    case ModuleStatus.Completed: return 'Completed';
+    case ModuleStatus.Blocked: return 'Blocked';
+    default: return 'Unplanned';
   }
+}
+
+function formatSemesters(semesters: SemesterLabel[]): string {
+  return semesters.map((s) => {
+    switch (s) {
+      case SemesterLabel.First: return "Semester 1";
+      case SemesterLabel.Second: return "Semester 2";
+      case SemesterLabel.SpecialTerm1: return "Special Term I";
+      case SemesterLabel.SpecialTerm2: return "Special Term II";
+      default: return "Unknown";
+    }
+  }).join(', ');
 }

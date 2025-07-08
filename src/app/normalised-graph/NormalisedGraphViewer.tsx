@@ -2,19 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 // @ts-expect-error
 import dagre from 'cytoscape-dagre';
-import type { FormattedGraph } from '@/types/graphTypes';
+import type { NormalisedGraph } from '@/types/graphTypes';
 
 cytoscape.use(dagre);
 
 interface GraphViewerProps {
-  graph: FormattedGraph;
+  graph: NormalisedGraph;
 }
 
 export default function GraphViewer({ graph }: GraphViewerProps) {
   const cyRef = useRef<HTMLDivElement>(null);
   const [stats, setStats] = useState({ nodes: 0, edges: 0 });
   const cyInstance = useRef<any>(null);
-  const expandedGroups = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (!cyRef.current) return;
@@ -27,47 +26,32 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     // Add nodes
     for (const [id, node] of Object.entries(graph.nodes)) {
-      const nodeId = id;
-      if (node.type === 'single') {
-        const mod = node.info;
+      if ('type' in node) {
         elements.push({
           data: {
-            id: nodeId,
-            label: `${mod.code}`,
-            originalId: mod.id
-          }
-        });
-      } else if (node.type === 'group') {
-        const group = node.info;
-        const firstModule = Object.values(group.list)[0];
-        elements.push({
-          data: {
-            id: nodeId,
-            label: `G-${firstModule.code}`,
-            originalId: id
-          }
-        });
-      } else if (node.type === 'logic') {
-        const label = node.requires !== undefined ? `${node.requires}OF` : 'Logic';
-        elements.push({
-          data: {
-            id: nodeId,
-            label,
+            id,
+            label: `${node.n}OF`,
             originalId: id,
-          },
+          }
+        });
+      } else {
+        elements.push({
+          data: {
+            id,
+            label: node.code,
+            originalId: node.id
+          }
         });
       }
     }
 
     // Add edges
     for (const edge of graph.edges) {
-      const fromNode = edge.from
-      const toNode = edge.to
       elements.push({
         data: {
           id: `edge-${edge.from}->${edge.to}`,
-          source: fromNode,
-          target: toNode,
+          source: edge.from,
+          target: edge.to,
         }
       });
     }
@@ -84,9 +68,8 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
             'text-halign': 'center',
             'background-color': (ele: any) => {
               const label = ele.data('label');
-              if (label?.startsWith('G-')) return '#6FA8DC'; // group
-              if (label?.endsWith('OF')) return '#F9CB9C'; // logic NOF
-              return '#97e685'; // module
+              if (label?.endsWith('OF')) return '#F9CB9C'; // NOF node
+              return '#97e685'; // Module node
             },
             'width': 55,
             'height': 55,
@@ -125,51 +108,6 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     cy.on('tap', 'node', function (evt) {
       const node = evt.target;
-      const id = node.id();
-
-      if (id.startsWith("module-")) {
-        const moduleId = id.replace("module-", "");
-        const groupNode = graph.nodes[moduleId];
-        if (groupNode?.type === 'group') {
-          if (expandedGroups.current.has(moduleId)) return;
-          expandedGroups.current.add(moduleId);
-
-          const group = groupNode.info;
-          const moduleList = Object.values(group.list);
-
-          moduleList.forEach(mod => {
-            const modId = `mod-${mod.code}-${mod.id}`;
-            cy.add({
-              data: {
-                id: modId,
-                label: `${mod.code}`,
-                originalId: mod.id
-              }
-            });
-            cy.add({
-              data: {
-                id: `edge-${moduleId}->${mod.code}`,
-                source: `module-${moduleId}`,
-                target: modId,
-                label: 'GROUP_MEMBER',
-                originalId: -1
-              }
-            });
-          });
-
-          cy.layout({
-            name: 'dagre',
-            rankDir: 'TB',
-            nodeSep: 80,
-            edgeSep: 50,
-            rankSep: 100,
-            padding: 50,
-            fit: true,
-            animate: true
-          } as any).run();
-        }
-      }
-
       cy.fit(node, 50);
     });
 
@@ -217,7 +155,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
         }}
       >
         <div>{stats.nodes} nodes, {stats.edges} edges</div>
-        <div>Click a group to expand. Click a node to focus. Double-click background to reset.</div>
+        <div>Click a node to focus. Double-click background to reset.</div>
       </div>
     </div>
   );

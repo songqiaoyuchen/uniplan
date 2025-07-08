@@ -6,12 +6,14 @@ export type ModuleData = {
   semestersOffered: SemesterLabel[], // e.g. ["First", "Second"]
   exam: Exam | null, 
   preclusions: string[], // module id
-  plannedSemester: number // e.g. 5 = y3s2, 0 = y1s1
+  plannedSemester: number | null; // e.g. 5 = y3s2, 0 = y1s1
   grade?: string, // e.g. A+, B, C, etc.
   status?: ModuleStatus,
   description?: string, // optional description
   faculty?: string, // optional faculty name
   department?: string, // optional department name
+  requires?: PrereqTree | null, // module codes that this module requires (e.g. CS1010)
+  unlocks?: string[], // module codes that this module unlocks (e.g. CS1101S)
 }
 
 export type MiniModuleData = {
@@ -24,11 +26,23 @@ export type Exam = {
   durationMinutes: number
 }
 
-export type SemesterLabel = "First" | "Second" | "Special Term 1" | "Special Term 2";
+export enum SemesterLabel {
+  First,
+  Second,
+  SpecialTerm1, 
+  SpecialTerm2
+} 
 
 export enum ModuleStatus {
   Completed, // already taken
-  Unlocked, // all prereq present and satisfied
+  Unlocked, // all prereq present and satisfied (i.e. can be taken at that semester)
   Locked, // prereq missing
-  Blocked, // all prereq present but may not be satisfied
+  Blocked, // all prereq present but may not be satisfied (blcocked, conflicted or locked)
+  Conflicted, // conflict due to [exam clash, semester not offered, perclusion]
 }
+
+export type PrereqTree =
+  | { type: 'module'; moduleCode: string }
+  | { type: 'AND'; children: PrereqTree[] }
+  | { type: 'OR'; children: PrereqTree[] }
+  | { type: 'NOF'; n: number; children: PrereqTree[] };

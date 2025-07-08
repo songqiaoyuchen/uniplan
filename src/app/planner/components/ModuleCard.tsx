@@ -15,8 +15,8 @@ interface ModuleCardProps {
 
 const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
   const theme = useTheme();
-  const selectedModuleId = useSelector((state: RootState) => state.planner.selectedModuleId);
-  const isSelected = selectedModuleId === module.id;
+  const activeModuleCode = useSelector((state: RootState) => state.planner.activeModuleCode);
+  const isSelected = activeModuleCode === module.code;
 
   const { 
     selectedBorderWidth, 
@@ -29,6 +29,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
     [ModuleStatus.Unlocked]: backgroundColors.unlocked,
     [ModuleStatus.Locked]: backgroundColors.locked,
     [ModuleStatus.Blocked]: backgroundColors.blocked,
+    [ModuleStatus.Conflicted]: backgroundColors.conflicted, 
   };
 
   const borderColorMap: Record<ModuleStatus, string> = {
@@ -36,6 +37,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
     [ModuleStatus.Unlocked]: borderColors.unlocked,
     [ModuleStatus.Locked]: borderColors.locked,
     [ModuleStatus.Blocked]: borderColors.blocked,
+    [ModuleStatus.Conflicted]: borderColors.conflicted,
   };
 
   return (

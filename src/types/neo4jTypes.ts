@@ -3,6 +3,13 @@ export type Neo4jMiniModuleData = {
     title: string;
 };
 
+import type { Node as NeoNode, Relationship as NeoRel } from 'neo4j-driver';
+
+export type Neo4jGraph = {
+    nodes: NeoNode[];
+    relationships: NeoRel[];
+};
+
 // Matches NUSMODS module data structure
 // Source: https://api.nusmods.com/v2/2024-2025/module
 export type Neo4jModuleData = {
