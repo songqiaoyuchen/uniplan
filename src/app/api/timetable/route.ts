@@ -1,19 +1,63 @@
-import { NextResponse } from 'next/server';
-import path from 'path';
-import { promises as fs } from 'fs';
+// app/api/timetable/route.ts
+// API route handler for module scheduling
 
-export async function GET() {
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getMergedTree } from "@/db/getMergedTree";
+import { ErrorResponse } from "@/types/errorTypes";
+import { cleanGraph } from "@/utils/graph/cleanGraph";
+import { normaliseNodes } from "@/utils/graph/normaliseNodes";
+import { runScheduler } from "@/utils/graph/algo/schedule";
+import { TimetableData } from "@/types/graphTypes";
+
+export async function GET(
+  request: NextRequest,
+): Promise<NextResponse<TimetableData[] | ErrorResponse>> {
+  const { searchParams } = request.nextUrl;
+  const targetModuleCode = searchParams.get("targetModuleCode");
+  const targetModuleCodesParam = searchParams.get("targetModuleCodes");
+  
+  // Optional: accept additional module codes to include in the graph
+  const includeModuleCodesParam = searchParams.get("includeModuleCodes");
+
+  // Parse target modules (what we want to complete)
+  let targetCodes: string[] = [];
+  if (targetModuleCodesParam) {
+    targetCodes = targetModuleCodesParam
+      .split(",")
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => c);
+  } else if (targetModuleCode) {
+    targetCodes = [targetModuleCode.trim().toUpperCase()];
+  }
+
+  // Parse additional modules to include in graph (optional)
+  let includeCodes: string[] = [];
+  if (includeModuleCodesParam) {
+    includeCodes = includeModuleCodesParam
+      .split(",")
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => c);
+  }
+
+  // Combine all codes for graph building
+  const allCodes = [...new Set([...targetCodes, ...includeCodes])];
+
   try {
-    const filePath = path.join(process.cwd(), 'src', 'data', 'sampleTimetable.json');
-    const jsonData = await fs.readFile(filePath, 'utf-8');
-    const timetable = JSON.parse(jsonData);
-
+    // Build the graph with all relevant modules
+    const rawGraph = await getMergedTree(allCodes);
+    const normalisedGraph = cleanGraph(normaliseNodes(rawGraph), allCodes);
+    
+    // Run the scheduler
+    // If no target codes specified, scheduler will find end goals automatically
+    const timetable = runScheduler(normalisedGraph, targetCodes);
+    
     return NextResponse.json(timetable);
-  } catch (error) {
-    console.error('Failed to load sampleTimetable.json:', error);
+  } catch (err) {
+    console.error("Timetable generation error:", err);
     return NextResponse.json(
-      { error: 'Failed to load timetable data' },
-      { status: 500 }
+      { error: "Failed to generate timetable" },
+      { status: 500 },
     );
   }
 }

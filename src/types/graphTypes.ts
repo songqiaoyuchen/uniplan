@@ -39,4 +39,20 @@ export type PlannerState = {
   availableModules: Set<string>;
   completedModules: Set<string>;
   logicStatus: Record<string, LogicStatus>;
+  satisfiedLogicNodes: Set<string>;
 };
+export interface ScoredModule {
+  code: string;
+  score: number;
+  nodeId: string;
+}
+export interface ChainLengthInfo {
+  maxChainToTarget: number;
+  maxChainFromStart: number;
+  criticalPathLength: number;
+}
+
+export type TimetableData = {
+  code: string;
+  semester: number;
+}
