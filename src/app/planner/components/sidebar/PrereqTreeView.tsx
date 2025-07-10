@@ -78,7 +78,7 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
   };
 
   return (
-    <Box sx={{ minHeight: 110, flexGrow: 1, maxWidth: 400 }}>
+    <Box sx={{ flexGrow: 1, maxWidth: 400 }}>
       <SimpleTreeView
         aria-label="Prerequisite modules"
         expandedItems={expandedItems}

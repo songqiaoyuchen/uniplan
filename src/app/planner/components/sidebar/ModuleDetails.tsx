@@ -9,7 +9,7 @@ import AddIcon from "@mui/icons-material/Add";
 import IconButton from "@mui/material/IconButton";
 import { useDraggable } from "@dnd-kit/core";
 import { useDispatch, useSelector } from "react-redux";
-import { addFetchedModule, addModule } from "@/store/plannerSlice";
+import { addFetchedModule } from "@/store/plannerSlice";
 import { useEffect } from "react";
 import { RootState } from "@/store";
 import PrereqTreeView from "./PrereqTreeView";
