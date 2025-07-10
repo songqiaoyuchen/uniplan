@@ -1,5 +1,6 @@
 import { FormattedGraph } from '@/types/graphTypes';
 import { LogicStatus, PlannerState} from '@/types/graphTypes';
+import { LogicNode } from '@/types/graphTypes';
 
 export function initialise(graph: FormattedGraph): PlannerState {
   const availableModules = new Set<string>();
@@ -9,13 +10,13 @@ export function initialise(graph: FormattedGraph): PlannerState {
   const incomingEdgesCount: Record<string, number> = {};
 
   // Step 1: Count incoming edges for each node
-  for (const edge of graph.edges) {
+  for (const edge of graph.relationships) {
     incomingEdgesCount[edge.to] = (incomingEdgesCount[edge.to] || 0) + 1;
   }
 
   // Step 2: Process each node
   for (const [id, node] of Object.entries(graph.nodes)) {
-    if (node.type === 'logic') {
+    if (node instanceof LogicNode) {
       logicStatus[id] = {
         satisfied: false,
         requires: node.requires,
