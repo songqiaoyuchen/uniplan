@@ -7,6 +7,7 @@ import { setActiveModule, setModules } from "@/store/plannerSlice";
 import PlannerContainer from "./components/PlannerContainer";
 import { ModuleData, ModuleStatus, SemesterLabel } from "@/types/plannerTypes";
 import { useSearchParams } from "next/navigation";
+import { useAppDispatch } from "@/store/hooks";
 
 const sampleTimetable: ModuleData[] = [
   {
@@ -332,7 +333,7 @@ const sampleTimetable: ModuleData[] = [
 ];
 
 export default function Page() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     dispatch(setModules(sampleTimetable));

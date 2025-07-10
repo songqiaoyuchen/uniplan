@@ -3,7 +3,7 @@ import { ModuleData } from "@/types/plannerTypes";
 export async function fetchModule(code: string): Promise<ModuleData> {
   try {
     const res = await fetch(
-      `/api/module/${encodeURIComponent(code)}`,
+      `/api/modules/${encodeURIComponent(code)}`,
     );
 
     if (!res.ok) {
