@@ -1,11 +1,13 @@
-import fs from 'fs';
-import path from 'path';
-import { connectToNeo4j, closeNeo4jConnection } from '../../../db/neo4j';
-import { Neo4jModuleData } from '@/types/neo4jTypes';
+import fs from "fs";
+import path from "path";
+import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { Neo4jModuleData } from "@/types/neo4jTypes";
 
 export async function uploadModules(): Promise<void> {
   const filePath = path.join(process.cwd(), "src", "data", "moduleData.json");
-  const moduleList: Neo4jModuleData[] = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  const moduleList: Neo4jModuleData[] = JSON.parse(
+    fs.readFileSync(filePath, "utf8"),
+  );
 
   const { driver, session } = await connectToNeo4j();
 
@@ -39,7 +41,7 @@ export async function uploadModules(): Promise<void> {
           preclusion: mod.preclusion ?? null,
           attributes: JSON.stringify(mod.attributes ?? {}), // Neo4j node properties can only hold primitive values or arrays of primitives
           semesterData: JSON.stringify(mod.semesterData ?? []),
-        }
+        },
       );
 
       console.log(`✅ Uploaded ${mod.moduleCode}`);
@@ -48,15 +50,15 @@ export async function uploadModules(): Promise<void> {
     await tx.commit();
     console.log(`🎉 Uploaded ${moduleList.length} modules.`);
   } catch (err) {
-    console.error('❌ Error during module upload:', err);
+    console.error("❌ Error during module upload:", err);
   } finally {
     await closeNeo4jConnection(driver, session);
   }
 }
 
 if (require.main === module) {
-  uploadModules().catch(err => {
-    console.error('❌ Failed to upload modules:', err);
+  uploadModules().catch((err) => {
+    console.error("❌ Failed to upload modules:", err);
     process.exit(1);
   });
 }

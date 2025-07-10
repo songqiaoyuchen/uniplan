@@ -1,4 +1,4 @@
-import { PrereqTree } from '@/types/plannerTypes';
+import { PrereqTree } from "@/types/plannerTypes";
 
 type Neo4jNode = {
   identity: { low: number };
@@ -13,7 +13,7 @@ type Neo4jRel = {
 
 export function parsePrereq(
   rawNodes: Neo4jNode[],
-  rawRels: Neo4jRel[]
+  rawRels: Neo4jRel[],
 ): PrereqTree | null {
   const nodesById: Record<number, Neo4jNode> = {};
   const childrenMap: Record<number, number[]> = {};
@@ -36,9 +36,9 @@ export function parsePrereq(
     const node = nodesById[id];
     if (!node) return null;
 
-    if (node.labels.includes('Module')) {
+    if (node.labels.includes("Module")) {
       return {
-        type: 'module',
+        type: "module",
         moduleCode: node.properties.moduleCode,
       };
     }
@@ -48,13 +48,13 @@ export function parsePrereq(
       .map(buildTree)
       .filter(Boolean) as PrereqTree[];
 
-    if ((type === 'AND' || type === 'OR') && children.length > 0) {
+    if ((type === "AND" || type === "OR") && children.length > 0) {
       return { type, children };
     }
 
-    if (type === 'NOF') {
+    if (type === "NOF") {
       const n = node.properties.requires?.low ?? node.properties.requires ?? 1;
-      return { type: 'NOF', n, children };
+      return { type: "NOF", n, children };
     }
 
     return children.length === 1 ? children[0] : null;
@@ -71,16 +71,16 @@ export function parsePrereq(
     if (!from || !to) continue;
 
     // Module -> Logic
-    if (from.labels.includes('Module') && to.labels.includes('Logic')) {
+    if (from.labels.includes("Module") && to.labels.includes("Logic")) {
       const logicTree = buildTree(rel.end.low);
       if (logicTree) logicTrees.push(logicTree);
       rootModuleIds.add(rel.start.low);
     }
 
     // Module -> Module (direct)
-    if (from.labels.includes('Module') && to.labels.includes('Module')) {
+    if (from.labels.includes("Module") && to.labels.includes("Module")) {
       moduleTrees.push({
-        type: 'module',
+        type: "module",
         moduleCode: to.properties.moduleCode,
       });
       rootModuleIds.add(rel.start.low);
@@ -90,5 +90,5 @@ export function parsePrereq(
   const allTrees = [...logicTrees, ...moduleTrees];
   if (allTrees.length === 0) return null;
   if (allTrees.length === 1) return allTrees[0];
-  return { type: 'AND', children: allTrees };
+  return { type: "AND", children: allTrees };
 }

@@ -5,13 +5,20 @@ import { applySemester } from './update';
 
 const MAX_MCS = 20;
 
-export function runScheduler(graph: FormattedGraph, targetModules: string[]): string[][] {
+export function runScheduler(
+  graph: FormattedGraph,
+  targetModules: string[],
+): string[][] {
   const state = initialise(graph);
   const targetSet = new Set(targetModules);
   const plan: string[][] = [];
 
   while (!isSatisfied(state.completedModules, targetSet)) {
-    const prioritized = prioritizeModules(state.availableModules, graph, targetSet);
+    const prioritized = prioritizeModules(
+      state.availableModules,
+      graph,
+      targetSet,
+    );
 
     const thisSemester: string[] = [];
     let usedMCs = 0;

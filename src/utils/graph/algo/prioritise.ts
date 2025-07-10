@@ -1,4 +1,4 @@
-import { FormattedGraph } from '@/types/graphTypes';
+import { FormattedGraph } from "@/types/graphTypes";
 
 type ScoredModule = {
   code: string;
@@ -8,7 +8,7 @@ type ScoredModule = {
 export function prioritizeModules(
   available: Set<string>,
   graph: FormattedGraph,
-  targetModules: Set<string>
+  targetModules: Set<string>,
 ): ScoredModule[] {
   const scores: ScoredModule[] = [];
 
@@ -24,6 +24,12 @@ export function prioritizeModules(
 }
 
 // Dummy placeholders
-function computeUrgency(code: string, target: Set<string>): number { return Math.random(); }
-function computeImpact(code: string, graph: FormattedGraph): number { return Math.random(); }
-function computeEfficiency(code: string, graph: FormattedGraph): number { return Math.random(); }
+function computeUrgency(code: string, target: Set<string>): number {
+  return Math.random();
+}
+function computeImpact(code: string, graph: FormattedGraph): number {
+  return Math.random();
+}
+function computeEfficiency(code: string, graph: FormattedGraph): number {
+  return Math.random();
+}

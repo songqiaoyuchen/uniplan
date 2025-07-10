@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import cytoscape from "cytoscape";
 // @ts-expect-error
-import dagre from 'cytoscape-dagre';
-import type { NormalisedGraph } from '@/types/graphTypes';
+import dagre from "cytoscape-dagre";
+import type { NormalisedGraph } from "@/types/graphTypes";
 
 cytoscape.use(dagre);
 
@@ -26,21 +26,21 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
 
     // Add nodes
     for (const [id, node] of Object.entries(graph.nodes)) {
-      if ('type' in node) {
+      if ("type" in node) {
         elements.push({
           data: {
             id,
             label: `${node.n}OF`,
             originalId: id,
-          }
+          },
         });
       } else {
         elements.push({
           data: {
             id,
             label: node.code,
-            originalId: node.id
-          }
+            originalId: node.id,
+          },
         });
       }
     }
@@ -52,7 +52,7 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
           id: `edge-${edge.from}->${edge.to}`,
           source: edge.from,
           target: edge.to,
-        }
+        },
       });
     }
 
@@ -61,57 +61,57 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
       elements,
       style: [
         {
-          selector: 'node',
+          selector: "node",
           style: {
-            'label': 'data(label)',
-            'text-valign': 'center',
-            'text-halign': 'center',
-            'background-color': (ele: any) => {
-              const label = ele.data('label');
-              if (label?.endsWith('OF')) return '#F9CB9C'; // NOF node
-              return '#97e685'; // Module node
+            label: "data(label)",
+            "text-valign": "center",
+            "text-halign": "center",
+            "background-color": (ele: any) => {
+              const label = ele.data("label");
+              if (label?.endsWith("OF")) return "#F9CB9C"; // NOF node
+              return "#97e685"; // Module node
             },
-            'width': 55,
-            'height': 55,
-            'text-wrap': 'wrap',
-            'text-max-width': '80px',
-            'font-size': '10px'
-          }
+            width: 55,
+            height: 55,
+            "text-wrap": "wrap",
+            "text-max-width": "80px",
+            "font-size": "10px",
+          },
         },
         {
-          selector: 'edge',
+          selector: "edge",
           style: {
-            'width': 2,
-            'line-color': '#888',
-            'target-arrow-color': '#888',
-            'target-arrow-shape': 'triangle',
-            'curve-style': 'bezier',
-            'font-size': '8px'
-          }
-        }
+            width: 2,
+            "line-color": "#888",
+            "target-arrow-color": "#888",
+            "target-arrow-shape": "triangle",
+            "curve-style": "bezier",
+            "font-size": "8px",
+          },
+        },
       ],
       layout: {
-        name: 'dagre',
-        rankDir: 'TB',
+        name: "dagre",
+        rankDir: "TB",
         nodeSep: 80,
         edgeSep: 50,
         rankSep: 100,
         padding: 50,
         fit: true,
-        animate: false
-      } as any
+        animate: false,
+      } as any,
     });
 
     cyInstance.current = cy;
 
     setStats({ nodes: cy.nodes().length, edges: cy.edges().length });
 
-    cy.on('tap', 'node', function (evt) {
+    cy.on("tap", "node", function (evt) {
       const node = evt.target;
       cy.fit(node, 50);
     });
 
-    cyRef.current.addEventListener('dblclick', function () {
+    cyRef.current.addEventListener("dblclick", function () {
       cy.fit(undefined, 50);
       cy.center();
     });
@@ -151,10 +151,12 @@ export default function GraphViewer({ graph }: GraphViewerProps) {
           padding: "6px 10px",
           borderRadius: "6px",
           fontSize: "12px",
-          zIndex: 10
+          zIndex: 10,
         }}
       >
-        <div>{stats.nodes} nodes, {stats.edges} edges</div>
+        <div>
+          {stats.nodes} nodes, {stats.edges} edges
+        </div>
         <div>Click a node to focus. Double-click background to reset.</div>
       </div>
     </div>

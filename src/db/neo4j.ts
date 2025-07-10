@@ -1,7 +1,7 @@
 // Neo4j connection helper utilities
 
-import neo4j, { Driver, Session } from 'neo4j-driver';
-import dotenv from 'dotenv';
+import neo4j, { Driver, Session } from "neo4j-driver";
+import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
@@ -28,4 +28,4 @@ export async function closeNeo4jConnection(driver: Driver, session: Session) {
   await session.close();
   await driver.close();
   console.log("Neo4j connection closed");
-} 
+}

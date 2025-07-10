@@ -1,9 +1,10 @@
-import { parsePrereq } from '@/utils/planner/parsePrereq';
-import { connectToNeo4j, closeNeo4jConnection } from './neo4j';
-import { PrereqTree } from '@/types/plannerTypes';
+import { parsePrereq } from "@/utils/planner/parsePrereq";
+import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { PrereqTree } from "@/types/plannerTypes";
 
-
-export async function getModuleRequires(moduleCode: string): Promise<PrereqTree | null> {
+export async function getModuleRequires(
+  moduleCode: string,
+): Promise<PrereqTree | null> {
   const { driver, session } = await connectToNeo4j();
 
   try {
@@ -18,12 +19,11 @@ export async function getModuleRequires(moduleCode: string): Promise<PrereqTree 
 
         RETURN nodes, relationships
       `,
-      { code: moduleCode }
+      { code: moduleCode },
     );
 
     const { nodes, relationships } = result.records[0].toObject();
     return parsePrereq(nodes, relationships);
-
   } finally {
     await closeNeo4jConnection(driver, session);
   }

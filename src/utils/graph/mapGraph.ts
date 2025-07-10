@@ -1,19 +1,24 @@
-/** 
+/**
  * @path src/utils/graph/mapGraph.ts
  * @param raw: Neo4jGraph
  * @returns mapped graph: FormattedGraph
  * @description parses and maps relevant fields from Neo4j graph to FormattedGraph format
-*/
+ */
 import { Edge, LogicNode, FormattedGraph } from "@/types/graphTypes";
-import type { Node as NeoNode } from 'neo4j-driver';
+import type { Node as NeoNode } from "neo4j-driver";
 import { Neo4jGraph } from "@/types/neo4jTypes";
-import { Exam, ModuleData, ModuleStatus, SemesterLabel } from "@/types/plannerTypes";
+import {
+  Exam,
+  ModuleData,
+  ModuleStatus,
+  SemesterLabel,
+} from "@/types/plannerTypes";
 
 export function mapGraph(graph: Neo4jGraph): FormattedGraph {
   const { nodes: neo4jNodes, relationships: neo4jRels } = graph;
   const nodes: Record<string, ModuleData | LogicNode> = {};
 
-  const relationships: Edge[] = neo4jRels.map(rel => ({
+  const relationships: Edge[] = neo4jRels.map((rel) => ({
     id: rel.elementId,
     from: rel.startNodeElementId,
     to: rel.endNodeElementId,
@@ -39,7 +44,6 @@ export function mapGraph(graph: Neo4jGraph): FormattedGraph {
   return { nodes, relationships };
 }
 
-
 export function mapModuleData(node: NeoNode): ModuleData {
   const props = node.properties;
 
@@ -53,11 +57,16 @@ export function mapModuleData(node: NeoNode): ModuleData {
     if (Array.isArray(semesterArray)) {
       semestersOffered = semesterArray.map((s: any) => {
         switch (s.semester) {
-          case 1: return SemesterLabel.First;
-          case 2: return SemesterLabel.Second;
-          case 3: return SemesterLabel.SpecialTerm1;
-          case 4: return SemesterLabel.SpecialTerm2;
-          default: return null;
+          case 1:
+            return SemesterLabel.First;
+          case 2:
+            return SemesterLabel.Second;
+          case 3:
+            return SemesterLabel.SpecialTerm1;
+          case 4:
+            return SemesterLabel.SpecialTerm2;
+          default:
+            return null;
         }
       }) as SemesterLabel[];
 
@@ -84,14 +93,20 @@ export function mapModuleData(node: NeoNode): ModuleData {
   return {
     id: node.identity.toString(),
     code: props.moduleCode,
-    title: props.title?.trim() ?? 'Untitled Module',
+    title: props.title?.trim() ?? "Untitled Module",
     credits: parseInt(props.moduleCredit ?? "0"),
     semestersOffered,
     exam,
     preclusions,
-    plannedSemester: props.plannedSemester !== undefined ? parseInt(props.plannedSemester) : null,
+    plannedSemester:
+      props.plannedSemester !== undefined
+        ? parseInt(props.plannedSemester)
+        : null,
     grade: typeof props.grade === "string" ? props.grade : undefined,
-    status: props.status !== undefined ? parseInt(props.status) as ModuleStatus : undefined,
+    status:
+      props.status !== undefined
+        ? (parseInt(props.status) as ModuleStatus)
+        : undefined,
     description: props.description ?? undefined,
     faculty: props.faculty ?? undefined,
     department: props.department ?? undefined,

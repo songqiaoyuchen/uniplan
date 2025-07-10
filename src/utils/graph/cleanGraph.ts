@@ -3,15 +3,18 @@
  * @param graph: NormalisedGraph,
  *        required mode codes: string[]
  * @returns cleaned graph: NormalisedGraph
- * @description clean the graph to include only the nodes and relationships 
+ * @description clean the graph to include only the nodes and relationships
  * that are required based on the provided list of module codes.
-*/
+ */
 
-import { Edge, NofNode, NormalisedGraph } from '@/types/graphTypes';
-import { ModuleData } from '@/types/plannerTypes';
-import { v4 as uuid } from 'uuid';
+import { Edge, NofNode, NormalisedGraph } from "@/types/graphTypes";
+import { ModuleData } from "@/types/plannerTypes";
+import { v4 as uuid } from "uuid";
 
-export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): NormalisedGraph {
+export function cleanGraph(
+  graph: NormalisedGraph,
+  requiredCodes: string[],
+): NormalisedGraph {
   const { nodes, edges } = graph;
 
   const outgoingEdges: Record<string, Edge[]> = {};
@@ -25,7 +28,7 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
 
   const requiredModuleIds = new Set<string>();
   for (const [id, node] of Object.entries(nodes)) {
-    if (!('type' in node) && requiredCodes.includes(node.code)) {
+    if (!("type" in node) && requiredCodes.includes(node.code)) {
       requiredModuleIds.add(id);
     }
   }
@@ -38,14 +41,18 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
 
     if (outgoingEdges[nodeId]) {
       for (const edge of outgoingEdges[nodeId]) {
-        incomingEdges[edge.to] = (incomingEdges[edge.to] || []).filter(e => e.id !== edge.id);
+        incomingEdges[edge.to] = (incomingEdges[edge.to] || []).filter(
+          (e) => e.id !== edge.id,
+        );
       }
       delete outgoingEdges[nodeId];
     }
 
     if (incomingEdges[nodeId]) {
       for (const edge of incomingEdges[nodeId]) {
-        outgoingEdges[edge.from] = (outgoingEdges[edge.from] || []).filter(e => e.id !== edge.id);
+        outgoingEdges[edge.from] = (outgoingEdges[edge.from] || []).filter(
+          (e) => e.id !== edge.id,
+        );
       }
       delete incomingEdges[nodeId];
     }
@@ -57,9 +64,13 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
     for (const rel of [...inEdges]) {
       const parent = rel.from;
       const parentNode = nodes[parent];
-      if (!parentNode || !('type' in parentNode)) continue;
+      if (!parentNode || !("type" in parentNode)) continue;
 
-      if (parentNode.n == 1 && outgoingEdges[parent] && outgoingEdges[parent].length > 1) {
+      if (
+        parentNode.n == 1 &&
+        outgoingEdges[parent] &&
+        outgoingEdges[parent].length > 1
+      ) {
         const siblings = outgoingEdges[parent] || [];
         for (const sibEdge of siblings) {
           if (!requiredModuleIds.has(sibEdge.to)) {
@@ -72,15 +83,21 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
           orInEdge.to = nodeId;
           incomingEdges[nodeId] = incomingEdges[nodeId] || [];
           incomingEdges[nodeId].push(orInEdge);
-          incomingEdges[parent] = incomingEdges[parent].filter(e => e.id !== orInEdge.id);
+          incomingEdges[parent] = incomingEdges[parent].filter(
+            (e) => e.id !== orInEdge.id,
+          );
         }
 
         removeNode(parent);
-      }
-
-      else if (parentNode.n > 1 && outgoingEdges[parent] && outgoingEdges[parent].length > parentNode.n) {
+      } else if (
+        parentNode.n > 1 &&
+        outgoingEdges[parent] &&
+        outgoingEdges[parent].length > parentNode.n
+      ) {
         const childrenEdges = outgoingEdges[parent] || [];
-        const requiredChildren = childrenEdges.filter(e => requiredModuleIds.has(e.to));
+        const requiredChildren = childrenEdges.filter((e) =>
+          requiredModuleIds.has(e.to),
+        );
 
         if (requiredChildren.length < parentNode.n) {
           parentNode.n -= requiredChildren.length;
@@ -89,7 +106,7 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
             id: uuid(),
             type: "NOF",
             n: parentNode.n,
-          }  as NofNode;
+          } as NofNode;
           nodes[newAND.id] = newAND;
           incomingEdges[newAND.id] = [];
           outgoingEdges[newAND.id] = [];
@@ -114,7 +131,7 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
           }
 
           const andToNofRel = {
-            id:  `${newAND.id}-${parent}`,
+            id: `${newAND.id}-${parent}`,
             from: newAND.id,
             to: parent,
           };
@@ -167,14 +184,23 @@ export function cleanGraph(graph: NormalisedGraph, requiredCodes: string[]): Nor
     const inEdges = incomingEdges[nodeId] || [];
     for (const rel of inEdges) {
       const parentNode = nodes[rel.from];
-      if (!parentNode || !('type' in parentNode)) continue;
+      if (!parentNode || !("type" in parentNode)) continue;
 
-      if (parentNode.n == 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > 1) {
+      if (
+        parentNode.n == 1 &&
+        outgoingEdges[rel.from] &&
+        outgoingEdges[rel.from].length > 1
+      ) {
         return true;
-      }
-      else if (parentNode.n > 1 && outgoingEdges[rel.from] && outgoingEdges[rel.from].length > parentNode.n) {
+      } else if (
+        parentNode.n > 1 &&
+        outgoingEdges[rel.from] &&
+        outgoingEdges[rel.from].length > parentNode.n
+      ) {
         const childrenEdges = outgoingEdges[parentNode.id] || [];
-        const requiredChildrenCount = childrenEdges.filter(e => requiredModuleIds.has(e.to)).length;
+        const requiredChildrenCount = childrenEdges.filter((e) =>
+          requiredModuleIds.has(e.to),
+        ).length;
         if (requiredChildrenCount < parentNode.n) {
           return true; // NOF not satisfied yet
         }
@@ -196,7 +222,7 @@ function removeRedundantParts(
   nodes: Record<string, NofNode | ModuleData>,
   relationships: Edge[],
   rootRequiredIds: Set<string>,
-  markedNodes: Set<string>
+  markedNodes: Set<string>,
 ): NormalisedGraph {
   const adjacency = new Map<string, Array<{ node: string; relId: string }>>();
   for (const rel of relationships) {
@@ -227,11 +253,12 @@ function removeRedundantParts(
     }
   }
 
-  const filteredEdges = relationships.filter(r => visitedRelationships.has(r.id));
+  const filteredEdges = relationships.filter((r) =>
+    visitedRelationships.has(r.id),
+  );
 
   return {
     nodes: filteredNodes,
     edges: filteredEdges,
   };
 }
-

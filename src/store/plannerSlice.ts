@@ -1,9 +1,10 @@
 // src/store/plannerSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData } from '@/types/plannerTypes';
-import { arrayMove } from '@dnd-kit/sortable';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { ModuleData } from "@/types/plannerTypes";
+import { arrayMove } from "@dnd-kit/sortable";
+import { createSelector } from 'reselect';
 
-const MAX_FETCHED_MODULES = 10; 
+const MAX_FETCHED_MODULES = 10;
 
 type PlannerState = {
   modules: Record<string, ModuleData>;
@@ -22,7 +23,7 @@ const initialState: PlannerState = {
 };
 
 const plannerSlice = createSlice({
-  name: 'planner',
+  name: "planner",
   initialState,
   reducers: {
     setModules(state, action: PayloadAction<ModuleData[]>) {
@@ -30,8 +31,10 @@ const plannerSlice = createSlice({
       // if (Object.keys(state.modules).length > 0) {
       //   return;
       // }
-      
-      state.modules = Object.fromEntries(action.payload.map((mod) => [mod.code, mod]));
+
+      state.modules = Object.fromEntries(
+        action.payload.map((mod) => [mod.code, mod]),
+      );
       state.semesters = Array.from({ length: 8 }, () => []); // Reset state
 
       action.payload.forEach((mod) => {
@@ -42,22 +45,31 @@ const plannerSlice = createSlice({
           state.semesters[mod.plannedSemester].push(mod.code);
         } else {
           console.error(
-            `Module with code ${mod.code} has an invalid plannedSemester: ${mod.plannedSemester}. \nIt must be between 1 and ${state.semesters.length}.`
+            `Module with code ${mod.code} has an invalid plannedSemester: ${mod.plannedSemester}. \nIt must be between 1 and ${state.semesters.length}.`,
           );
         }
       });
     },
 
-    moveModule(state, action: PayloadAction<{
-      moduleCode: string;
-      fromSemester: number | null;
-      toSemester: number;
-    }>) {
+    moveModule(
+      state,
+      action: PayloadAction<{
+        moduleCode: string;
+        fromSemester: number | null;
+        toSemester: number;
+      }>,
+    ) {
       const { moduleCode, fromSemester, toSemester } = action.payload;
 
       // Remove from old semester if valid
-      if (typeof fromSemester === 'number' && fromSemester >= 0 && fromSemester < state.semesters.length) {
-        state.semesters[fromSemester] = state.semesters[fromSemester].filter(code => code !== moduleCode);
+      if (
+        typeof fromSemester === "number" &&
+        fromSemester >= 0 &&
+        fromSemester < state.semesters.length
+      ) {
+        state.semesters[fromSemester] = state.semesters[fromSemester].filter(
+          (code) => code !== moduleCode,
+        );
       }
 
       // Add to new semester if valid
@@ -73,7 +85,11 @@ const plannerSlice = createSlice({
 
     reorderModules(
       state,
-      action: PayloadAction<{ semesterIndex: number; activeCode: string; overCode: string }>
+      action: PayloadAction<{
+        semesterIndex: number;
+        activeCode: string;
+        overCode: string;
+      }>,
     ) {
       const { semesterIndex, activeCode, overCode } = action.payload;
       const semester = state.semesters[semesterIndex];
@@ -113,7 +129,6 @@ const plannerSlice = createSlice({
       }
     },
 
-
     addModule(state, action: PayloadAction<ModuleData>) {
       const mod = action.payload;
       if (!state.modules[mod.code]) {
@@ -121,7 +136,10 @@ const plannerSlice = createSlice({
       }
     },
 
-    updateModules: (state, action: PayloadAction<Record<string, ModuleData>>) => {
+    updateModules: (
+      state,
+      action: PayloadAction<Record<string, ModuleData>>,
+    ) => {
       const updated = action.payload;
       // Only update modules that have changed
       Object.entries(updated).forEach(([code, mod]) => {
@@ -163,7 +181,18 @@ export const {
   setActiveModule,
   addModule,
   addFetchedModule,
-  updateModules
+  updateModules,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;
+
+// Memoized selector to get modules for a specific semester
+export const selectSemesterModules = createSelector(
+  [
+    (state: any) => state.planner.semesters,
+    (state: any) => state.planner.modules,
+    (_: any, semesterIndex: number) => semesterIndex,
+  ],
+  (semesters, modules, semesterIndex) =>
+    semesters[semesterIndex]?.map((code: string) => modules[code]).filter(Boolean) || []
+);

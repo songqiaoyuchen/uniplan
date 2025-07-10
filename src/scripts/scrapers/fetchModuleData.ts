@@ -1,6 +1,6 @@
-import axios from 'axios';
-import { Neo4jModuleData, Neo4jMiniModuleData} from '@/types/neo4jTypes';
-import { MiniModuleData } from '@/types/plannerTypes';
+import axios from "axios";
+import { Neo4jModuleData, Neo4jMiniModuleData } from "@/types/neo4jTypes";
+import { MiniModuleData } from "@/types/plannerTypes";
 
 const academicYear = "2024-2025";
 const API_URL = `https://api.nusmods.com/v2/${academicYear}/`;
@@ -15,7 +15,7 @@ export async function fetchModuleData(): Promise<{
   try {
     const [infoRes, listRes] = await Promise.all([
       axios.get<Neo4jModuleData[]>(MODULE_INFO_URL),
-      axios.get<Neo4jMiniModuleData[]>(MODULE_LIST_URL)
+      axios.get<Neo4jMiniModuleData[]>(MODULE_LIST_URL),
     ]);
 
     // Rename `moduleCode` to `code` (For frontend use)
@@ -27,7 +27,7 @@ export async function fetchModuleData(): Promise<{
     const currentCodes = new Set(mini.map((mod) => mod.code));
 
     const filteredInfo = infoRes.data.filter((mod) =>
-      currentCodes.has(mod.moduleCode)
+      currentCodes.has(mod.moduleCode),
     );
 
     return { full: filteredInfo, mini };

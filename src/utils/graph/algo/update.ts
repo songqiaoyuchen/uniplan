@@ -1,9 +1,9 @@
-import { FormattedGraph, PlannerState } from '@/types/graphTypes';
+import { FormattedGraph, PlannerState } from "@/types/graphTypes";
 
 export function applySemester(
   taken: string[],
   state: PlannerState,
-  graph: FormattedGraph
+  graph: FormattedGraph,
 ): void {
   for (const code of taken) {
     state.completedModules.add(code);
@@ -11,13 +11,13 @@ export function applySemester(
 
     // Update downstream logic nodes
     const modNode = Object.entries(graph.nodes).find(
-      ([, n]) => n.type === 'single' && n.info.code === code
+      ([, n]) => n.type === "single" && n.info.code === code,
     )?.[0];
 
     if (!modNode) continue;
 
     for (const edge of graph.edges) {
-      if (edge.from === modNode && graph.nodes[edge.to]?.type === 'logic') {
+      if (edge.from === modNode && graph.nodes[edge.to]?.type === "logic") {
         const logic = state.logicStatus[edge.to];
         if (logic && !logic.satisfied) {
           logic.satisfiedCount++;
@@ -27,7 +27,7 @@ export function applySemester(
         }
       }
 
-      if (edge.from === modNode && graph.nodes[edge.to]?.type === 'single') {
+      if (edge.from === modNode && graph.nodes[edge.to]?.type === "single") {
         const prereqSatisfied = checkLogicSatisfied(edge.to, state, graph);
         if (prereqSatisfied) {
           const modCode = (graph.nodes[edge.to] as any).info.code;
@@ -38,10 +38,14 @@ export function applySemester(
   }
 }
 
-function checkLogicSatisfied(nodeId: string, state: PlannerState, graph: FormattedGraph): boolean {
+function checkLogicSatisfied(
+  nodeId: string,
+  state: PlannerState,
+  graph: FormattedGraph,
+): boolean {
   const logicParents = graph.edges
-    .filter(e => e.to === nodeId && graph.nodes[e.from]?.type === 'logic')
-    .map(e => e.from);
+    .filter((e) => e.to === nodeId && graph.nodes[e.from]?.type === "logic")
+    .map((e) => e.from);
 
-  return logicParents.every(pid => state.logicStatus[pid]?.satisfied);
+  return logicParents.every((pid) => state.logicStatus[pid]?.satisfied);
 }

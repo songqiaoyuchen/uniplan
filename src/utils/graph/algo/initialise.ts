@@ -22,7 +22,7 @@ export function initialise(graph: FormattedGraph): PlannerState {
         requires: node.requires,
         satisfiedCount: 0,
       };
-    } else if (node.type === 'single') {
+    } else if (node.type === "single") {
       const moduleCode = node.info.code;
       const hasPrereqs = incomingEdgesCount[id] > 0;
 
@@ -30,8 +30,8 @@ export function initialise(graph: FormattedGraph): PlannerState {
         availableModules.add(moduleCode);
       }
     } else {
-        // Module groups are not handled in this function yet
-        console.warn(`Unknown node type for ${id}: ${node.type}`);
+      // Module groups are not handled in this function yet
+      console.warn(`Unknown node type for ${id}: ${node.type}`);
     }
   }
 

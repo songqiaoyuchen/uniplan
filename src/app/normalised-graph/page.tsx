@@ -1,12 +1,17 @@
 // Page for displaying graphs (Dialog)
 
-'use client';
+"use client";
 
 import { useState } from "react";
 import { fetchNormalisedGraph } from "@/services/planner/fetchGraph";
 import NormalisedGraphViewer from "./NormalisedGraphViewer";
 import {
-  Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 
 export default function GraphPage() {
@@ -16,9 +21,9 @@ export default function GraphPage() {
 
   async function handleExportGraph() {
     const codes = inputCodes
-      .split(',')
-      .map(c => c.trim().toUpperCase())
-      .filter(c => c);
+      .split(",")
+      .map((c) => c.trim().toUpperCase())
+      .filter((c) => c);
     if (codes.length === 0) return;
 
     try {

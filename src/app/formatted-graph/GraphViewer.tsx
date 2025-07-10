@@ -44,8 +44,8 @@ export default function GraphViewer({ data }: GraphViewerProps) {
         data: {
           id,
           label,
-          originalId: id
-        }
+          originalId: id,
+        },
       });
     }
 
@@ -56,8 +56,8 @@ export default function GraphViewer({ data }: GraphViewerProps) {
           id: `edge-${edge.from}->${edge.to}`,
           source: edge.from,
           target: edge.to,
-          label: "PREREQ"
-        }
+          label: "PREREQ",
+        },
       });
     }
 
@@ -81,8 +81,8 @@ export default function GraphViewer({ data }: GraphViewerProps) {
             height: 45,
             "text-wrap": "wrap",
             "text-max-width": "80px",
-            "font-size": "10px"
-          }
+            "font-size": "10px",
+          },
         },
         {
           selector: "edge",
@@ -94,9 +94,9 @@ export default function GraphViewer({ data }: GraphViewerProps) {
             "curve-style": "bezier",
             "text-background-color": "white",
             "text-background-opacity": 0.7,
-            "font-size": "8px"
-          }
-        }
+            "font-size": "8px",
+          },
+        },
       ],
       layout: {
         name: "dagre",
@@ -106,15 +106,15 @@ export default function GraphViewer({ data }: GraphViewerProps) {
         rankSep: 100,
         padding: 50,
         fit: true,
-        animate: false
-      } as any
+        animate: false,
+      } as any,
     });
 
     cyInstance.current = cy;
 
     setStats({
       nodes: cy.nodes().length,
-      edges: cy.edges().length
+      edges: cy.edges().length,
     });
 
     // User interaction
@@ -146,7 +146,7 @@ export default function GraphViewer({ data }: GraphViewerProps) {
           position: "fixed",
           top: "10%",
           left: "10%",
-          zIndex: 0
+          zIndex: 0,
         }}
       />
       <div
@@ -159,11 +159,15 @@ export default function GraphViewer({ data }: GraphViewerProps) {
           padding: "6px 10px",
           borderRadius: "6px",
           fontSize: "12px",
-          zIndex: 10
+          zIndex: 10,
         }}
       >
-        <div>{stats.nodes} nodes, {stats.edges} edges</div>
-        <div>Click on a node to focus. Double-click background to reset view.</div>
+        <div>
+          {stats.nodes} nodes, {stats.edges} edges
+        </div>
+        <div>
+          Click on a node to focus. Double-click background to reset view.
+        </div>
       </div>
     </div>
   );

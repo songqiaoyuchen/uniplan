@@ -4,17 +4,22 @@
  * @created 2025-05-07
  */
 
-import axios from 'axios';
-import fs from 'fs/promises';
-import path from 'path';
-import { Prerequisite, Neo4jModuleData } from '@/types/neo4jTypes';
+import axios from "axios";
+import fs from "fs/promises";
+import path from "path";
+import { Prerequisite, Neo4jModuleData } from "@/types/neo4jTypes";
 
 const academicYear = "2024-2025";
 const API_URL = `https://api.nusmods.com/v2/${academicYear}/modules/`;
 
 export async function fetchPrereqInfo(): Promise<Prerequisite> {
-  const moduleDataPath = path.join(process.cwd(), 'src', 'data', 'moduleData.json');
-  const fileData = await fs.readFile(moduleDataPath, 'utf-8');
+  const moduleDataPath = path.join(
+    process.cwd(),
+    "src",
+    "data",
+    "moduleData.json",
+  );
+  const fileData = await fs.readFile(moduleDataPath, "utf-8");
   const moduleData: Neo4jModuleData[] = JSON.parse(fileData);
 
   const results: Prerequisite = {};
@@ -34,9 +39,15 @@ export async function fetchPrereqInfo(): Promise<Prerequisite> {
       }
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        console.warn(`⚠️ Skipping ${code}:`, err.response?.status ?? err.message);
+        console.warn(
+          `⚠️ Skipping ${code}:`,
+          err.response?.status ?? err.message,
+        );
       } else {
-        console.warn(`⚠️ Skipping ${code}: Unexpected error`, (err as Error).message);
+        console.warn(
+          `⚠️ Skipping ${code}: Unexpected error`,
+          (err as Error).message,
+        );
       }
     }
   }
