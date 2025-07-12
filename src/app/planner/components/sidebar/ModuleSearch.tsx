@@ -4,21 +4,15 @@ import { useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
 import { Autocomplete, Box, TextField } from "@mui/material";
 import moduleData from "@/data/miniModuleData.json";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchModule } from "@/services/planner/fetchModule";
 import { MiniModuleData } from "@/types/plannerTypes";
-import { addFetchedModule, setActiveModule } from "@/store/plannerSlice";
 import SearchIcon from "@mui/icons-material/Search";
 import { InputAdornment } from "@mui/material";
-import { RootState } from "@/store";
+import { useAppDispatch } from "@/store";
 import { useRouter } from "next/navigation";
+import { moduleSelected } from "@/store/timetableSlice";
 
 const ModuleSearch = () => {
-  const modules = useSelector((state: RootState) => state.planner.modules);
-  const fetchedModules = useSelector(
-    (state: RootState) => state.planner.fetchedModules,
-  );
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   const [query, setQuery] = useState("");
@@ -40,45 +34,23 @@ const ModuleSearch = () => {
       .slice(0, 15);
   }, [fuse, query]);
 
-  const handleSearch = async (_: any, mod: MiniModuleData | null) => {
-    if (!mod) return;
+const handleSearch = async (_: any, mod: MiniModuleData | null) => {
+  if (!mod) return;
 
-    // If module already exists in modules or fetchedModules, do not fetch
-    if (modules[mod.code] || fetchedModules[mod.code]) {
-      dispatch(setActiveModule(mod.code));
-      router.push(`?module=${mod.code}`, { scroll: false });
-      setQuery("");
-      setValue(null);
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
-      return;
-    }
+  setQuery("");
+  setValue(null);
 
-    try {
-      // Clear both input and selected value
-      setQuery("");
-      setValue(null);
+  dispatch(moduleSelected(mod.code));
 
-      const module = await fetchModule(mod.code);
-      console.log("Fetched module:", module);
+  // naviagte
+  router.push(`?module=${mod.code}`, { scroll: false });
 
-      // Save to fetchedModules if not already in modules
-      if (!modules[module.code]) {
-        dispatch(addFetchedModule(module));
-      }
+  // blur search box
+  if (inputRef.current) {
+    inputRef.current.blur();
+  }
+};
 
-      dispatch(setActiveModule(module.code));
-      router.push(`?module=${mod.code}`, { scroll: false });
-
-      // Blur the input manually
-      if (inputRef.current) {
-        inputRef.current.blur();
-      }
-    } catch (err) {
-      console.error("Fetch failed", err);
-    }
-  };
 
   return (
     <Autocomplete

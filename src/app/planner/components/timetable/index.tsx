@@ -1,16 +1,18 @@
 import Box from "@mui/material/Box";
-import PlannerSemester from "./PlannerSemester";
+import PlannerSemester from "./TimeTableSemester";
 import { useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { RootState, useAppSelector } from "@/store";
+import { selectSemesterIds } from "@/store/timetableSlice";
+import { memo } from "react";
+import { Button } from "@mui/material";
+import { useLazyGetTimetableQuery } from "@/store/apiSlice";
 
-interface TimetableProps {
-  overSemesterId: string | null;
-}
-
-function Timetable({ overSemesterId }: TimetableProps) {
-  const semesters = useSelector((state: RootState) => state.planner.semesters);
+function Timetable() {
+  const semesterIds = useAppSelector(selectSemesterIds) as number[];
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
   const sidebarWidth = isOpen ? 300 : 36;
+
+  const [triggerGetTimetable, { isFetching }] = useLazyGetTimetableQuery();
 
   return (
     <Box
@@ -27,6 +29,11 @@ function Timetable({ overSemesterId }: TimetableProps) {
         minWidth: 0,
       }}
     >
+      <Button
+        onClick={() => triggerGetTimetable()}
+      >
+        {isFetching ? "Loading timetable..." : "Test Import Timetable"}
+      </Button>
       {/* semesters */}
       <Box
         sx={{
@@ -43,11 +50,10 @@ function Timetable({ overSemesterId }: TimetableProps) {
           borderRadius: 1,
         }}
       >
-        {semesters.map((_, index) => (
+        {semesterIds.map((semesterId) => (
           <PlannerSemester
-            key={index}
-            semesterIndex={index}
-            isActive={overSemesterId === index.toString()}
+            key={semesterId}
+            semesterId={semesterId}
           />
         ))}
       </Box>
@@ -55,4 +61,4 @@ function Timetable({ overSemesterId }: TimetableProps) {
   );
 }
 
-export default Timetable;
+export default memo(Timetable);

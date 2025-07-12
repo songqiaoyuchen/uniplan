@@ -12,23 +12,22 @@ import {
 import storage from "redux-persist/lib/storage";
 
 import themeReducer from "./themeSlice";
-import timetableReducer from "./timetableSlice"; 
 import sidebarReducer from "./sidebarSlice";
-import plannerReducer from "./plannerSlice";
+import timetableReducer from "./timetableSlice"
 import { apiSlice } from "./apiSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { listenerMiddleware } from './listenerMiddleware'
 
 const persistConfig = {
   key: "root",
   storage,
-  blacklist: [apiSlice.reducerPath], 
 };
 
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
-  timetable: timetableReducer,
   theme: themeReducer,
   sidebar: sidebarReducer,
-  planner: plannerReducer
+  timetable: timetableReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -41,11 +40,16 @@ export const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     })
-    .concat(apiSlice.middleware), 
+    .concat(apiSlice.middleware)
+    .prepend(listenerMiddleware.middleware), 
 });
 
-export const persistor = persistStore(store);
-
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppStore = typeof store;
-export type RootState = ReturnType<AppStore['getState']>;
 export type AppDispatch = AppStore['dispatch'];
+
+export const useAppDispatch = useDispatch.withTypes<AppDispatch>()
+export const useAppSelector = useSelector.withTypes<RootState>()
+
+export const persistor = persistStore(store);
+export default store;

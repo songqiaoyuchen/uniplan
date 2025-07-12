@@ -5,39 +5,16 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import ExpandableText from "@/components/ui/ExpandableText";
-import AddIcon from "@mui/icons-material/Add";
-import IconButton from "@mui/material/IconButton";
-import { useDraggable } from "@dnd-kit/core";
-import { useDispatch, useSelector } from "react-redux";
-import { addFetchedModule } from "@/store/plannerSlice";
-import { useEffect } from "react";
-import { RootState } from "@/store";
 import PrereqTreeView from "./PrereqTreeView";
+import DraggableAddButton from "./DraggableAddButton";
+import { memo } from "react";
 
 interface ModuleDetailsProps {
   module: ModuleData;
+  isPlanned: boolean;
 }
 
-const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
-  const dispatch = useDispatch();
-  const { attributes, listeners, setNodeRef } = useDraggable({
-    id: module.code + "-sidebar",
-    data: {
-      type: "module",
-      module,
-      isNew: true,
-    },
-  });
-
-  useEffect(() => {
-    // Only add the module if it's not already in the planner state
-    dispatch(addFetchedModule(module));
-  }, [dispatch, module]);
-
-  const isPlanned = useSelector((state: RootState) =>
-    state.planner.semesters.some((sem) => sem.includes(module.code)),
-  );
-
+const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
   return (
     <Box
       sx={{
@@ -58,25 +35,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
         alignItems="center"
       >
         {module.code}
-        {!isPlanned && (
-          <Box
-            component="span"
-            ref={setNodeRef}
-            {...listeners}
-            {...attributes}
-            sx={{
-              ml: 1,
-              display: "inline-flex",
-              alignItems: "center",
-              cursor: "grab",
-              "&:active": { cursor: "grabbing" },
-            }}
-          >
-            <IconButton size="small" sx={{ p: 0.5 }}>
-              <AddIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
+        {!isPlanned && <DraggableAddButton moduleCode={module.code} />}
       </Typography>
 
       <Typography variant="subtitle2" color="primary.extraLight">
@@ -151,7 +110,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module }) => {
   );
 };
 
-export default ModuleDetails;
+export default memo(ModuleDetails);
 
 // Helpers
 function formatExam(isoString: string): string {
@@ -193,9 +152,9 @@ function formatSemesters(semesters: SemesterLabel[]): string {
         case SemesterLabel.Second:
           return "Semester 2";
         case SemesterLabel.SpecialTerm1:
-          return "Special Term I";
+          return "Special Term 1";
         case SemesterLabel.SpecialTerm2:
-          return "Special Term II";
+          return "Special Term 2";
         default:
           return "Unknown";
       }

@@ -9,8 +9,9 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 import type { PrereqTree } from "@/types/plannerTypes";
-import MinModuleCard from "./MinModuleCard";
 import { styled } from "@mui/material/styles";
+import SidebarModule from "./SidebarModule";
+import { memo } from "react";
 
 interface PrereqTreeViewProps {
   prereqTree: PrereqTree;
@@ -47,7 +48,7 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
           key={idPath}
           itemId={idPath}
           label={
-            <MinModuleCard
+            <SidebarModule
               moduleCode={node.moduleCode}
             />
           }
@@ -130,4 +131,4 @@ const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   },
 }));
 
-export default PrereqTreeView;
+export default memo(PrereqTreeView);

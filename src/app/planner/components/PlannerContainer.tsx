@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useDispatch, useSelector } from "react-redux";
+
 import {
   DndContext,
   PointerSensor,
@@ -14,139 +15,106 @@ import {
   DragOverEvent,
   rectIntersection,
 } from "@dnd-kit/core";
-import { useCallback } from "react";
 
-// Import your types and actions
-import { RootState } from "@/store";
-import { addModule, moveModule, reorderModules, updateModules } from "@/store/plannerSlice";
-import { checkConflicts } from "@/utils/planner/checkConflicts";
-import { fetchModule } from "@/services/planner/fetchModule";
-
-import PlannerModule from "./timetable/PlannerModule";
-import MinModuleCard from "./sidebar/MinModuleCard";
 import Sidebar from "./sidebar";
 import Box from "@mui/material/Box";
 import Timetable from "./timetable";
+import ModuleCard from "./timetable/ModuleCard";
+import { useGetModuleByCodeQuery } from "@/store/apiSlice";
+import { useAppDispatch } from "@/store";
+import { moduleAdded, moduleMoved, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
   );
-  
-  const dispatch = useDispatch();
 
-  const modules = useSelector((state: RootState) => state.planner.modules);
-  const fetchedModules = useSelector((state: RootState) => state.planner.fetchedModules);
+  // drag overlay states
+  const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
+  const { data: draggingModule } = useGetModuleByCodeQuery(draggingModuleCode!, {
+    skip: draggingModuleCode === null,
+  });
 
-  const [activeCode, setActiveCode] = useState<string | null>(null);
-  const [overSemesterId, setOverSemesterId] = useState<string | null>(null);
-
-  const activeModule = activeCode ? modules[activeCode] : null;
+  const dispatch = useAppDispatch();
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveCode(event.active.id.toString().split("-")[0].trim());
+    setDraggingModuleCode(event.active.id.toString().split('-')[0]);
   }, []);
 
-  const handleDragOver = useCallback((event: DragOverEvent) => {
+  const handleDragOver = (event: DragOverEvent) => {
     const { over } = event;
+    let targetSemesterId: number | null = null;
 
-    if (!over) {
-      setOverSemesterId(null);
-      return;
-    }
-
-    const overType = over.data.current?.type;
-
-    if (overType === 'semester') {
-      setOverSemesterId(over.id.toString());
-    } else if (overType === 'module') {
-      const moduleSemesterId = over.data.current?.module?.plannedSemester?.toString();
-      if (moduleSemesterId !== undefined && moduleSemesterId !== null) {
-        setOverSemesterId(moduleSemesterId);
+    if (over) {
+      const overData = over.data.current;
+      if (overData?.semesterId !== undefined) {
+        targetSemesterId = overData.semesterId;
       }
     }
-  }, []);
 
-  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    if (targetSemesterId !== null) {
+      dispatch(semesterDraggedOverSet(targetSemesterId));
+    }
+  };
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) {
-      setActiveCode(null);
-      setOverSemesterId(null);
+    setDraggingModuleCode(null);
+    dispatch(semesterDraggedOverCleared());
+
+    if (!over || active.id === over.id) return;
+
+    const [draggingModuleCode, source] = (active.id as string).split('-');
+
+    const sourceSemesterId = active.data.current?.semesterId;
+    const destSemesterId = over.data.current?.semesterId;
+
+    if (
+      typeof destSemesterId !== 'number'
+    ) return;
+
+    if (source === "sidebar") {
+      dispatch(moduleAdded({
+        moduleCode: draggingModuleCode,
+        destSemesterId
+      }));
       return;
     }
 
-    const moduleCode = active.id.toString().split('-')[0].trim();
-    const module = active.data.current?.module ?? await fetchModule(active.data.current?.moduleCode);
-    const isNew = active.data.current?.isNew;
+    const overModuleCode = over.data.current?.type === 'module' 
+      ? (over.id as string).split('-')[0] 
+      : null;
 
-    const toSemester = over.data.current?.type === 'semester'
-      ? Number(over.id)
-      : over.data.current?.module?.plannedSemester;
-
-    let modulesChanged = false;
-    let nextModules = { ...modules };
-
-    if (isNew && !modules[moduleCode]) {
-      dispatch(addModule(module));
-      nextModules[moduleCode] = module;
-    }
-
-    const fromSemester = module.plannedSemester;
-    if (fromSemester === toSemester && fromSemester !== null) {
-      if (active.id !== over.id) {
-        dispatch(reorderModules({
-          semesterIndex: fromSemester,
-          activeCode: active.id.toString(),
-          overCode: over.id.toString(),
-        }));
-      }
-    } else {
-      dispatch(moveModule({
-        moduleCode,
-        fromSemester: module.plannedSemester,
-        toSemester,
-      }));
-      nextModules[moduleCode] = {
-        ...nextModules[moduleCode],
-        plannedSemester: toSemester,
-      };
-      modulesChanged = true;
-    }
-
-    if (modulesChanged) {
-      const updatedModules = checkConflicts(nextModules);
-      dispatch(updateModules(updatedModules));
-    }
-
-    setActiveCode(null);
-    setOverSemesterId(null);
-  }, [dispatch, modules, fetchedModules]);
+    dispatch(
+      moduleMoved({
+        activeModuleCode: draggingModuleCode,
+        overModuleCode,
+        sourceSemesterId,
+        destSemesterId,
+      })
+    );
+  }, [dispatch]);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "row" }}>
       <DndContext
+        sensors={sensors}
+        collisionDetection={rectIntersection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
-        sensors={sensors}
-        collisionDetection={rectIntersection}
       >
-        <Sidebar />
-
-        {/* timetable */}
-        <Timetable overSemesterId={overSemesterId} />
+        <Sidebar />  
+        <Timetable />
 
         {/* overlay modulecard */}
         {createPortal(
           <DragOverlay>
-            {activeModule ? (
-              <PlannerModule module={activeModule} />
-            ) : activeCode ? (
-              <MinModuleCard moduleCode={activeCode} />
-            ) : null}
+            {draggingModuleCode && draggingModule && (
+              <ModuleCard module={draggingModule} />
+            )}
           </DragOverlay>,
-
           document.body,
         )}
       </DndContext>

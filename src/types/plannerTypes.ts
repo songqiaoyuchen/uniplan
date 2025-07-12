@@ -34,11 +34,11 @@ export enum SemesterLabel {
 }
 
 export enum ModuleStatus {
-  Completed, // already taken
-  Unlocked, // all prereq present and satisfied (i.e. can be taken at that semester)
-  Locked, // prereq missing
-  Blocked, // all prereq present but may not be satisfied (blcocked, conflicted or locked)
-  Conflicted, // conflict due to [exam clash, semester not offered, perclusion]
+  Completed = 'Completed', // already taken
+  Unlocked = 'Unlocked', // all prereq present and satisfied (i.e. can be taken at that semester)
+  Locked = 'Locked', // prereq missing
+  Blocked = 'Blocked', // all prereq present but may not be satisfied (blcocked, conflicted or locked)
+  Conflicted = 'Conflicted', // conflict due to [exam clash, semester not offered, perclusion]
 }
 
 export type PrereqTree =
