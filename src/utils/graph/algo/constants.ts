@@ -1,3 +1,8 @@
+// constants.ts
+/**
+ * Configuration constants and type guards for the scheduling algorithm.
+ * Defines scheduling constraints, prioritization weights, and utility functions.
+ */
 import { LogicNode } from "@/types/graphTypes";
 import { ModuleData } from "@/types/plannerTypes";
 
@@ -7,9 +12,8 @@ export const MAX_SEMESTERS = 8;
 
 // Prioritization weights
 export const PRIORITY_WEIGHTS = {
-  URGENCY: 0.3,
-  IMPACT: 0.3,
-  EFFICIENCY: 0.1,
+  IMPACT: 0.5,
+  EFFICIENCY: 0.2,
   CRITICALITY: 0.3,
 } as const;
 
@@ -17,8 +21,8 @@ export const PRIORITY_WEIGHTS = {
 export const CHAIN_LENGTH_DECAY_FACTOR = 5;
 
 // Type guards
-export function isNofNode(node: LogicNode | ModuleData): node is LogicNode {
-  return 'type' in node && node.type === 'NOF';
+export function isNofNode(node: LogicNode | ModuleData | undefined): node is LogicNode {
+  return node !== undefined && 'type' in node && node.type === 'NOF';
 }
 
 export function isModuleData(node: unknown): node is ModuleData {

@@ -1,5 +1,11 @@
+// chain.ts
+/**
+ * Critical path analysis for module dependencies.
+ * Calculates chain lengths to identify modules on critical paths,
+ * helping prioritize modules that are bottlenecks for reaching targets.
+ */
 import { NormalisedGraph, ChainLengthInfo } from "@/types/graphTypes";
-import { isModuleData, isNofNode, CHAIN_LENGTH_DECAY_FACTOR } from './constants';
+import { isModuleData, CHAIN_LENGTH_DECAY_FACTOR } from './constants';
 
 export function calculateChainLengths(
   graph: NormalisedGraph,
@@ -7,20 +13,21 @@ export function calculateChainLengths(
 ): Map<string, ChainLengthInfo> {
   const chainInfo = new Map<string, ChainLengthInfo>();
   
-  // Build adjacency lists
-  const outgoing: Record<string, string[]> = {};
-  const incoming: Record<string, string[]> = {};
+  // Build adjacency lists - edges represent prerequisites
+  const prerequisites: Record<string, string[]> = {};
+  const dependents: Record<string, string[]> = {};
   
   for (const edge of graph.edges) {
-    outgoing[edge.from] = outgoing[edge.from] || [];
-    outgoing[edge.from].push(edge.to);
-    incoming[edge.to] = incoming[edge.to] || [];
-    incoming[edge.to].push(edge.from);
+    if (!prerequisites[edge.from]) prerequisites[edge.from] = [];
+    prerequisites[edge.from].push(edge.to);
+    
+    if (!dependents[edge.to]) dependents[edge.to] = [];
+    dependents[edge.to].push(edge.from);
   }
   
-  const maxChainToTarget = calculateMaxChainToTargets(graph, targetModules, incoming);
-  const startModules = findStartModules(graph, incoming);
-  const maxChainFromStart = calculateMaxChainFromStart(graph, startModules, outgoing);
+  const maxChainToTarget = calculateMaxChainToTargets(graph, targetModules, dependents);
+  const startModules = findStartModules(graph, prerequisites);
+  const maxChainFromStart = calculateMaxChainFromStart(graph, startModules, dependents);
   
   for (const [nodeId, node] of Object.entries(graph.nodes)) {
     if (isModuleData(node)) {
@@ -41,7 +48,7 @@ export function calculateChainLengths(
 function calculateMaxChainToTargets(
   graph: NormalisedGraph,
   targetModules: Set<string>,
-  incoming: Record<string, string[]>
+  dependents: Record<string, string[]>
 ): Map<string, number> {
   const memo = new Map<string, number>();
   
@@ -57,17 +64,16 @@ function calculateMaxChainToTargets(
       return 0;
     }
     
-    const outgoingNodes = graph.edges
-      .filter(e => e.from === nodeId)
-      .map(e => e.to);
+    // Check nodes that depend on this one
+    const dependentNodes = dependents[nodeId] || [];
     
-    if (outgoingNodes.length === 0) {
+    if (dependentNodes.length === 0) {
       memo.set(nodeId, Infinity);
       return Infinity;
     }
     
     let minChain = Infinity;
-    for (const nextId of outgoingNodes) {
+    for (const nextId of dependentNodes) {
       const chainLength = dfs(nextId);
       if (chainLength !== Infinity) {
         const increment = isModuleData(graph.nodes[nodeId]) ? 1 : 0;
@@ -89,7 +95,7 @@ function calculateMaxChainToTargets(
 function calculateMaxChainFromStart(
   graph: NormalisedGraph,
   startModules: Set<string>,
-  outgoing: Record<string, string[]>
+  dependents: Record<string, string[]>
 ): Map<string, number> {
   const distances = new Map<string, number>();
   
@@ -106,7 +112,8 @@ function calculateMaxChainFromStart(
     const node = graph.nodes[nodeId];
     const increment = isModuleData(node) ? 1 : 0;
     
-    const neighbors = outgoing[nodeId] || [];
+    // Update distances to dependents
+    const neighbors = dependents[nodeId] || [];
     for (const neighborId of neighbors) {
       const newDist = currentDist + increment;
       const existingDist = distances.get(neighborId) || -1;
@@ -119,16 +126,15 @@ function calculateMaxChainFromStart(
 
 function findStartModules(
   graph: NormalisedGraph,
-  incoming: Record<string, string[]>
+  prerequisites: Record<string, string[]>
 ): Set<string> {
   const starts = new Set<string>();
   
   for (const [nodeId, node] of Object.entries(graph.nodes)) {
     if (isModuleData(node)) {
-      const prerequisites = incoming[nodeId] || [];
-      // A module is a start module if it has no prerequisites at all
-      // (no incoming edges from modules or logic nodes)
-      if (prerequisites.length === 0) {
+      // A module is a start if it has no prerequisites
+      const modulePrereqs = prerequisites[nodeId] || [];
+      if (modulePrereqs.length === 0) {
         starts.add(nodeId);
       }
     }
@@ -138,42 +144,42 @@ function findStartModules(
 }
 
 function topologicalSort(graph: NormalisedGraph): string[] {
-  const inDegree = new Map<string, number>();
+  const prereqCount = new Map<string, number>();
   const queue: string[] = [];
   const result: string[] = [];
-  
+
+  // Initialize in-degrees
   for (const nodeId of Object.keys(graph.nodes)) {
-    inDegree.set(nodeId, 0);
+    prereqCount.set(nodeId, 0);
   }
-  
+
+  // Count incoming edges
   for (const edge of graph.edges) {
-    inDegree.set(edge.to, (inDegree.get(edge.to) || 0) + 1);
+    prereqCount.set(edge.to, (prereqCount.get(edge.to) || 0) + 1);
   }
-  
-  for (const [nodeId, degree] of inDegree) {
-    if (degree === 0) {
-      queue.push(nodeId);
-    }
+
+  // Start with nodes that have no incoming edges
+  for (const [nodeId, count] of prereqCount) {
+    if (count === 0) queue.push(nodeId);
   }
-  
+
+  // Topological sort
   while (queue.length > 0) {
     const current = queue.shift()!;
     result.push(current);
-    
+
     for (const edge of graph.edges) {
       if (edge.from === current) {
-        const newDegree = (inDegree.get(edge.to) || 0) - 1;
-        inDegree.set(edge.to, newDegree);
-        
-        if (newDegree === 0) {
-          queue.push(edge.to);
-        }
+        const newCount = (prereqCount.get(edge.to) || 0) - 1;
+        prereqCount.set(edge.to, newCount);
+        if (newCount === 0) queue.push(edge.to);
       }
     }
   }
-  
+
   return result;
 }
+
 
 export function computeCriticality(chainInfo: ChainLengthInfo | undefined): number {
   if (!chainInfo || chainInfo.maxChainToTarget === Infinity) {

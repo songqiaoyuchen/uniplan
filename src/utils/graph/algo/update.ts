@@ -1,4 +1,4 @@
-import { NormalisedGraph, PlannerState } from "@/types/graphTypes";
+import { NormalisedGraph, PlannerState } from '@/types/graphTypes';
 import { isNofNode, isModuleData } from './constants';
 
 export function applySemester(
@@ -12,131 +12,151 @@ export function applySemester(
     state.availableModules.delete(code);
   }
 
-  // Update logic nodes and propagate changes
-  const nodesToProcess = new Set<string>();
-  
-  // Find all nodes corresponding to taken modules
-  for (const [id, node] of Object.entries(graph.nodes)) {
-    if (isModuleData(node) && taken.includes(node.code)) {
-      nodesToProcess.add(id);
-    }
-  }
+  // Update logic nodes that might now be satisfied
+  updateLogicNodes(taken, state, graph);
 
-  // Process each completed module
-  for (const current of nodesToProcess) {
-    nodesToProcess.delete(current);
+  // Prune alternatives for newly satisfied logic nodes
+  pruneCompletedAlternatives(state, graph);
 
-    // Update downstream nodes
-    for (const edge of graph.edges) {
-      if (edge.from === current) {
-        const targetNode = graph.nodes[edge.to];
-        
-        if (isNofNode(targetNode)) {
-          updateLogicNode(edge.to, state, graph, nodesToProcess);
-        } else if (isModuleData(targetNode)) {
-          checkModuleAvailability(edge.to, targetNode.code, state, graph);
-        }
-      }
-    }
-  }
-
-  // Prune unnecessary alternatives
-  pruneAlternatives(state, graph);
+  // Unlock new modules
+  unlockNewModules(state, graph);
 }
 
-function updateLogicNode(
-  logicId: string,
-  state: PlannerState,
-  graph: NormalisedGraph,
-  nodesToProcess: Set<string>
-): void {
-  const logic = state.logicStatus[logicId];
-  if (!logic || logic.satisfied) return;
-
-  // Count satisfied prerequisites
-  const satisfiedInputs = graph.edges
-    .filter(e => e.to === logicId)
-    .filter(e => {
-      const fromNode = graph.nodes[e.from];
-      if (isModuleData(fromNode)) {
-        return state.completedModules.has(fromNode.code);
-      } else if (isNofNode(fromNode)) {
-        return state.logicStatus[e.from]?.satisfied;
-      }
-      return false;
-    }).length;
-
-  logic.satisfiedCount = satisfiedInputs;
-  
-  if (satisfiedInputs >= logic.requires) {
-    logic.satisfied = true;
-    state.satisfiedLogicNodes.add(logicId);
-    nodesToProcess.add(logicId);
-  }
-}
-
-function checkModuleAvailability(
-  moduleId: string,
-  moduleCode: string,
+function updateLogicNodes(
+  taken: string[],
   state: PlannerState,
   graph: NormalisedGraph
 ): void {
-  if (state.completedModules.has(moduleCode) || state.availableModules.has(moduleCode)) {
-    return;
+  const logicNodesToCheck = new Set<string>();
+  
+  // Find logic nodes affected by taken modules
+  for (const code of taken) {
+    const moduleEntry = Object.entries(graph.nodes).find(
+      ([_, node]) => isModuleData(node) && node.code === code
+    );
+    
+    if (!moduleEntry) continue;
+    const [moduleId] = moduleEntry;
+    
+    // Find logic nodes that have this module as an option
+    graph.edges
+      .filter(e => e.to === moduleId && isNofNode(graph.nodes[e.from]))
+      .forEach(e => logicNodesToCheck.add(e.from));
   }
 
-  // Check if all prerequisites are satisfied
-  const allPrereqsSatisfied = graph.edges
-    .filter(e => e.to === moduleId)
-    .every(e => {
-      const fromNode = graph.nodes[e.from];
-      if (!fromNode) {
-        console.warn(`Warning: Edge from non-existent node ${e.from} to ${moduleId}`);
-        return true; // Treat missing nodes as satisfied
+  // Keep updating logic nodes until no more changes (cascade satisfaction)
+  let hasChanges = true;
+  while (hasChanges) {
+    hasChanges = false;
+    
+    for (const logicId of logicNodesToCheck) {
+      const wasUpdated = updateSingleLogicNode(logicId, state, graph);
+      if (wasUpdated) {
+        hasChanges = true;
+        
+        // If this logic node was newly satisfied, check parent logic nodes
+        graph.edges
+          .filter(e => e.to === logicId && isNofNode(graph.nodes[e.from]))
+          .forEach(e => logicNodesToCheck.add(e.from));
       }
-      if (isNofNode(fromNode)) {
-        return state.logicStatus[e.from]?.satisfied;
-      } else if (isModuleData(fromNode)) {
-        return state.completedModules.has(fromNode.code);
-      }
-      return true;
-    });
-
-  if (allPrereqsSatisfied) {
-    state.availableModules.add(moduleCode);
+    }
   }
 }
 
-function pruneAlternatives(state: PlannerState, graph: NormalisedGraph): void {
-  // For each satisfied N-of logic node, mark excess inputs as "pruned"
+function updateSingleLogicNode(
+  logicId: string,
+  state: PlannerState,
+  graph: NormalisedGraph
+): boolean {
+  const logic = state.logicStatus[logicId];
+  const logicNode = graph.nodes[logicId];
+  if (!logic || logic.satisfied || !isNofNode(logicNode)) return false;
+
+  // Count satisfied options
+  const options = graph.edges.filter(e => e.from === logicId);
+  const satisfiedCount = options.filter(edge => {
+    const optionNode = graph.nodes[edge.to];
+    if (isModuleData(optionNode)) {
+      return state.completedModules.has(optionNode.code);
+    }
+    if (isNofNode(optionNode)) {
+      return state.logicStatus[edge.to]?.satisfied || false;
+    }
+    return false;
+  }).length;
+
+  const previousSatisfied = logic.satisfied;
+  logic.satisfiedCount = satisfiedCount;
+  
+  if (satisfiedCount >= logic.requires) {
+    logic.satisfied = true;
+    state.satisfiedLogicNodes.add(logicId);
+  }
+
+  // Return true if satisfaction status changed
+  return !previousSatisfied && logic.satisfied;
+}
+
+function pruneCompletedAlternatives(
+  state: PlannerState,
+  graph: NormalisedGraph
+): void {
+  // Initialize prunedModules if it doesn't exist
+  if (!state.prunedModules) {
+    state.prunedModules = new Set<string>();
+  }
+
   for (const logicId of state.satisfiedLogicNodes) {
     const logic = state.logicStatus[logicId];
     if (!logic || !logic.satisfied) continue;
 
-    const node = graph.nodes[logicId];
-    if (!isNofNode(node)) continue;
+    // Remove uncompleted alternatives from available modules
+    const moduleOptions = graph.edges
+      .filter(e => e.from === logicId)
+      .map(e => e.to)
+      .filter(id => isModuleData(graph.nodes[id]));
 
-    // Find satisfied and unsatisfied inputs
-    const inputs = graph.edges.filter(e => e.to === logicId);
-    const satisfiedInputs: string[] = [];
-    const unsatisfiedInputs: string[] = [];
-
-    for (const edge of inputs) {
-      const fromNode = graph.nodes[edge.from];
-      if (isModuleData(fromNode)) {
-        if (state.completedModules.has(fromNode.code)) {
-          satisfiedInputs.push(fromNode.code);
-        } else {
-          unsatisfiedInputs.push(fromNode.code);
-        }
+    for (const moduleId of moduleOptions) {
+      const module = graph.nodes[moduleId] as any;
+      if (!state.completedModules.has(module.code)) {
+        state.availableModules.delete(module.code);
+        state.prunedModules.add(module.code);
       }
     }
+  }
+}
 
-    // If we have enough satisfied inputs, remove unsatisfied ones from available
-    if (satisfiedInputs.length >= logic.requires) {
-      for (const code of unsatisfiedInputs) {
-        state.availableModules.delete(code);
+function unlockNewModules(
+  state: PlannerState,
+  graph: NormalisedGraph
+): void {
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    if (!isModuleData(node) || 
+        state.completedModules.has(node.code) || 
+        state.availableModules.has(node.code)) {
+      continue;
+    }
+
+    // Don't unlock modules that were deliberately pruned
+    if (state.prunedModules?.has(node.code)) {
+      continue;
+    }
+
+    // Check if all prerequisites are satisfied
+    const prereqs = graph.edges.filter(e => e.from === id);
+    const allPrereqsSatisfied = prereqs.every(edge => {
+      const prereqNode = graph.nodes[edge.to];
+      if (isNofNode(prereqNode)) {
+        return state.logicStatus[edge.to]?.satisfied || false;
       }
+      if (isModuleData(prereqNode)) {
+        return state.completedModules.has(prereqNode.code);
+      }
+      return true;
+    });
+
+    if (allPrereqsSatisfied) {
+      state.availableModules.add(node.code);
     }
   }
 }

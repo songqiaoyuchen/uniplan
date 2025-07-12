@@ -16,9 +16,6 @@ export async function GET(
   const { searchParams } = request.nextUrl;
   const targetModuleCode = searchParams.get("targetModuleCode");
   const targetModuleCodesParam = searchParams.get("targetModuleCodes");
-  
-  // Optional: accept additional module codes to include in the graph
-  const includeModuleCodesParam = searchParams.get("includeModuleCodes");
 
   // Parse target modules (what we want to complete)
   let targetCodes: string[] = [];
@@ -31,27 +28,15 @@ export async function GET(
     targetCodes = [targetModuleCode.trim().toUpperCase()];
   }
 
-  // Parse additional modules to include in graph (optional)
-  let includeCodes: string[] = [];
-  if (includeModuleCodesParam) {
-    includeCodes = includeModuleCodesParam
-      .split(",")
-      .map((c) => c.trim().toUpperCase())
-      .filter((c) => c);
-  }
-
-  // Combine all codes for graph building
-  const allCodes = [...new Set([...targetCodes, ...includeCodes])];
-
   try {
     // Build the graph with all relevant modules
-    const rawGraph = await getMergedTree(allCodes);
-    const normalisedGraph = cleanGraph(normaliseNodes(rawGraph), allCodes);
-    
+    const rawGraph = await getMergedTree(targetCodes);
+    const normalisedGraph = normaliseNodes(rawGraph);
+    const cleanedGraph = cleanGraph(normalisedGraph, targetCodes);
+
     // Run the scheduler
-    // If no target codes specified, scheduler will find end goals automatically
-    const timetable = runScheduler(normalisedGraph, targetCodes);
-    
+    const timetable = runScheduler(cleanedGraph, targetCodes);
+
     return NextResponse.json(timetable);
   } catch (err) {
     console.error("Timetable generation error:", err);

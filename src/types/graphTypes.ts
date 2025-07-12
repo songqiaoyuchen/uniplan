@@ -40,6 +40,7 @@ export type PlannerState = {
   completedModules: Set<string>;
   logicStatus: Record<string, LogicStatus>;
   satisfiedLogicNodes: Set<string>;
+  prunedModules: Set<string>;
 };
 export interface ScoredModule {
   code: string;
@@ -55,4 +56,17 @@ export interface ChainLengthInfo {
 export type TimetableData = {
   code: string;
   semester: number;
+}
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  stats: {
+    totalModules: number;
+    totalSemesters: number;
+    totalCredits: number;
+    maxCreditsInSemester: number;
+    targetModulesCompleted: number;
+    targetModulesTotal: number;
+  };
 }
