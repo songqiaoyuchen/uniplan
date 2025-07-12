@@ -49,7 +49,7 @@ export const lightTheme = createTheme({
       moduleCard: {
         selectedBorderWidth: "2px",
         selectedGlowWidth: "1px",
-        selectedBorderColor: "#6856ce",
+        selectedBorderColor: "#ff80c8",
         backgroundColors: {
           completed: "#b3f4bd",
           unlocked: "#c1aff3",

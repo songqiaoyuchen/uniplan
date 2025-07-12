@@ -1,23 +1,21 @@
 "use client";
 
-import { RootState } from "@/store";
+// Presentational Layer
+
 import { ModuleData, ModuleStatus } from "@/types/plannerTypes";
 import { useTheme } from "@mui/material/styles";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { memo } from "react";
-import { useSelector } from "react-redux";
 
 interface ModuleCardProps {
   module: Pick<ModuleData, "id" | "code" | "title" | "status">;
+  isSelected?: boolean;
 }
 
-const ModuleCard: React.FC<ModuleCardProps> = ({ module }) => {
+const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) => {
   const theme = useTheme();
-  const isSelected = useSelector(
-    (state: RootState) => state.planner.activeModuleCode === module.code,
-  );
 
   const {
     selectedBorderWidth,

@@ -1,10 +1,7 @@
 "use client";
 
-import { useDispatch, useSelector } from "react-redux";
-import { useEffect } from "react";
-import { RootState } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { toggleSidebar } from "@/store/sidebarSlice";
-import { addFetchedModule, setActiveModule } from "@/store/plannerSlice";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
@@ -14,24 +11,13 @@ import ModuleDetails from "./ModuleDetails";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ModuleSearch from "./ModuleSearch";
-import { fetchModule } from "@/services/planner/fetchModule";
+import { useModuleState } from "../../hooks";
+import { selectSelectedModuleCode } from "@/store/timetableSlice";
+import { memo } from "react";
 
 const Sidebar: React.FC = () => {
-  console.log("Rendering Sidebar...");
-  const dispatch = useDispatch();
-  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
-  const activeModuleCode = useSelector(
-    (state: RootState) => state.planner.activeModuleCode,
-  );
-  const modules = useSelector((state: RootState) => state.planner.modules);
-  const fetchedModules = useSelector(
-    (state: RootState) => state.planner.fetchedModules,
-  );
-
-  const resolvedModule = activeModuleCode
-    ? (modules[activeModuleCode] ?? fetchedModules[activeModuleCode] ?? null)
-    : null;
-
+  const dispatch = useAppDispatch();
+  const isOpen = useAppSelector((state) => state.sidebar.isOpen);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const sidebarWidth = 300;
@@ -39,29 +25,8 @@ const Sidebar: React.FC = () => {
 
   const handleToggle = () => dispatch(toggleSidebar());
 
-  useEffect(() => {
-    if (!isOpen) {
-      dispatch(setActiveModule(null));
-    }
-  }, [isOpen, dispatch]);
-
-  useEffect(() => {
-    const fetchIfNeeded = async () => {
-      if (!activeModuleCode) return;
-      const exists =
-        modules[activeModuleCode] || fetchedModules[activeModuleCode];
-      if (!exists) {
-        try {
-          const fetched = await fetchModule(activeModuleCode);
-          dispatch(addFetchedModule(fetched));
-        } catch (err) {
-          console.error(`Failed to fetch module ${activeModuleCode}`, err);
-        }
-      }
-    };
-
-    fetchIfNeeded();
-  }, [activeModuleCode, modules, fetchedModules, dispatch]);
+  const selectedModuleCode = useAppSelector(selectSelectedModuleCode);
+  const { module, isPlanned } = useModuleState(selectedModuleCode);
 
   return isMobile ? (
     <Box
@@ -89,7 +54,7 @@ const Sidebar: React.FC = () => {
       </IconButton>
       <Box sx={{ p: 2, gap: 2 }}>
         {isOpen && <ModuleSearch />}
-        {resolvedModule && <ModuleDetails module={resolvedModule} />}
+        {module && isOpen && <ModuleDetails module={module} isPlanned={isPlanned} />}
       </Box>
     </Box>
   ) : (
@@ -140,13 +105,18 @@ const Sidebar: React.FC = () => {
           gap: 2,
           width: "100%",
           overflowY: "auto",
+          // hide scrollbar unless on hover
+          scrollbarColor: "transparent transparent",
+          "&:hover": {
+            scrollbarColor: "rgba(62, 62, 62, 1) transparent",
+          },
         }}
       >
         {isOpen && <ModuleSearch />}
-        {resolvedModule && isOpen && <ModuleDetails module={resolvedModule} />}
+        {module && isOpen && selectedModuleCode && <ModuleDetails module={module} isPlanned={isPlanned} />}
       </Box>
     </Box>
   );
 };
 
-export default Sidebar;
+export default memo(Sidebar);
