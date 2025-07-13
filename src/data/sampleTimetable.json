@@ -1,30 +1,36 @@
 {
-  "modules": [
-    { "code": "CS1101S", "status": "Unlocked" },
-    { "code": "MA2001", "status": "Unlocked" },
-    { "code": "CS2030S", "status": "Unlocked" },
-    { "code": "gea1000", "status": "Unlocked" },
-    { "code": "IS1108", "status": "Unlocked" },
-    { "code": "CS2040S", "status": "Unlocked" },
-    { "code": "ST2334", "status": "Unlocked" },
-    { "code": "CS2100", "status": "Unlocked" }
-  ],
   "semesters": [
     {
       "id": 0,
-      "moduleCodes": ["CS1101S", "GEA1000"]
+      "moduleCodes": ["CS1101S", "GEA1000", "MA1100"]
     },
     {
       "id": 1,
-      "moduleCodes": ["CS2030S", "IS1108"]
+      "moduleCodes": ["CS2030S", "IS1108", "CFG1002", "MA1521", "CS2100"]
     },
     {
       "id": 2,
-      "moduleCodes": ["CS2040S", "MA2001"]
+      "moduleCodes": ["CS2040S", "MA2001", "CS2106", "CS2101", "CS2103T"]
     },
     {
       "id": 3,
-      "moduleCodes": ["CS2100", "ST2334"]
+      "moduleCodes": ["CS2102", "ST2334", "CS3219", "CS2105", "CS3240"]
+    },
+    {
+      "id": 4,
+      "moduleCodes": ["CS3223", "CS3230", "CS3243", "CS3211"]
+    },
+    {
+      "id": 5,
+      "moduleCodes": ["CS3281", "CP3880"]
+    },
+    {
+      "id": 6,
+      "moduleCodes": ["CS3244", "CS3216", "CS4236", "CS3235", "CS3241"]
+    },
+    {
+      "id": 7,
+      "moduleCodes": ["CS5230", "CP3209", "CS4240", "CS3247", "CS3282"]
     }
   ]
 }

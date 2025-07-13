@@ -19,14 +19,14 @@ declare module "@mui/material/styles" {
         selectedBorderColor: string;
         backgroundColors: {
           completed: string;
-          unlocked: string;
+          planned: string;
           locked: string;
           blocked: string;
           conflicted: string;
         };
         borderColors: {
           completed: string;
-          unlocked: string;
+          planned: string;
           locked: string;
           blocked: string;
           conflicted: string;
@@ -44,14 +44,14 @@ declare module "@mui/material/styles" {
         selectedBorderColor: string;
         backgroundColors?: {
           completed?: string;
-          unlocked?: string;
+          planned?: string;
           locked?: string;
           blocked?: string;
           conflicted?: string;
         };
         borderColors?: {
           completed?: string;
-          unlocked?: string;
+          planned?: string;
           locked?: string;
           blocked?: string;
           conflicted?: string;

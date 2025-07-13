@@ -77,24 +77,15 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
         Offered: {formatSemesters(module.semestersOffered)}
       </Typography>
 
-      {module.exam ? (
+      {module.exam && (
         <Typography variant="body1">
           Exam: {formatExam(module.exam.startTime)} (
           {module.exam.durationMinutes} min)
         </Typography>
-      ) : (
-        <Typography variant="body1">Exam: Not Available</Typography>
       )}
 
       <Typography variant="body1">
         Status: {formatModuleStatus(module.status)}
-      </Typography>
-
-      <Typography variant="body1">
-        Planned Semester:{" "}
-        {module.plannedSemester != null && module.plannedSemester >= 0
-          ? formatSemesterIndex(module.plannedSemester)
-          : "Unplanned"}
       </Typography>
 
       {module.grade && (
@@ -132,8 +123,8 @@ function formatModuleStatus(status?: ModuleStatus): string {
   switch (status) {
     case ModuleStatus.Locked:
       return "Locked";
-    case ModuleStatus.Unlocked:
-      return "Unlocked";
+    case ModuleStatus.Planned:
+      return "Planned";
     case ModuleStatus.Completed:
       return "Completed";
     case ModuleStatus.Blocked:

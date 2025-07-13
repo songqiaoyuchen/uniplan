@@ -6,7 +6,7 @@ export type ModuleData = {
   semestersOffered: SemesterLabel[]; // e.g. ["First", "Second"]
   exam: Exam | null;
   preclusions: string[]; // module id
-  plannedSemester: number | null; // e.g. 5 = y3s2, 0 = y1s1
+  plannedSemester?: number | null; // e.g. 5 = y3s2, 0 = y1s1 NO LONGER IN USE
   grade?: string; // e.g. A+, B, C, etc.
   status?: ModuleStatus;
   description?: string; // optional description
@@ -14,6 +14,7 @@ export type ModuleData = {
   department?: string; // optional department name
   requires?: PrereqTree | null; // module codes that this module requires (e.g. CS1010)
   unlocks?: string[]; // module codes that this module unlocks (e.g. CS1101S)
+  issues?: ModuleIssue[]
 };
 
 export type MiniModuleData = {
@@ -34,11 +35,11 @@ export enum SemesterLabel {
 }
 
 export enum ModuleStatus {
-  Completed = 'Completed', // already taken
-  Unlocked = 'Unlocked', // all prereq present and satisfied (i.e. can be taken at that semester)
-  Locked = 'Locked', // prereq missing
-  Blocked = 'Blocked', // all prereq present but may not be satisfied (blcocked, conflicted or locked)
-  Conflicted = 'Conflicted', // conflict due to [exam clash, semester not offered, perclusion]
+  Completed = 'Completed', // override status, disable checking
+  Planned = 'Planned', // green status, no issues, can be taken in that semester
+  Locked = 'Locked', // red status, prereq missing in previous semesters
+  Blocked = 'Blocked', // orange status, prereqs present but may be locked / conflicted
+  Conflicted = 'Conflicted', // conflicted due to [exam clash, semester not offered, perclusion]
 }
 
 export type PrereqTree =
@@ -46,3 +47,10 @@ export type PrereqTree =
   | { type: "AND"; children: PrereqTree[] }
   | { type: "OR"; children: PrereqTree[] }
   | { type: "NOF"; n: number; children: PrereqTree[] };
+
+export type ModuleIssue =
+  | { type: 'PrereqMissing'; list: string[] }
+  | { type: 'PrereqUnmet'; list: string[] }
+  | { type: 'Precluded'; with: string[] }
+  | { type: 'InvalidSemester' }
+  | { type: 'ExamClash'; with: string[] }

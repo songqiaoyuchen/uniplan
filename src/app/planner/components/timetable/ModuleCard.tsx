@@ -26,7 +26,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
 
   const backgroundColorMap: Record<ModuleStatus, string> = {
     [ModuleStatus.Completed]: backgroundColors.completed,
-    [ModuleStatus.Unlocked]: backgroundColors.unlocked,
+    [ModuleStatus.Planned]: backgroundColors.planned,
     [ModuleStatus.Locked]: backgroundColors.locked,
     [ModuleStatus.Blocked]: backgroundColors.blocked,
     [ModuleStatus.Conflicted]: backgroundColors.conflicted,
@@ -34,7 +34,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
 
   const borderColorMap: Record<ModuleStatus, string> = {
     [ModuleStatus.Completed]: borderColors.completed,
-    [ModuleStatus.Unlocked]: borderColors.unlocked,
+    [ModuleStatus.Planned]: borderColors.planned,
     [ModuleStatus.Locked]: borderColors.locked,
     [ModuleStatus.Blocked]: borderColors.blocked,
     [ModuleStatus.Conflicted]: borderColors.conflicted,
@@ -48,10 +48,10 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
         cursor: "pointer",
         userSelect: "none",
         backgroundColor:
-          backgroundColorMap[module.status ?? ModuleStatus.Unlocked], // Default to Unlocked
+          backgroundColorMap[module.status ?? ModuleStatus.Planned], // Default to Unlocked
         border: isSelected
           ? `${selectedBorderWidth} solid ${theme.palette.custom.moduleCard.selectedBorderColor}`
-          : `2px solid ${borderColorMap[module.status ?? ModuleStatus.Unlocked]}`,
+          : `2px solid ${borderColorMap[module.status ?? ModuleStatus.Planned]}`,
         boxShadow: isSelected
           ? `0 0 0 ${selectedGlowWidth} ${theme.palette.custom.moduleCard.selectedBorderColor}80`
           : undefined,

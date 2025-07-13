@@ -1,16 +1,15 @@
 
-import { createAsyncThunk, createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData, ModuleStatus } from "@/types/plannerTypes";
+import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import { ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
 import { RootState } from '.';
-import { AppStartListening } from './listenerMiddleware'
-import { closeSidebar, openSidebar } from './sidebarSlice';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
-import { checkConflicts } from '@/utils/planner/checkConflicts';
+import { checkIssues, CheckIssuesArgs, CheckIssuesReturn, StaticModuleDataForCheck } from '@/utils/planner/checkIssues';
 
 export interface ModuleState {
   code: string; // code as id
   status: ModuleStatus;
+  issues: ModuleIssue[];
 }
 
 export interface Semester {
@@ -25,11 +24,11 @@ export interface TimetableSliceState {
   draggedOverSemesterId: number | null; // for TimetableSemester
 }
 
-const modulesAdapter = createEntityAdapter({
+export const modulesAdapter = createEntityAdapter({
   selectId: (m: ModuleState) => m.code,
 });
 
-const semestersAdapter = createEntityAdapter({
+export const semestersAdapter = createEntityAdapter({
   selectId: (s: Semester) => s.id,
 });
 
@@ -41,14 +40,6 @@ const timetableSlice = createSlice({
     selectedModuleCode: null,
   } as TimetableSliceState,
   reducers: {
-    // handles initialisation of timetable
-    modulesSet(state, action: PayloadAction<ModuleState[]>) {
-      modulesAdapter.setAll(state.modules, action.payload);
-    },
-    semestersSet(state, action: PayloadAction<Semester[]>) {
-      semestersAdapter.setAll(state.semesters, action.payload);
-    },
-    
     // handles adding a module to the timeable
     moduleAdded(
       state,
@@ -63,7 +54,8 @@ const timetableSlice = createSlice({
       if (!exists) { // defensive check
         modulesAdapter.addOne(state.modules, {
           code: moduleCode,
-          status: ModuleStatus.Unlocked,
+          status: ModuleStatus.Planned,
+          issues: []
         });
       }
 
@@ -142,29 +134,33 @@ const timetableSlice = createSlice({
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
-    builder.addCase(updateConflicts.fulfilled, (state, action) => {
+    builder.addCase(updateStatusIssues.fulfilled, (state, action) => {
       modulesAdapter.updateMany(state.modules, action.payload);
     });
     // populates states when timetable fetched
     builder.addMatcher(
       apiSlice.endpoints.getTimetable.matchFulfilled,
       (state, action) => {
-        const { semesters, modules } = action.payload;
+        const { semesters } = action.payload;
 
-        semestersAdapter.setAll(state.semesters, semesters);
-        const typedModules: ModuleState[] = modules.map((m) => ({
-          code: m.code,
-          status: m.status as unknown as ModuleStatus, 
+        const uniqueModuleCodes = [
+          ...new Set(semesters.flatMap((s) => s.moduleCodes)),
+        ];
+
+        const modules: ModuleState[] = uniqueModuleCodes.map((code) => ({
+          code,
+          status: ModuleStatus.Planned,
+          issues: []
         }));
-        modulesAdapter.setAll(state.modules, typedModules);
+
+        modulesAdapter.setAll(state.modules, modules);
+        semestersAdapter.setAll(state.semesters, semesters);
       }
     );
   }
 });
 
 export const {
-  modulesSet,
-  semestersSet,
   moduleAdded,
   moduleMoved,
   moduleSelected,
@@ -174,124 +170,45 @@ export const {
 } = timetableSlice.actions;
 export default timetableSlice.reducer;
 
-// --- selectors ---
-export const {
-  selectIds: selectSemesterIds,
-  selectById: selectSemesterById,
-} = semestersAdapter.getSelectors((s: RootState) => s.timetable.semesters);
-
-export const {
-  selectById: selectModuleByCode,
-} = modulesAdapter.getSelectors((s: RootState) => s.timetable.modules);
-
-export const selectSelectedModuleCode = (state: RootState) => state.timetable.selectedModuleCode;
-export const selectDraggedOverSemesterId = (state: RootState) => state.timetable.draggedOverSemesterId;
-
-// --- memoized selectors / selector factories ---
-export const makeSelectModuleCodesBySemesterId = (semesterId: number) =>
-  createSelector(
-    (state: RootState) => state.timetable.semesters.entities[semesterId]?.moduleCodes ?? [],
-    (moduleCodes) => moduleCodes
-  );
-export const makeIsModuleSelectedSelector = (moduleCode: string) =>
-  createSelector([selectSelectedModuleCode], (selectedCode) => selectedCode === moduleCode);
-export const makeIsSemesterDraggedOverSelector = (semesterId: number) =>
-  createSelector([selectDraggedOverSemesterId], (draggedOverSemesterId) => draggedOverSemesterId === semesterId);
-export const makeIsModulePlannedSelector = (moduleCode: string) =>
-  createSelector(
-    (state: RootState) => state.timetable.semesters.entities,
-    (semesters) =>
-      Object.values(semesters).some((semester) =>
-        semester?.moduleCodes.includes(moduleCode)
-      )
-  );
-export const makeSelectModuleStatusByCode = (code: string) =>
-  createSelector(
-    (state: RootState) => state.timetable.modules.entities[code],
-    (module) => module?.status ?? null
-  );
-
 // --- async thunks ---
-export const updateConflicts = createAsyncThunk(
-  'timetable/updateConflicts',
+export const updateStatusIssues = createAsyncThunk<
+  CheckIssuesReturn, // The type of the value returned by the payload creator
+  void,              // The type of the thunk argument (none needed)
+  { state: RootState } // Types for the thunkAPI
+>(
+  'timetable/updateStatusIssues',
   async (_, { getState }) => {
-    const state = getState() as RootState;
+    const state = getState();
 
-    // 1. ASSEMBLE THE DATA
-    const { semesters, modules: statefulModules } = state.timetable;
-    const allModuleCodesOnBoard = statefulModules.ids as string[];
+    // --- 1. GATHER INPUTS for checkIssues ---
     
-    const modulesToTest: Record<string, ModuleData> = {};
+    // a) Get dynamic state from the timetable slice
+    const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
+    const plannedModuleCodes = moduleEntities.ids as string[];
 
-    for (const code of allModuleCodesOnBoard) {
-      const staticData = apiSlice.endpoints.getModuleByCode.select(code)(state)?.data;
-      const dynamicData = statefulModules.entities[code];
+    // b) Get static data from the RTK Query cache.
+    // We assume that when a module is added to the plan, its data has already been
+    // fetched and is available in the cache. This is a common and efficient pattern.
+    const staticModulesData: Record<string, StaticModuleDataForCheck> = {};
+    for (const code of plannedModuleCodes) {
+      const cachedModuleResult = apiSlice.endpoints.getModuleByCode.select(code)(state);
 
-      // Find the module's current planned semester
-      let plannedSemester: number | null = null;
-      for (const sem of Object.values(semesters.entities)) {
-        if (sem.moduleCodes.includes(code)) {
-          plannedSemester = sem.id;
-          break;
-        }
+      if (cachedModuleResult.data) {
+        // We only add modules that have their static data loaded
+        staticModulesData[code] = cachedModuleResult.data;
       }
-
-      if (staticData && dynamicData) {
-        modulesToTest[code] = {
-          ...staticData,
-          status: dynamicData.status,
-          plannedSemester: plannedSemester,
-        };
-      }
+      // Note: You could add logging here for cases where data might be missing
     }
 
-    // 2. CALL THE UTILITY FUNCTION
-    const conflictedModulesResult = checkConflicts(modulesToTest);
+    // c) Assemble the arguments object for our pure function
+    const args: CheckIssuesArgs = {
+      staticModulesData,
+      semesterEntities: semesterEntities.entities,
+      moduleEntities: moduleEntities.entities,
+    };
 
-    // 3. DETERMINE THE CHANGES
-    const updates: { id: string; changes: { status: ModuleStatus } }[] = [];
-    for (const code of allModuleCodesOnBoard) {
-      const originalStatus = modulesToTest[code]?.status;
-      const newStatus = conflictedModulesResult[code]?.status;
-      if (newStatus && newStatus !== originalStatus) {
-        updates.push({ id: code, changes: { status: newStatus } });
-      }
-    }
-    return updates;
+    // --- 2. EXECUTE THE CHECK & RETURN THE DELTA ---
+    const deltas = checkIssues(args);
+    return deltas;
   }
 );
-
-// --- listening middleware ---
-export const addTimetableListeners = (startAppListening: AppStartListening) => {
-  // Open sidebar on module selected
-  startAppListening({
-    actionCreator: moduleSelected,
-    effect: async (_, api) => {
-      api.dispatch(openSidebar());
-    },
-  });
-
-  // Close sidebar on module unselected
-  startAppListening({
-    actionCreator: moduleUnselected,
-    effect: async (_, api) => {
-      api.dispatch(closeSidebar());
-    },
-  });
-
-  startAppListening({
-    actionCreator: moduleMoved,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateConflicts());
-    },
-  });
-
-  startAppListening({
-  actionCreator: moduleAdded,
-  effect: async (_, api) => {
-    api.cancelActiveListeners();
-    api.dispatch(updateConflicts());
-  },
-});
-};

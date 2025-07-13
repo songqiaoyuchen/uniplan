@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '@/store'; 
-import { makeIsModulePlannedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStatusByCode } from '@/store/timetableSlice';
+import { makeIsModulePlannedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStatusByCode } from '@/store/timetableSelectors';
 import { useGetModuleByCodeQuery } from '@/store/apiSlice';
 import { ModuleData } from '@/types/plannerTypes';
 

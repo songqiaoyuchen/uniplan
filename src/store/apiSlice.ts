@@ -9,9 +9,10 @@ export const apiSlice = createApi({
   endpoints: (builder) => ({
     getModuleByCode: builder.query<ModuleData, string>({
       query: (code) => `/modules/${encodeURIComponent(code)}`,
+      keepUnusedDataFor: Number.MAX_VALUE,
     }),
 
-    getTimetable: builder.query<{ modules: { code: string; status: string }[]; semesters: { id: number; moduleCodes: string[] }[] }, void> ({
+    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, void> ({
       query: () => `/timetable`,
     }),
   }),

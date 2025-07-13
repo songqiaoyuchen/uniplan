@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import PlannerSemester from "./TimeTableSemester";
 import { useSelector } from "react-redux";
 import { RootState, useAppSelector } from "@/store";
-import { selectSemesterIds } from "@/store/timetableSlice";
+import { selectSemesterIds } from "@/store/timetableSelectors";
 import { memo } from "react";
 import { Button } from "@mui/material";
 import { useLazyGetTimetableQuery } from "@/store/apiSlice";

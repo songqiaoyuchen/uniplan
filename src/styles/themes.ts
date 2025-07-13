@@ -52,14 +52,14 @@ export const lightTheme = createTheme({
         selectedBorderColor: "#ff80c8",
         backgroundColors: {
           completed: "#b3f4bd",
-          unlocked: "#c1aff3",
+          planned: "#c1aff3",
           locked: "#fcadad",
           blocked: "#f8ed96",
           conflicted: "#f8ca96",
         },
         borderColors: {
           completed: "#4fe058",
-          unlocked: "#764fd1",
+          planned: "#764fd1",
           locked: "#f04040",
           blocked: "#f1cc29",
           conflicted: "#f18329",
@@ -125,14 +125,14 @@ export const darkTheme = createTheme({
         selectedBorderColor: "#ff80c8",
         backgroundColors: {
           completed: "#265e33",
-          unlocked: "#3d2d66",
+          planned: "#3d2d66",
           locked: "#611d1d",
           blocked: "#554616",
           conflicted: "#553616",
         },
         borderColors: {
           completed: "#4fe058",
-          unlocked: "#764fd1",
+          planned: "#764fd1",
           locked: "#f04040",
           blocked: "#f1cc29",
           conflicted: "#f18329",

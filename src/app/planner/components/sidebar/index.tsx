@@ -12,7 +12,7 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ModuleSearch from "./ModuleSearch";
 import { useModuleState } from "../../hooks";
-import { selectSelectedModuleCode } from "@/store/timetableSlice";
+import { selectSelectedModuleCode } from "@/store/timetableSelectors";
 import { memo } from "react";
 
 const Sidebar: React.FC = () => {
