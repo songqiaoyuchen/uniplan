@@ -10,16 +10,6 @@ import { ModuleData } from "@/types/plannerTypes";
 export const MAX_MCS_PER_SEMESTER = 20;
 export const MAX_SEMESTERS = 8;
 
-// Prioritization weights
-export const PRIORITY_WEIGHTS = {
-  IMPACT: 0.5,
-  EFFICIENCY: 0.2,
-  CRITICALITY: 0.3,
-} as const;
-
-// Chain length calculation parameters
-export const CHAIN_LENGTH_DECAY_FACTOR = 5;
-
 // Type guards
 export function isNofNode(node: LogicNode | ModuleData | undefined): node is LogicNode {
   return node !== undefined && 'type' in node && node.type === 'NOF';

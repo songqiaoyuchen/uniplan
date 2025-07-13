@@ -1,57 +1,64 @@
-// schedule.ts
+
 /**
- * Main scheduler that coordinates the module selection process.
- * Handles the semester-by-semester scheduling loop and coordinates
- * between prioritization, selection, and state updates.
+ * Main scheduler coordinator - clean implementation from scratch.
+ * Handles semester-by-semester planning with snapshot-based availability.
  */
 
 import { NormalisedGraph, TimetableData } from '@/types/graphTypes';
 import { initialise } from './initialise';
-import { prioritizeModules, selectModulesForSemester } from './prioritise';
-import { applySemester } from './update';
+import { selectModulesForSemester} from './select';
+import { calculateAvailableModules } from './update';
 import { MAX_SEMESTERS } from './constants';
 import { validateSchedule, generateValidationReport } from './check';
 
+/**
+ * Runs the complete scheduling algorithm.
+ */
 export function runScheduler(
   graph: NormalisedGraph,
   targetModules: string[] = [],
 ): TimetableData[] {
-  console.log('\n=== Starting Scheduler ===');
-  console.log('Target modules:', targetModules);
-
-  const state = initialise(graph, targetModules);
+  const plannerState = initialise(graph, targetModules);
   const targetSet = new Set(targetModules);
   const plan: TimetableData[] = [];
 
   for (let semester = 1; semester <= MAX_SEMESTERS; semester++) {
     // Check if all targets completed
-    if (targetSet.size > 0 && Array.from(targetSet).every(t => state.completedModules.has(t))) {
-      console.log(`\nAll target modules completed by semester ${semester - 1}`);
+    const allTargetsPlanned = [...targetModules].every((code) =>
+      plannerState.completedModules.has(code)
+    );
+
+    if (allTargetsPlanned) break;
+
+    // Calculate available modules snapshot for this semester
+    const availableThisSemester = calculateAvailableModules(plannerState, graph);
+    
+    if (availableThisSemester.size === 0) {
       break;
     }
 
-    // SELECTION PHASE: Pick modules for this semester (no unlocking yet)
-    const thisSemester = selectModulesForSemester(state, graph, targetSet);
-    
-    if (thisSemester.length === 0) {
-      break;
-    }
+    // Select modules for this semester
+    const selectedModules = selectModulesForSemester(
+      availableThisSemester,
+      plannerState,
+      graph,
+      targetSet
+    );
 
     // Add to plan
-    for (const code of thisSemester) {
-      plan.push({ code, semester });
+    for (const code of selectedModules) {
+      plannerState.completedModules.add(code);
+      plan.push({
+        code,
+        semester
+      });
     }
-
-    // UNLOCK PHASE: Mark completed and unlock new modules
-    applySemester(thisSemester, state, graph);
   }
-  
-  // Validation and reporting (unchanged)
-  console.log('\n=== Scheduling Complete ===');
+
   const codesBySemester = plan.map(item => ({ code: item.code, semester: item.semester }));
   const validation = validateSchedule(codesBySemester, graph, Array.from(targetSet));
   const report = generateValidationReport(validation);
-  console.log(report);
+  console.log('Validation Report:', report);
 
   return plan;
 }

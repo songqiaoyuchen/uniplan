@@ -40,7 +40,6 @@ export type PlannerState = {
   completedModules: Set<string>;
   logicStatus: Record<string, LogicStatus>;
   satisfiedLogicNodes: Set<string>;
-  prunedModules: Set<string>;
 };
 export interface ScoredModule {
   code: string;

@@ -7,6 +7,7 @@
 import { NormalisedGraph, LogicStatus, PlannerState } from '@/types/graphTypes';
 import { isNofNode, isModuleData } from './constants';
 
+//TODO: Better representation with adjacency list O(VE) -> O(V)
 export function initialise(graph: NormalisedGraph, targetModules?: string[]): PlannerState {
   const availableModules = new Set<string>();
   const completedModules = new Set<string>();
@@ -22,13 +23,5 @@ export function initialise(graph: NormalisedGraph, targetModules?: string[]): Pl
     }
   }
 
-  // Find modules with no prerequisites
-  for (const [id, node] of Object.entries(graph.nodes)) {
-    if (isModuleData(node)) {
-      const hasPrereqs = graph.edges.some(e => e.from === id);
-      if (!hasPrereqs) availableModules.add(node.code);
-    }
-  }
-
-  return { availableModules, completedModules, logicStatus, satisfiedLogicNodes, prunedModules: new Set<string>() };
+  return { availableModules, completedModules, logicStatus, satisfiedLogicNodes };
 }

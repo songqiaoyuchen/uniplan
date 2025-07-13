@@ -5,8 +5,9 @@
  * credit limits, and target module completion.
  **/
 
-import { NormalisedGraph, TimetableData, ValidationResult } from '@/types/graphTypes';
+import { NormalisedGraph, TimetableData, ValidationResult, PlannerState } from '@/types/graphTypes';
 import { isNofNode, isModuleData, MAX_MCS_PER_SEMESTER } from './constants';
+import { findModuleId } from './select';
 
 /**
  * Validates that a generated timetable satisfies all constraints
@@ -31,7 +32,7 @@ export function validateSchedule(
   const moduleToNode = new Map<string, string>();
   const logicNodeStatus = new Map<string, { satisfied: boolean; count: number; requires: number }>();
   
-  // Build module code to node ID mapping
+  // Build module code to node ID mapping and initialize logic node status
   for (const [id, node] of Object.entries(graph.nodes)) {
     if (isModuleData(node)) {
       moduleToNode.set(node.code, id);
@@ -54,28 +55,11 @@ export function validateSchedule(
   for (const semester of semesters) {
     const modules = bySemester[semester];
     let semesterCredits = 0;
-    
-    console.log(`\nValidating Semester ${semester}:`);
+        
+    // Get modules being taken in this semester (cannot be used as prerequisites)
+    const currentSemesterModules = new Set(modules.map(m => m.code));
 
-    for (const [logicId, node] of Object.entries(graph.nodes)) {
-        if (!isNofNode(node)) continue;
-        let count = 0;
-        for (const edge of graph.edges.filter(e => e.from === logicId)) {
-        const optionNode = graph.nodes[edge.to];
-        if (isModuleData(optionNode) && completedModules.has(optionNode.code)) {
-            count++;
-        }
-        if (isNofNode(optionNode) && logicNodeStatus.get(edge.to)?.satisfied) {
-            count++;
-        }
-        }
-        const status = logicNodeStatus.get(logicId);
-        if (status) {
-          status.satisfied = (count >= node.n);
-          status.count = count;
-        }
-    }
-    
+    // Check prerequisites for each module in this semester
     for (const { code } of modules) {
       const nodeId = moduleToNode.get(code);
       
@@ -93,22 +77,38 @@ export function validateSchedule(
       const credits = node.credits || 4;
       semesterCredits += credits;
       
-      // Check prerequisites
-      const prereqs = graph.edges.filter(e => e.from === nodeId);
-      for (const prereq of prereqs) {
+      // Check prerequisites - modules point TO their prerequisites
+      const prerequisites = graph.edges.filter(e => e.from === nodeId);
+      
+      for (const prereq of prerequisites) {
         const prereqNode = graph.nodes[prereq.to];
         
-        if (isNofNode(prereqNode)) {
-          // Check if logic node is satisfied
+        if (isModuleData(prereqNode)) {
+          // Direct prerequisite: must be completed in a PREVIOUS semester
+          if (!completedModules.has(prereqNode.code)) {
+            errors.push(`Module ${code} taken in semester ${semester} but prerequisite ${prereqNode.code} not completed`);
+          }
+          // Additional check: cannot be satisfied by module in same semester
+          if (currentSemesterModules.has(prereqNode.code)) {
+            errors.push(`Module ${code} taken in semester ${semester} but prerequisite ${prereqNode.code} is also taken in the same semester`);
+          }
+        } else if (isNofNode(prereqNode)) {
+          // Logic node prerequisite: check if N-of-M requirement is satisfied by PREVIOUS semesters only
           const logicStatus = logicNodeStatus.get(prereq.to);
           if (!logicStatus?.satisfied) {
-            const logicNodeLabel = getLogicNodeLabel(graph, prereq.to);
-            errors.push(`Module ${code} taken in semester ${semester} but prerequisite logic node ${logicNodeLabel} not satisfied`);
-          }
-        } else if (isModuleData(prereqNode)) {
-          // Direct module prerequisite
-          if (!completedModules.has(prereqNode.code)) {
-            errors.push(`Module ${code} taken in semester ${semester} before prerequisite ${prereqNode.code}`);
+            // Check if this logic node could be satisfied by modules in current semester
+            const logicOptions = graph.edges.filter(e => e.from === prereq.to);
+            const currentSemesterCanSatisfy = logicOptions.some(opt => {
+              const optNode = graph.nodes[opt.to];
+              return isModuleData(optNode) && currentSemesterModules.has(optNode.code);
+            });
+            
+            if (currentSemesterCanSatisfy) {
+              errors.push(`Module ${code} taken in semester ${semester} but prerequisite logic node cannot be satisfied by modules in the same semester`);
+            } else {
+              const logicNodeLabel = getLogicNodeLabel(graph, prereq.to);
+              errors.push(`Module ${code} taken in semester ${semester} but prerequisite logic node ${logicNodeLabel} not satisfied`);
+            }
           }
         }
       }
@@ -120,35 +120,17 @@ export function validateSchedule(
     }
     
     maxCredits = Math.max(maxCredits, semesterCredits);
-    console.log(`  Total credits: ${semesterCredits}/${MAX_MCS_PER_SEMESTER}`);
     
-    // Mark modules as completed and update logic nodes
+    // Mark modules as completed AFTER checking prerequisites
     for (const { code } of modules) {
       completedModules.add(code);
-      const nodeId = moduleToNode.get(code);
-      
-      if (nodeId) {
-        // Update any logic nodes that have this module as an option
-        const logicParents = graph.edges
-          .filter(e => e.to === nodeId && isNofNode(graph.nodes[e.from]))
-          .map(e => e.from);
-        
-        for (const logicId of logicParents) {
-          const status = logicNodeStatus.get(logicId);
-          if (status && !status.satisfied) {
-            status.count++;
-            if (status.count >= status.requires) {
-              status.satisfied = true;
-              const logicNodeLabel = getLogicNodeLabel(graph, logicId);
-            }
-          }
-        }
-      }
     }
+
+    // Update logic node satisfaction after completing all modules in this semester
+    updateLogicNodeSatisfaction(graph, logicNodeStatus, completedModules);
   }
 
   // Check if all target modules were completed
-  const targetSet = new Set(targetModules);
   const completedTargets = targetModules.filter(code => completedModules.has(code));
   const missingTargets = targetModules.filter(code => !completedModules.has(code));
   
@@ -186,12 +168,6 @@ export function validateSchedule(
 
   const isValid = errors.length === 0;
 
-  console.log('\n=== Validation Summary ===');
-  console.log(`Valid: ${isValid}`);
-  console.log(`Errors: ${errors.length}`);
-  console.log(`Warnings: ${warnings.length}`);
-  console.log(`Stats:`, stats);
-
   return {
     isValid,
     errors,
@@ -201,13 +177,57 @@ export function validateSchedule(
 }
 
 /**
+ * Updates logic node satisfaction based on completed modules
+ */
+function updateLogicNodeSatisfaction(
+  graph: NormalisedGraph,
+  logicNodeStatus: Map<string, { satisfied: boolean; count: number; requires: number }>,
+  completedModules: Set<string>
+): void {
+  // Keep updating until no more changes occur (handle nested logic nodes)
+  let changed = true;
+  while (changed) {
+    changed = false;
+    
+    for (const [logicId, status] of logicNodeStatus) {
+      if (status.satisfied) continue;
+      
+      const logicNode = graph.nodes[logicId];
+      if (!isNofNode(logicNode)) continue;
+      
+      let count = 0;
+      // Logic nodes point TO their options
+      const options = graph.edges.filter(e => e.from === logicId);
+      
+      for (const edge of options) {
+        const optionNode = graph.nodes[edge.to];
+        
+        if (isModuleData(optionNode) && completedModules.has(optionNode.code)) {
+          count++;
+        } else if (isNofNode(optionNode) && logicNodeStatus.get(edge.to)?.satisfied) {
+          count++;
+        }
+      }
+      
+      if (count !== status.count) {
+        status.count = count;
+        changed = true;
+      }
+      
+      if (count >= status.requires && !status.satisfied) {
+        status.satisfied = true;
+        changed = true;
+      }
+    }
+  }
+}
+
+/**
  * Generates a detailed report of the validation results
  */
 export function generateValidationReport(result: ValidationResult): string {
   const lines: string[] = [];
-  
-  lines.push('=== SCHEDULE VALIDATION REPORT ===\n');
-  
+    
   lines.push(`Status: ${result.isValid ? '✅ VALID' : '❌ INVALID'}\n`);
   
   lines.push('Statistics:');
