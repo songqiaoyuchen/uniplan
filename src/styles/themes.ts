@@ -1,3 +1,4 @@
+import { ModuleStatus } from "@/types/plannerTypes";
 import { createTheme, ThemeOptions } from "@mui/material/styles";
 
 // ================= COMMON OPTIONS =================
@@ -51,18 +52,16 @@ export const lightTheme = createTheme({
         selectedGlowWidth: "1px",
         selectedBorderColor: "#ff80c8",
         backgroundColors: {
-          completed: "#b3f4bd",
-          planned: "#c1aff3",
-          locked: "#fcadad",
-          blocked: "#f8ed96",
-          conflicted: "#f8ca96",
+          [ModuleStatus.Completed]: "#b3f4bd",
+          [ModuleStatus.Satisfied]: "#c1aff3",
+          [ModuleStatus.Unsatisfied]: "#f8ed96",
+          [ModuleStatus.Conflicted]: "#f8ca96",
         },
         borderColors: {
-          completed: "#4fe058",
-          planned: "#764fd1",
-          locked: "#f04040",
-          blocked: "#f1cc29",
-          conflicted: "#f18329",
+          [ModuleStatus.Completed]: "#4fe058",
+          [ModuleStatus.Satisfied]: "#764fd1",
+          [ModuleStatus.Unsatisfied]: "#f1cc29",
+          [ModuleStatus.Conflicted]: "#f18329",
         },
       },
     },
@@ -124,18 +123,16 @@ export const darkTheme = createTheme({
         selectedGlowWidth: "1px",
         selectedBorderColor: "#ff80c8",
         backgroundColors: {
-          completed: "#265e33",
-          planned: "#3d2d66",
-          locked: "#611d1d",
-          blocked: "#554616",
-          conflicted: "#553616",
+          [ModuleStatus.Completed]: "#265e33",
+          [ModuleStatus.Satisfied]: "#3d2d66",
+          [ModuleStatus.Unsatisfied]: "#554616",
+          [ModuleStatus.Conflicted]: "#611d1d",
         },
         borderColors: {
-          completed: "#4fe058",
-          planned: "#764fd1",
-          locked: "#f04040",
-          blocked: "#f1cc29",
-          conflicted: "#f18329",
+          [ModuleStatus.Completed]: "#4fe058",
+          [ModuleStatus.Satisfied]: "#764fd1",
+          [ModuleStatus.Unsatisfied]: "#f1cc29",
+          [ModuleStatus.Conflicted]: "#f04040",
         },
       },
     },

@@ -21,10 +21,13 @@ export const makeSelectModuleCodesBySemesterId = (semesterId: number) =>
     (state: RootState) => state.timetable.semesters.entities[semesterId]?.moduleCodes ?? [],
     (moduleCodes) => [...moduleCodes]
   );
+
 export const makeIsModuleSelectedSelector = (moduleCode: string) =>
   createSelector([selectSelectedModuleCode], (selectedCode) => selectedCode === moduleCode);
+
 export const makeIsSemesterDraggedOverSelector = (semesterId: number) =>
   createSelector([selectDraggedOverSemesterId], (draggedOverSemesterId) => draggedOverSemesterId === semesterId);
+
 export const makeIsModulePlannedSelector = (moduleCode: string) =>
   createSelector(
     (state: RootState) => state.timetable.semesters.entities,
@@ -33,8 +36,10 @@ export const makeIsModulePlannedSelector = (moduleCode: string) =>
         semester?.moduleCodes.includes(moduleCode)
       )
   );
-export const makeSelectModuleStatusByCode = (code: string) =>
+
+export const makeSelectModuleStateByCode = (moduleCode: string) =>
   createSelector(
-    (state: RootState) => state.timetable.modules.entities[code],
-    (module) => module?.status ?? null
+    [(state: RootState) => state.timetable.modules.entities[moduleCode]],
+    (moduleState) =>
+      moduleState ? { ...moduleState } : null
   );

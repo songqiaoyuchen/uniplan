@@ -39,7 +39,12 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
           ref={setNodeRef}
         />}
       <div {...listeners} {...attributes} onClick={handleClick}>
-        <MiniModuleCard moduleCode={module.code} moduleTitle={module.title} isPlanned={isPlanned} />
+        <MiniModuleCard 
+          moduleCode={module.code} 
+          moduleTitle={module.title} 
+          isPlanned={isPlanned}
+          status={module.status}
+        />
       </div>
     </>
   )

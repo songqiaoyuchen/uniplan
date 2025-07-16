@@ -8,6 +8,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { memo } from "react";
+import { useModuleCardColors } from "../../hooks";
 
 interface ModuleCardProps {
   module: Pick<ModuleData, "id" | "code" | "title" | "status">;
@@ -16,29 +17,14 @@ interface ModuleCardProps {
 
 const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) => {
   const theme = useTheme();
-
+  const status = module.status ?? ModuleStatus.Satisfied;
   const {
+    backgroundColor,
+    borderColor,
     selectedBorderWidth,
     selectedGlowWidth,
-    backgroundColors,
-    borderColors,
-  } = theme.palette.custom.moduleCard;
-
-  const backgroundColorMap: Record<ModuleStatus, string> = {
-    [ModuleStatus.Completed]: backgroundColors.completed,
-    [ModuleStatus.Planned]: backgroundColors.planned,
-    [ModuleStatus.Locked]: backgroundColors.locked,
-    [ModuleStatus.Blocked]: backgroundColors.blocked,
-    [ModuleStatus.Conflicted]: backgroundColors.conflicted,
-  };
-
-  const borderColorMap: Record<ModuleStatus, string> = {
-    [ModuleStatus.Completed]: borderColors.completed,
-    [ModuleStatus.Planned]: borderColors.planned,
-    [ModuleStatus.Locked]: borderColors.locked,
-    [ModuleStatus.Blocked]: borderColors.blocked,
-    [ModuleStatus.Conflicted]: borderColors.conflicted,
-  };
+    selectedBorderColor,
+  } = useModuleCardColors(status);
 
   return (
     <Card
@@ -47,13 +33,12 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
         height: "110px",
         cursor: "pointer",
         userSelect: "none",
-        backgroundColor:
-          backgroundColorMap[module.status ?? ModuleStatus.Planned], // Default to Unlocked
+        backgroundColor,
         border: isSelected
-          ? `${selectedBorderWidth} solid ${theme.palette.custom.moduleCard.selectedBorderColor}`
-          : `2px solid ${borderColorMap[module.status ?? ModuleStatus.Planned]}`,
+          ? `${selectedBorderWidth} solid ${selectedBorderColor}`
+          : `2px solid ${borderColor}`,
         boxShadow: isSelected
-          ? `0 0 0 ${selectedGlowWidth} ${theme.palette.custom.moduleCard.selectedBorderColor}80`
+          ? `0 0 0 ${selectedGlowWidth} ${selectedBorderColor}80`
           : undefined,
         transition: "all 0.2s ease",
         "&:hover": {

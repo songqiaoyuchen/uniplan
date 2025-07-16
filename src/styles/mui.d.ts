@@ -1,5 +1,6 @@
 // src/styles/mui.d.ts
 import "@mui/material/styles";
+import { ModuleStatus } from "@/types/plannerTypes"; // If enum exists
 
 declare module "@mui/material/styles" {
   interface PaletteColor {
@@ -10,6 +11,10 @@ declare module "@mui/material/styles" {
     extraLight?: string;
   }
 
+  type ModuleStatusColorMap = {
+    [K in ModuleStatus]: string;
+  };
+
   interface Palette {
     custom: {
       moduleCard: {
@@ -17,20 +22,8 @@ declare module "@mui/material/styles" {
         selectedBorderWidth: string;
         selectedGlowWidth: string;
         selectedBorderColor: string;
-        backgroundColors: {
-          completed: string;
-          planned: string;
-          locked: string;
-          blocked: string;
-          conflicted: string;
-        };
-        borderColors: {
-          completed: string;
-          planned: string;
-          locked: string;
-          blocked: string;
-          conflicted: string;
-        };
+        backgroundColors: ModuleStatusColorMap;
+        borderColors: ModuleStatusColorMap;
       };
     };
   }
@@ -41,21 +34,9 @@ declare module "@mui/material/styles" {
         hoverOpacity?: number;
         selectedBorderWidth?: string;
         selectedGlowWidth?: string;
-        selectedBorderColor: string;
-        backgroundColors?: {
-          completed?: string;
-          planned?: string;
-          locked?: string;
-          blocked?: string;
-          conflicted?: string;
-        };
-        borderColors?: {
-          completed?: string;
-          planned?: string;
-          locked?: string;
-          blocked?: string;
-          conflicted?: string;
-        };
+        selectedBorderColor?: string;
+        backgroundColors?: Partial<ModuleStatusColorMap>;
+        borderColors?: Partial<ModuleStatusColorMap>;
       };
     };
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ModuleData, ModuleStatus, SemesterLabel } from "@/types/plannerTypes";
+import { ModuleData, ModuleIssue, ModuleStatus, SemesterLabel } from "@/types/plannerTypes";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
@@ -62,6 +62,22 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
 
       <Divider flexItem sx={{ my: 1.5 }} />
 
+      {module.issues && module.issues.length > 0 && (
+        <>
+          <Typography variant="subtitle1" fontWeight={600}>
+            Issues
+          </Typography>
+          <Box component="ul" sx={{ pl: 3, my: 1, color: "error.main" }}>
+            {module.issues.map((issue, idx) => (
+              <li key={idx}>
+                <Typography variant="body2">{renderIssue(issue)}</Typography>
+              </li>
+            ))}
+          </Box>
+          <Divider flexItem sx={{ my: 1.5 }} />
+        </>
+      )}
+
       {/* Prerequisite Tree Section */}
       {module.requires && (
         <>
@@ -83,10 +99,6 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
           {module.exam.durationMinutes} min)
         </Typography>
       )}
-
-      <Typography variant="body1">
-        Status: {formatModuleStatus(module.status)}
-      </Typography>
 
       {module.grade && (
         <Typography variant="body1">Grade: {module.grade}</Typography>
@@ -113,27 +125,6 @@ function formatExam(isoString: string): string {
   });
 }
 
-function formatSemesterIndex(index: number): string {
-  const year = Math.floor(index / 2) + 1;
-  const sem = index % 2 === 0 ? 1 : 2;
-  return `Y${year}S${sem}`;
-}
-
-function formatModuleStatus(status?: ModuleStatus): string {
-  switch (status) {
-    case ModuleStatus.Locked:
-      return "Locked";
-    case ModuleStatus.Planned:
-      return "Planned";
-    case ModuleStatus.Completed:
-      return "Completed";
-    case ModuleStatus.Blocked:
-      return "Blocked";
-    default:
-      return "Unplanned";
-  }
-}
-
 function formatSemesters(semesters: SemesterLabel[]): string {
   return semesters
     .map((s) => {
@@ -151,4 +142,19 @@ function formatSemesters(semesters: SemesterLabel[]): string {
       }
     })
     .join(", ");
+}
+
+function renderIssue(issue: ModuleIssue): string {
+  switch (issue.type) {
+    case "PrereqUnsatisfied":
+      return "Prerequisites not satisfied.";
+    case "Precluded":
+      return `Precluded by: ${issue.with.join(", ")}`;
+    case "InvalidSemester":
+      return "Not offered in this semester.";
+    case "ExamClash":
+      return `Exam clash with: ${issue.with.join(", ")}`;
+    default:
+      return "Unknown issue.";
+  }
 }

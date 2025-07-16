@@ -20,9 +20,9 @@ import Sidebar from "./sidebar";
 import Box from "@mui/material/Box";
 import Timetable from "./timetable";
 import ModuleCard from "./timetable/ModuleCard";
-import { useGetModuleByCodeQuery } from "@/store/apiSlice";
 import { useAppDispatch } from "@/store";
 import { moduleAdded, moduleMoved, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
+import { useModuleState } from "../hooks";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -31,9 +31,7 @@ const PlannerContainer: React.FC = () => {
 
   // drag overlay states
   const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
-  const { data: draggingModule } = useGetModuleByCodeQuery(draggingModuleCode!, {
-    skip: draggingModuleCode === null,
-  });
+  const { module: draggingModule } = useModuleState(draggingModuleCode)
 
   const dispatch = useAppDispatch();
 
@@ -66,35 +64,44 @@ const PlannerContainer: React.FC = () => {
     if (!over || active.id === over.id) return;
 
     const [draggingModuleCode, source] = (active.id as string).split('-');
-
     const sourceSemesterId = active.data.current?.semesterId;
     const destSemesterId = over.data.current?.semesterId;
 
-    if (
-      typeof destSemesterId !== 'number'
-    ) return;
-
+    // Sidebar drop
     if (source === "sidebar") {
-      dispatch(moduleAdded({
-        moduleCode: draggingModuleCode,
-        destSemesterId
-      }));
+      if (typeof destSemesterId !== "number") return;
+      dispatch(moduleAdded({ moduleCode: draggingModuleCode, destSemesterId }));
       return;
     }
 
-    const overModuleCode = over.data.current?.type === 'module' 
-      ? (over.id as string).split('-')[0] 
-      : null;
+    // Drop must be over a semester
+    if (typeof sourceSemesterId !== "number" || typeof destSemesterId !== "number") return;
 
-    dispatch(
-      moduleMoved({
-        activeModuleCode: draggingModuleCode,
-        overModuleCode,
-        sourceSemesterId,
-        destSemesterId,
-      })
-    );
+    const overModuleCode =
+      over.data.current?.type === "module"
+        ? (over.id as string).split("-")[0]
+        : null;
+
+    if (sourceSemesterId === destSemesterId) {
+      dispatch(
+        moduleReordered({
+          semesterId: sourceSemesterId,
+          activeModuleCode: draggingModuleCode,
+          overModuleCode,
+        })
+      );
+    } else {
+      dispatch(
+        moduleMoved({
+          activeModuleCode: draggingModuleCode,
+          overModuleCode,
+          sourceSemesterId,
+          destSemesterId,
+        })
+      );
+    }
   }, [dispatch]);
+
 
   return (
     <Box sx={{ display: "flex", flexDirection: "row" }}>
@@ -123,3 +130,7 @@ const PlannerContainer: React.FC = () => {
 };
 
 export default PlannerContainer;
+
+function moduleReordered(arg0: { semesterId: number; activeModuleCode: string; overModuleCode: string | null; }): any {
+  throw new Error("Function not implemented.");
+}

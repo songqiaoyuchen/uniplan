@@ -4,7 +4,7 @@ import { ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
-import { checkIssues, CheckIssuesArgs, CheckIssuesReturn, StaticModuleDataForCheck } from '@/utils/planner/checkIssues';
+import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload, StaticModuleData } from '@/utils/planner/checkModuleStates';
 
 export interface ModuleState {
   code: string; // code as id
@@ -54,7 +54,7 @@ const timetableSlice = createSlice({
       if (!exists) { // defensive check
         modulesAdapter.addOne(state.modules, {
           code: moduleCode,
-          status: ModuleStatus.Planned,
+          status: ModuleStatus.Satisfied,
           issues: []
         });
       }
@@ -65,7 +65,30 @@ const timetableSlice = createSlice({
       }
     },
 
-    // handles module movement within timetable
+    // for intra-semester reordering only
+    moduleReordered(
+      state,
+      action: PayloadAction<{
+        semesterId: number;
+        activeModuleCode: string;
+        overModuleCode: string | null;
+      }>
+    ) {
+      const { semesterId, activeModuleCode, overModuleCode } = action.payload;
+      const sem = state.semesters.entities[semesterId];
+      if (!sem) return;
+
+      const oldIndex = sem.moduleCodes.indexOf(activeModuleCode);
+      const newIndex = overModuleCode
+        ? sem.moduleCodes.indexOf(overModuleCode)
+        : sem.moduleCodes.length;
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+      sem.moduleCodes = arrayMove(sem.moduleCodes, oldIndex, newIndex);
+    },
+
+    // for inter-semester moves only
     moduleMoved(
       state,
       action: PayloadAction<{
@@ -82,38 +105,28 @@ const timetableSlice = createSlice({
         destSemesterId,
       } = action.payload;
 
+      if (sourceSemesterId === destSemesterId) return; // handled by moduleReordered
+
       const src = state.semesters.entities[sourceSemesterId];
       const dst = state.semesters.entities[destSemesterId];
-
       if (!src || !dst) return;
 
-      const isSameSemester = sourceSemesterId === destSemesterId;
+      // prevent duplication if dropped on empty area
+      if (!overModuleCode || activeModuleCode === overModuleCode) {
+        const stillPlanned = dst.moduleCodes.includes(activeModuleCode);
+        if (stillPlanned) return;
+      }
 
-      if (isSameSemester) {
-        const oldIndex = src.moduleCodes.indexOf(activeModuleCode);
-        const newIndex = overModuleCode
-          ? src.moduleCodes.indexOf(overModuleCode)
-          : src.moduleCodes.length;
+      // remove from source
+      src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
 
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
-
-        src.moduleCodes = arrayMove(src.moduleCodes, oldIndex, newIndex);
-      } else {
-        if (!overModuleCode || activeModuleCode === overModuleCode) {
-          const stillPlanned = dst.moduleCodes.includes(activeModuleCode);
-          if (stillPlanned) return; // avoid duplication
-        }
-
-        // remove from source
-        src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
-
-        // dtermine insert index
-        const insertIndex = overModuleCode && dst.moduleCodes.includes(overModuleCode)
+      // determine insert index in destination
+      const insertIndex =
+        overModuleCode && dst.moduleCodes.includes(overModuleCode)
           ? dst.moduleCodes.indexOf(overModuleCode)
           : dst.moduleCodes.length;
-        // insert to destination
-        dst.moduleCodes.splice(insertIndex, 0, activeModuleCode);
-      }
+
+      dst.moduleCodes.splice(insertIndex, 0, activeModuleCode);
     },
 
     // handles activeModuleCode
@@ -134,7 +147,7 @@ const timetableSlice = createSlice({
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
-    builder.addCase(updateStatusIssues.fulfilled, (state, action) => {
+    builder.addCase(updateModuleStates.fulfilled, (state, action) => {
       modulesAdapter.updateMany(state.modules, action.payload);
     });
     // populates states when timetable fetched
@@ -149,7 +162,7 @@ const timetableSlice = createSlice({
 
         const modules: ModuleState[] = uniqueModuleCodes.map((code) => ({
           code,
-          status: ModuleStatus.Planned,
+          status: ModuleStatus.Satisfied,
           issues: []
         }));
 
@@ -171,44 +184,38 @@ export const {
 export default timetableSlice.reducer;
 
 // --- async thunks ---
-export const updateStatusIssues = createAsyncThunk<
-  CheckIssuesReturn, // The type of the value returned by the payload creator
-  void,              // The type of the thunk argument (none needed)
-  { state: RootState } // Types for the thunkAPI
+export const updateModuleStates = createAsyncThunk<
+  ModuleUpdatePayload[], // Return type: updates from checkModuleStates
+  void,                  // No arguments needed
+  { state: RootState }   // ThunkAPI with state
 >(
-  'timetable/updateStatusIssues',
+  'timetable/updateModuleStates',
   async (_, { getState }) => {
     const state = getState();
-
-    // --- 1. GATHER INPUTS for checkIssues ---
     
-    // a) Get dynamic state from the timetable slice
+    // --- 1. gather inputs ---
+    // a) Dynamic state from timetable slice
     const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
     const plannedModuleCodes = moduleEntities.ids as string[];
 
-    // b) Get static data from the RTK Query cache.
-    // We assume that when a module is added to the plan, its data has already been
-    // fetched and is available in the cache. This is a common and efficient pattern.
-    const staticModulesData: Record<string, StaticModuleDataForCheck> = {};
+    // b) Static data from RTK Query cache
+    const staticModulesData: Record<string, StaticModuleData> = {};
     for (const code of plannedModuleCodes) {
-      const cachedModuleResult = apiSlice.endpoints.getModuleByCode.select(code)(state);
-
-      if (cachedModuleResult.data) {
-        // We only add modules that have their static data loaded
-        staticModulesData[code] = cachedModuleResult.data;
+      const cached = apiSlice.endpoints.getModuleByCode.select(code)(state);
+      if (cached.data) {
+        staticModulesData[code] = cached.data;
       }
-      // Note: You could add logging here for cases where data might be missing
     }
 
-    // c) Assemble the arguments object for our pure function
-    const args: CheckIssuesArgs = {
+    // c) Prepare arguments for pure state-checking function
+    const args: CheckModuleStatesArgs = {
       staticModulesData,
       semesterEntities: semesterEntities.entities,
       moduleEntities: moduleEntities.entities,
     };
 
-    // --- 2. EXECUTE THE CHECK & RETURN THE DELTA ---
-    const deltas = checkIssues(args);
+    // --- 2. RUN CHECK AND RETURN DELTAS ---
+    const deltas = checkModuleStates(args);
     return deltas;
   }
 );

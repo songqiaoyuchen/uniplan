@@ -1,6 +1,6 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
-import { moduleAdded, moduleMoved, moduleSelected, moduleUnselected, updateStatusIssues } from './timetableSlice'
+import { moduleAdded, moduleMoved, moduleSelected, moduleUnselected, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
 
@@ -36,7 +36,7 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     actionCreator: moduleMoved,
     effect: async (_, api) => {
       api.cancelActiveListeners();
-      api.dispatch(updateStatusIssues());
+      api.dispatch(updateModuleStates());
     },
   });
 
@@ -44,15 +44,27 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     actionCreator: moduleAdded,
     effect: async (_, api) => {
       api.cancelActiveListeners();
-      api.dispatch(updateStatusIssues());
+      api.dispatch(updateModuleStates());
     },
   });
 
   startAppListening({
     matcher: apiSlice.endpoints.getTimetable.matchFulfilled,
-    effect: async (_, api) => {
+    effect: async (action, api) => {
       api.cancelActiveListeners();
-      api.dispatch(updateStatusIssues());
+      // Extract module codes from the fetched timetable
+      const semesters = action.payload.semesters;
+      const uniqueModuleCodes = [
+        ...new Set(semesters.flatMap((s) => s.moduleCodes)),
+      ];
+      // Dispatch getModuleByCode for each code and wait for all to resolve
+      await Promise.all(
+        uniqueModuleCodes.map((code) =>
+          api.dispatch(apiSlice.endpoints.getModuleByCode.initiate(code))
+        )
+      );
+      // Now all static data should be in cache, so check issues
+      api.dispatch(updateModuleStates());
     },
   });
 };

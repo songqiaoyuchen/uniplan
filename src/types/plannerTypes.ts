@@ -36,10 +36,9 @@ export enum SemesterLabel {
 
 export enum ModuleStatus {
   Completed = 'Completed', // override status, disable checking
-  Planned = 'Planned', // green status, no issues, can be taken in that semester
-  Locked = 'Locked', // red status, prereq missing in previous semesters
-  Blocked = 'Blocked', // orange status, prereqs present but may be locked / conflicted
-  Conflicted = 'Conflicted', // conflicted due to [exam clash, semester not offered, perclusion]
+  Satisfied = 'Satisfied', // green status, no issues, can be taken in that semester
+  Unsatisfied = 'Unsatisfied', // yellow status, prereq got issues
+  Conflicted = 'Conflicted', // red, conflicted due to [exam clash, invalid sem, perclusion]
 }
 
 export type PrereqTree =
@@ -49,8 +48,7 @@ export type PrereqTree =
   | { type: "NOF"; n: number; children: PrereqTree[] };
 
 export type ModuleIssue =
-  | { type: 'PrereqMissing'; list: string[] }
-  | { type: 'PrereqUnmet'; list: string[] }
+  | { type: 'PrereqUnsatisfied'}
   | { type: 'Precluded'; with: string[] }
   | { type: 'InvalidSemester' }
   | { type: 'ExamClash'; with: string[] }
