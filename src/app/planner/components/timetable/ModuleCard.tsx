@@ -11,7 +11,7 @@ import { memo } from "react";
 import { useModuleCardColors } from "../../hooks";
 
 interface ModuleCardProps {
-  module: Pick<ModuleData, "id" | "code" | "title" | "status">;
+  module: Pick<ModuleData, "id" | "code" | "title" | "status" | "credits" | "grade">;
   isSelected?: boolean;
 }
 
@@ -47,7 +47,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
         color: theme.palette.text.primary,
       }}
     >
-      <CardContent>
+      <CardContent sx={{ gap: 0}}>
         <Typography variant="subtitle2" fontWeight="bold" display="inline">
           {module.code}
         </Typography>

@@ -6,11 +6,12 @@ import { selectSemesterIds } from "@/store/timetableSelectors";
 import { memo } from "react";
 import { Button } from "@mui/material";
 import { useLazyGetTimetableQuery } from "@/store/apiSlice";
+import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "@/constants";
 
 function Timetable() {
   const semesterIds = useAppSelector(selectSemesterIds) as number[];
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
-  const sidebarWidth = isOpen ? 300 : 36;
+  const sidebarWidth = isOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
 
   const [triggerGetTimetable, { isFetching }] = useLazyGetTimetableQuery();
 

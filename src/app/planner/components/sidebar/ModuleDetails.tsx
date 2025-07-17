@@ -22,7 +22,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
         flexDirection: "column",
         gap: 1.2,
         width: "100%",
-        px: 1,
+        px: '6px',
         whiteSpace: "normal",
         wordBreak: "break-word",
       }}

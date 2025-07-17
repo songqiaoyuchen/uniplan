@@ -21,8 +21,9 @@ import Box from "@mui/material/Box";
 import Timetable from "./timetable";
 import ModuleCard from "./timetable/ModuleCard";
 import { useAppDispatch } from "@/store";
-import { moduleAdded, moduleMoved, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
+import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
 import { useModuleState } from "../hooks";
+import DeleteZone from "./DeleteZone";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -64,6 +65,12 @@ const PlannerContainer: React.FC = () => {
     if (!over || active.id === over.id) return;
 
     const [draggingModuleCode, source] = (active.id as string).split('-');
+
+    if (over?.id === "delete-zone") {
+      dispatch(moduleRemoved({ moduleCode: draggingModuleCode }));
+      return;
+    }
+
     const sourceSemesterId = active.data.current?.semesterId;
     const destSemesterId = over.data.current?.semesterId;
 
@@ -124,13 +131,14 @@ const PlannerContainer: React.FC = () => {
           </DragOverlay>,
           document.body,
         )}
+
+        {draggingModuleCode &&
+          createPortal(<DeleteZone />, document.body)
+        }
+
       </DndContext>
     </Box>
   );
 };
 
 export default PlannerContainer;
-
-function moduleReordered(arg0: { semesterId: number; activeModuleCode: string; overModuleCode: string | null; }): any {
-  throw new Error("Function not implemented.");
-}

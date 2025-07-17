@@ -129,6 +129,26 @@ const timetableSlice = createSlice({
       dst.moduleCodes.splice(insertIndex, 0, activeModuleCode);
     },
 
+    // for module removal
+    moduleRemoved: (state, action: PayloadAction<{ moduleCode: string }>) => {
+      const { moduleCode } = action.payload;
+
+      // Remove from the modules entity
+      modulesAdapter.removeOne(state.modules, moduleCode);
+
+      // Remove the moduleCode from any semester.moduleCodes it's in
+      Object.values(state.semesters.entities).forEach((semester) => {
+        if (semester) {
+          semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        }
+      });
+
+      // Deselect if the removed module was selected
+      if (state.selectedModuleCode === moduleCode) {
+        state.selectedModuleCode = null;
+      }
+    },
+
     // handles activeModuleCode
     moduleSelected(state, action: PayloadAction<string>) {
       state.selectedModuleCode = action.payload;
@@ -176,6 +196,8 @@ const timetableSlice = createSlice({
 export const {
   moduleAdded,
   moduleMoved,
+  moduleReordered,
+  moduleRemoved,
   moduleSelected,
   moduleUnselected,
   semesterDraggedOverSet,

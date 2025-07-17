@@ -1,6 +1,6 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
-import { moduleAdded, moduleMoved, moduleSelected, moduleUnselected, updateModuleStates } from './timetableSlice'
+import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
 
@@ -42,6 +42,14 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
 
   startAppListening({
     actionCreator: moduleAdded,
+    effect: async (_, api) => {
+      api.cancelActiveListeners();
+      api.dispatch(updateModuleStates());
+    },
+  });
+
+  startAppListening({
+    actionCreator: moduleRemoved,
     effect: async (_, api) => {
       api.cancelActiveListeners();
       api.dispatch(updateModuleStates());

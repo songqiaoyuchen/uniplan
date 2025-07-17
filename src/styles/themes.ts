@@ -43,7 +43,7 @@ export const lightTheme = createTheme({
     info: { main: "#40ace6" },
     success: { main: "#40ed48" },
     warning: { main: "#ef8937" },
-    error: { main: "#f7523f" },
+    error: { main: "#ff240b" },
     background: { default: "#ffffff", paper: "#ececec" },
     text: { primary: "#000000", secondary: "#333333" },
     custom: {
@@ -55,13 +55,13 @@ export const lightTheme = createTheme({
           [ModuleStatus.Completed]: "#b3f4bd",
           [ModuleStatus.Satisfied]: "#c1aff3",
           [ModuleStatus.Unsatisfied]: "#f8ed96",
-          [ModuleStatus.Conflicted]: "#f8ca96",
+          [ModuleStatus.Conflicted]: "#fcadad",
         },
         borderColors: {
           [ModuleStatus.Completed]: "#4fe058",
           [ModuleStatus.Satisfied]: "#764fd1",
           [ModuleStatus.Unsatisfied]: "#f1cc29",
-          [ModuleStatus.Conflicted]: "#f18329",
+          [ModuleStatus.Conflicted]: "#f04040",
         },
       },
     },
@@ -114,7 +114,7 @@ export const darkTheme = createTheme({
     info: { main: "#40ace6" },
     success: { main: "#40ed48" },
     warning: { main: "#ef8937" },
-    error: { main: "#f7523f" },
+    error: { main: "#c92b19" },
     background: { default: "#1f1f1f", paper: "#2b2b2b" },
     text: { primary: "#ececec", secondary: "#acacac" },
     custom: {
