@@ -26,13 +26,15 @@ const DraggableAddButton: React.FC<DraggableAddButtonProps> = ({ moduleCode }) =
         ml: 1,
         display: "inline-flex",
         alignItems: "center",
-        cursor: "grab",
-        "&:active": { cursor: "grabbing" },
         opacity: isDragging ? 0 : 1,
         transition: "opacity 0.2s ease",
       }}
     >
-      <IconButton size="small" sx={{ p: 0.5 }}>
+      <IconButton size="small" sx={{ 
+        p: 0.5,
+        cursor: "grab",
+        "&:active": { cursor: "grabbing" }
+      }}>
         <AddIcon fontSize="small" />
       </IconButton>
     </Box>

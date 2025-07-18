@@ -6,20 +6,18 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Tooltip from '@mui/material/Tooltip';
 import { memo } from 'react';
-import { ModuleStatus } from '@/types/plannerTypes';
+import { ModuleData } from '@/types/plannerTypes';
 import { useTheme } from '@mui/material';
 import { useModuleCardColors } from '../../hooks';
 
-interface MiniModuleCardProps {
-  moduleCode: string;
-  moduleTitle: string;
+interface ModuleTooltipProps {
+  module: Pick<ModuleData, "code" | "title" | "status">;
   isPlanned: boolean;
-  status?: ModuleStatus;
 }
 
-const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ moduleCode, moduleTitle, isPlanned, status }) => {
+const ModuleTooltip: React.FC<ModuleTooltipProps> = ({ module, isPlanned }) => {
   const theme = useTheme();
-  const { backgroundColor } = useModuleCardColors(status);
+  const { backgroundColor } = useModuleCardColors(module.status);
 
   return (
     <Box
@@ -41,13 +39,13 @@ const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ moduleCode, moduleTitle
         },
       }}
     >
-      <Tooltip title={`${moduleCode}: ${moduleTitle}`} arrow placement="right">
-        <Typography variant="body2" fontWeight={600}>
-          {moduleCode}
+      <Tooltip title={`${module.code}: ${module.title}`} arrow placement="right">
+        <Typography variant="body2" fontWeight='bold'>
+          {module.code}
         </Typography>
       </Tooltip>
     </Box>
   );
 };
 
-export default memo(MiniModuleCard);
+export default memo(ModuleTooltip);

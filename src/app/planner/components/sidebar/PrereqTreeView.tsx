@@ -111,6 +111,7 @@ const StyledTreeItem = styled(TreeItem)(({ theme }) => ({
   [`& .${treeItemClasses.content}`]: {
     backgroundColor: "transparent",
     padding: 0,
+    width: 'fit-content',
     cursor: "default", // disables pointer cursor
     "&:hover": {
       backgroundColor: "transparent",

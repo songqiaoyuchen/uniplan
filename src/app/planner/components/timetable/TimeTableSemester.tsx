@@ -5,6 +5,7 @@ import { SortableContext } from '@dnd-kit/sortable';
 import { memo } from 'react';
 import SemesterColumn from './SemesterColumn';
 import { useSemesterState } from '../../hooks';
+import { useAppSelector } from '@/store';
 
 interface TimetableSemesterProps {
   semesterId: number;
@@ -12,6 +13,7 @@ interface TimetableSemesterProps {
 
 const TimetableSemester: React.FC<TimetableSemesterProps> = ({ semesterId }) => {
   const { moduleCodes, isDraggedOver } = useSemesterState(semesterId);
+  const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const { setNodeRef } = useDroppable({
     id: semesterId,
@@ -22,7 +24,10 @@ const TimetableSemester: React.FC<TimetableSemesterProps> = ({ semesterId }) => 
   });
 
   return (
-    <div ref={setNodeRef}>
+    <div
+      ref={setNodeRef}
+      style={isMinimalView ? { flex: 1, minWidth: 0, minHeight: 0 } : undefined}
+    >
       <SortableContext items={moduleCodes}>
           <SemesterColumn moduleCodes={moduleCodes} semesterId={semesterId} isDraggedOver={isDraggedOver}/>
       </SortableContext>

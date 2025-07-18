@@ -1,8 +1,8 @@
 import { useDraggable } from "@dnd-kit/core";
 import { useModuleState } from "../../hooks";
-import MiniModuleCard from "./MiniModuleCard";
 import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import ModuleTooltip from "./ModuleTooltip";
 
 interface SidebarModuleProps {
   moduleCode: string;
@@ -39,11 +39,9 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
           ref={setNodeRef}
         />}
       <div {...listeners} {...attributes} onClick={handleClick}>
-        <MiniModuleCard 
-          moduleCode={module.code} 
-          moduleTitle={module.title} 
+        <ModuleTooltip 
+          module={module}
           isPlanned={isPlanned}
-          status={module.status}
         />
       </div>
     </>

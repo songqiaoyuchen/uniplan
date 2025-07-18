@@ -5,10 +5,11 @@ import { CSS } from "@dnd-kit/utilities";
 import ModuleCard from "./ModuleCard";
 import Box from "@mui/material/Box";
 import { memo, useCallback, useMemo } from "react";
-import { useAppDispatch } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { moduleSelected, moduleUnselected } from "@/store/timetableSlice";
 import { useModuleState } from "../../hooks";
 import { useRouter } from "next/navigation";
+import MiniModuleCard from "./MiniModuleCard";
 
 interface TimetableModuleProps {
   moduleCode: string;
@@ -18,6 +19,7 @@ interface TimetableModuleProps {
 const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterId }) => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const { module, isLoading, isError, isSelected } = useModuleState(moduleCode);
 
@@ -41,6 +43,7 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
       transform: CSS.Transform.toString(transform),
       transition,
       margin: 0,
+      backgroundColor: "transparent",
       opacity: isDragging ? 0.4 : 1,
     }),
     [transform, transition]
@@ -50,6 +53,7 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
     e.stopPropagation();
     if (isSelected) {
       dispatch(moduleUnselected());
+      router.push("?", { scroll: false });
     } else {
       dispatch(moduleSelected(moduleCode))
       router.push(`?module=${moduleCode}`, { scroll: false });
@@ -72,7 +76,9 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
       {...listeners}
       onClick={handleClick}
     >
-      <ModuleCard module={module} isSelected={isSelected} />
+      {isMinimalView 
+        ? (<MiniModuleCard module={module} isSelected={isSelected} />) 
+        : (<ModuleCard module={module} isSelected={isSelected} />)}
     </div>
   );
 };

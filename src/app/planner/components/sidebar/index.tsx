@@ -12,19 +12,20 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ModuleSearch from "./ModuleSearch";
 import { useModuleState } from "../../hooks";
-import { selectSelectedModuleCode } from "@/store/timetableSelectors";
-import { memo } from "react";
 import { MOBILE_DRAWER_HEIGHT, SIDEBAR_WIDTH } from "@/constants";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isOpen = useAppSelector((state) => state.sidebar.isOpen);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
   const handleToggle = () => dispatch(toggleSidebar());
 
-  const selectedModuleCode = useAppSelector(selectSelectedModuleCode);
+  const selectedModuleCode = searchParams.get("module");
   const { module, isPlanned } = useModuleState(selectedModuleCode);
 
   return isMobile ? (
@@ -118,4 +119,4 @@ const Sidebar: React.FC = () => {
   );
 };
 
-export default memo(Sidebar);
+export default Sidebar;

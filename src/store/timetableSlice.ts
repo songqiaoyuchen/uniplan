@@ -1,6 +1,6 @@
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
+import { Grade, ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -10,6 +10,8 @@ export interface ModuleState {
   code: string; // code as id
   status: ModuleStatus;
   issues: ModuleIssue[];
+  grade?: Grade;
+  tags?: string[]
 }
 
 export interface Semester {
@@ -22,6 +24,7 @@ export interface TimetableSliceState {
   semesters: EntityState<Semester, number>; 
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
+  isMinimalView: boolean // for Timetable
 }
 
 export const modulesAdapter = createEntityAdapter({
@@ -38,6 +41,8 @@ const timetableSlice = createSlice({
     modules: modulesAdapter.getInitialState(),
     semesters: semestersAdapter.getInitialState(),
     selectedModuleCode: null,
+    draggedOverSemesterId: null,
+    isMinimalView: false
   } as TimetableSliceState,
   reducers: {
     // handles adding a module to the timeable
@@ -163,7 +168,12 @@ const timetableSlice = createSlice({
     },
     semesterDraggedOverCleared(state) {
       state.draggedOverSemesterId = null
-    }
+    },
+
+    // handles timetable view mode
+    minimalViewToggled: (state) => {
+      state.isMinimalView = !state.isMinimalView;
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
@@ -201,15 +211,16 @@ export const {
   moduleSelected,
   moduleUnselected,
   semesterDraggedOverSet,
-  semesterDraggedOverCleared
+  semesterDraggedOverCleared,
+  minimalViewToggled
 } = timetableSlice.actions;
 export default timetableSlice.reducer;
 
 // --- async thunks ---
 export const updateModuleStates = createAsyncThunk<
-  ModuleUpdatePayload[], // Return type: updates from checkModuleStates
-  void,                  // No arguments needed
-  { state: RootState }   // ThunkAPI with state
+  ModuleUpdatePayload[],
+  void,                  
+  { state: RootState }   
 >(
   'timetable/updateModuleStates',
   async (_, { getState }) => {

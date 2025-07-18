@@ -5,13 +5,14 @@
 import { ModuleData, ModuleStatus } from "@/types/plannerTypes";
 import { useTheme } from "@mui/material/styles";
 import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import { memo } from "react";
 import { useModuleCardColors } from "../../hooks";
+import Box from "@mui/material/Box";
+import Tag from "@/components/ui/Tag";
 
 interface ModuleCardProps {
-  module: Pick<ModuleData, "id" | "code" | "title" | "status" | "credits" | "grade">;
+  module: Pick<ModuleData, "code" | "title" | "status" | "credits" | "grade">;
   isSelected?: boolean;
 }
 
@@ -29,8 +30,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
   return (
     <Card
       sx={{
-        width: "216px",
-        height: "110px",
+        minWidth: '225px',
+        height: "105px",
         cursor: "pointer",
         userSelect: "none",
         backgroundColor,
@@ -47,14 +48,68 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
         color: theme.palette.text.primary,
       }}
     >
-      <CardContent sx={{ gap: 0}}>
-        <Typography variant="subtitle2" fontWeight="bold" display="inline">
-          {module.code}
-        </Typography>
-        <Typography variant="body2" display="inline" sx={{ ml: 1 }}>
-          {module.title}
-        </Typography>
-      </CardContent>
+      <Box sx={{ 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column', 
+        justifyContent: 'space-between',
+        padding: 1.5
+      }}>
+        {/* title and grade */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: 1 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            <Box component="span" fontWeight="bold">{module.code}</Box> {module.title}
+          </Typography>
+          <Typography variant="body2" sx={{ whiteSpace: 'nowrap' }}>
+            {module.grade ?? '-'}
+          </Typography>
+        </Box>
+        {/* unit and tags */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            overflow: 'hidden',
+          }}
+        >
+          {/* Units */}
+          <Typography
+            variant="subtitle2"
+            color="text.secondary"
+            sx={{ whiteSpace: 'nowrap', flexShrink: 0 }}
+          >
+            {module.credits} Units
+          </Typography>
+
+          {/* Chips */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap-reverse',
+              flexDirection: 'row-reverse',
+              gap: 0.5,
+              overflow: 'hidden',
+              alignContent: 'flex-end',
+              justifyContent: 'flex-start',
+              flexGrow: 1,
+            }}
+          >
+            <Tag text="Sample" />
+            <Tag text="Sample" />
+          </Box>
+        </Box>
+      </Box>
     </Card>
   );
 };

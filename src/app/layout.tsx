@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import Navbar from "@/components/layout/Navbar";
 import Toolbar from "@mui/material/Toolbar";
 import Providers from "@/providers";
+import Box from "@mui/material/Box";
 
 export const metadata: Metadata = {
   title: "Uniplan",
@@ -20,9 +21,11 @@ export default function RootLayout({
       <body>
         <AppRouterCacheProvider>
           <Providers>
-            <Navbar />
-            <Toolbar sx={{ height: "64px" }} /> {/* Spacer for fixed AppBar */}
-            {children}
+            <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+              <Navbar />
+              <Toolbar />
+                {children}
+            </Box>
           </Providers>
         </AppRouterCacheProvider>
       </body>

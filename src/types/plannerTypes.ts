@@ -7,7 +7,7 @@ export type ModuleData = {
   exam: Exam | null;
   preclusions: string[]; // module id
   plannedSemester?: number | null; // e.g. 5 = y3s2, 0 = y1s1 NO LONGER IN USE
-  grade?: string; // e.g. A+, B, C, etc.
+  grade?: Grade; // e.g. A+, B, C, etc.
   status?: ModuleStatus;
   description?: string; // optional description
   faculty?: string; // optional faculty name
@@ -52,3 +52,20 @@ export type ModuleIssue =
   | { type: 'Precluded'; with: string[] }
   | { type: 'InvalidSemester' }
   | { type: 'ExamClash'; with: string[] }
+
+
+// We are only allowing completed grades to be inputed,
+// such that no grade -> not completed
+export enum Grade {
+  APlus = 'A+',
+  A = 'A',
+  AMinus = 'A-',
+  BPlus = 'B+',
+  B = 'B',
+  BMinus = 'B-',
+  CPlus = 'C+',
+  C = 'C',
+  DPlus ='D+',
+  D = 'D',
+  CS = 'CS',
+}

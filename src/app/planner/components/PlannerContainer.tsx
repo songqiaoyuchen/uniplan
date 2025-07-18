@@ -20,10 +20,11 @@ import Sidebar from "./sidebar";
 import Box from "@mui/material/Box";
 import Timetable from "./timetable";
 import ModuleCard from "./timetable/ModuleCard";
-import { useAppDispatch } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
 import { useModuleState } from "../hooks";
 import DeleteZone from "./DeleteZone";
+import MiniModuleCard from "./timetable/MiniModuleCard";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -32,7 +33,8 @@ const PlannerContainer: React.FC = () => {
 
   // drag overlay states
   const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
-  const { module: draggingModule } = useModuleState(draggingModuleCode)
+  const { module: draggingModule, isPlanned } = useModuleState(draggingModuleCode);
+  const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const dispatch = useAppDispatch();
 
@@ -111,7 +113,7 @@ const PlannerContainer: React.FC = () => {
 
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "row" }}>
+    <Box sx={{ display: "flex", flexDirection: "row", flex: 1 }}>
       <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}
@@ -126,13 +128,15 @@ const PlannerContainer: React.FC = () => {
         {createPortal(
           <DragOverlay>
             {draggingModuleCode && draggingModule && (
-              <ModuleCard module={draggingModule} />
+              isMinimalView 
+                ? <MiniModuleCard module={draggingModule} isDragging/>
+                : <ModuleCard module={draggingModule} />
             )}
           </DragOverlay>,
           document.body,
         )}
 
-        {draggingModuleCode &&
+        {draggingModuleCode && isPlanned &&
           createPortal(<DeleteZone />, document.body)
         }
 
