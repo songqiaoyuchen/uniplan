@@ -8,7 +8,7 @@ import { ModuleData } from "@/types/plannerTypes";
 
 // Scheduling constraints
 export const MAX_MCS_PER_SEMESTER = 20;
-export const MAX_SEMESTERS = 8;
+export const MAX_SEMESTERS = 100;
 
 // Type guards
 export function isNofNode(node: LogicNode | ModuleData | undefined): node is LogicNode {

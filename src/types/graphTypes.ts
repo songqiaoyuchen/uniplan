@@ -14,6 +14,15 @@ export type Edge = {
   to: string;
 };
 
+export type EdgeMap = {
+  [key: string]: EdgeMapEntry;
+}
+
+export type EdgeMapEntry = {
+  out: string[];
+  in: string[];
+}
+
 export type FormattedGraph = {
   nodes: Record<string, ModuleData | LogicNode>;
   relationships: Edge[];

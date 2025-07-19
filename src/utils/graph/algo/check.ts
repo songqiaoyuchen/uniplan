@@ -7,7 +7,6 @@
 
 import { NormalisedGraph, TimetableData, ValidationResult, PlannerState } from '@/types/graphTypes';
 import { isNofNode, isModuleData, MAX_MCS_PER_SEMESTER } from './constants';
-import { findModuleId } from './select';
 
 /**
  * Validates that a generated timetable satisfies all constraints

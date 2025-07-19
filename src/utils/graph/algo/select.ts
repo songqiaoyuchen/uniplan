@@ -1,19 +1,20 @@
 /**
- * Module selection with pure impact scoring.
+ * Module selection with greedy scoring.
  * Built from scratch for clarity and correctness.
  */
 
-import { NormalisedGraph, PlannerState } from '@/types/graphTypes';
+import { EdgeMap, NormalisedGraph, PlannerState } from '@/types/graphTypes';
 import { isModuleData, isNofNode, MAX_MCS_PER_SEMESTER } from './constants';
 
 /**
- * Selects modules for a single semester using pure impact scoring.
+ * Selects modules for a single semester using greedy scoring.
  */
 export function selectModulesForSemester(
-  availableSnapshot: Set<string>,
+  availableSnapshot: Set<string>, // Now contains IDs
   plannerState: PlannerState,
+  edgeMap: EdgeMap,
   graph: NormalisedGraph,
-  targetModules: Set<string>
+  targetModules: Set<string> // Now contains IDs
 ): string[] {
   const selected: string[] = [];
   let usedCredits = 0;
@@ -23,24 +24,25 @@ export function selectModulesForSemester(
 
   while (remainingModules.size > 0 && usedCredits < MAX_MCS_PER_SEMESTER) {
     // Find best module (O(n) optimization)
-    const bestModule = findBestModule(remainingModules, plannerState, graph, targetModules);
-    
-    if (!bestModule) break;
+    const bestModuleId = findBestModule(remainingModules, plannerState, edgeMap, graph, targetModules);
 
-    const moduleNode = findModuleNode(bestModule, graph);
-    if (!moduleNode) break;
+    if (!bestModuleId) break;
 
-    const credits = moduleNode.credits || 4;
+    const node = graph.nodes[bestModuleId];
+    if (!isModuleData(node)) throw new Error("Node is not ModuleData");
+    const credits = node.credits || 4;
+
+    // Prevent exceeding MCS limit
     if (usedCredits + credits > MAX_MCS_PER_SEMESTER) break;
 
     // Select the module
-    selected.push(bestModule);
+    selected.push(bestModuleId);
     usedCredits += credits;
-    remainingModules.delete(bestModule);
-    plannerState.completedModules.add(bestModule);
+    remainingModules.delete(bestModuleId);
+    plannerState.completedModules.add(bestModuleId);
 
-    // Immediately update logic satisfaction
-    updateLogicSatisfaction(bestModule, plannerState, graph);
+    // Immediately update logic satisfaction to prevent redundant selections
+    updateLogicSatisfaction(bestModuleId, plannerState, edgeMap, graph);
   }
 
   return selected;
@@ -50,20 +52,21 @@ export function selectModulesForSemester(
  * Finds the best module using pure impact scoring (O(n)).
  */
 function findBestModule(
-  available: Set<string>,
+  available: Set<string>, // Now contains IDs
   plannerState: PlannerState,
+  edgeMap: EdgeMap,
   graph: NormalisedGraph,
-  targetModules: Set<string>
+  targetModules: Set<string> // Now contains IDs
 ): string | null {
   let bestModule: string | null = null;
   let bestImpact = -1;
 
-  for (const moduleCode of available) {
-    const impact = calculateImpact(moduleCode, plannerState, graph, targetModules);
+  for (const moduleId of available) {
+    const impact = calculateImpact(moduleId, plannerState, edgeMap, graph, targetModules);
     
     if (impact > bestImpact) {
       bestImpact = impact;
-      bestModule = moduleCode;
+      bestModule = moduleId;
     }
   }
 
@@ -74,61 +77,86 @@ function findBestModule(
  * Pure impact scoring: targets = 1.0, others based on path to targets.
  */
 function calculateImpact(
-  moduleCode: string,
+  moduleId: string, // Now expects ID
   plannerState: PlannerState,
+  edgeMap: EdgeMap,
   graph: NormalisedGraph,
-  targetModules: Set<string>
+  targetModules: Set<string> // Now contains IDs
 ): number {
   // Target modules get maximum impact
-  if (targetModules.has(moduleCode)) {
-    return 1.0;
+  if (targetModules.has(moduleId)) {
+    return 100.0;
   }
-
-  const moduleId = findModuleId(moduleCode, graph);
-  if (!moduleId) return 0;
 
   let totalImpact = 0;
 
+  // All modules have a parent logic node
   // Find logic nodes that have this module as a requirement
-  const parentLogicNodes = graph.edges
-    .filter(e => e.to === moduleId && isNofNode(graph.nodes[e.from]))
-    .map(e => e.from);
+  if (!edgeMap[moduleId]) {
+    console.log('Missing edgeMap entry for:', moduleId);
+    console.log('Available edgeMap keys:', Object.keys(edgeMap));
+    console.log('Graph node keys:', Object.keys(graph.nodes));
+    throw new Error(`Module ${moduleId} not found in edgeMap`);
+  }
+  const parentLogicNodes = edgeMap[moduleId].in || [];
 
-  for (const logicId of parentLogicNodes) {
-    const logicNode = graph.nodes[logicId];
-    if (!isNofNode(logicNode)) continue;
+  for (const logicNode of parentLogicNodes) {
+    // If parent logic is already satisfied, zero additional impact
+    if (plannerState.logicStatus[logicNode]?.satisfied) continue;
 
-    // Skip if logic already satisfied
-    if (plannerState.logicStatus[logicId]?.satisfied) continue;
-
-    const currentSatisfiedCount = getCurrentLogicSatisfaction(logicId, plannerState, graph);
-    const unlockValue = calculateLogicUnlockValue(logicId, graph, targetModules, plannerState);
+    const unlockValue = calculateUnlockValue(logicNode, edgeMap, graph, targetModules, plannerState);
     
-    // Give credit for both completion and progress
-    const progressRatio = 1.0 / logicNode.n;
-    const completionBonus = (currentSatisfiedCount + 1 >= logicNode.n) ? 1.0 : 0.7;
-    
-    totalImpact += unlockValue * progressRatio * completionBonus;
+    totalImpact += unlockValue;
   }
 
-  return Math.min(1.0, totalImpact);
+  return Math.min(100.0, totalImpact);
+}
+
+/**
+ * Calculate the value of satisfying a logic node (what it unlocks toward targets).
+ */
+function calculateUnlockValue(
+  logicId: string,
+  edgeMap: EdgeMap,
+  graph: NormalisedGraph,
+  targetModules: Set<string>,
+  plannerState: PlannerState
+): number {
+  // Find what modules/logics require this logic node
+  const unlockedNodes = edgeMap[logicId].in || [];
+
+  let unlockValue = 0;
+
+  for (const nodeId of unlockedNodes) {
+    const node = graph.nodes[nodeId];
+    
+    if (isModuleData(node)) {
+      // Direct target unlock
+      if (targetModules.has(nodeId)) {
+        unlockValue += 20;  // High value for direct target unlock
+      } else {
+        unlockValue += 1;  // Some value for unlocking any module
+      }
+    } else if (isNofNode(node)) {
+      // Recursively calculate value of unlocking this logic
+      unlockValue += calculateUnlockValue(nodeId, edgeMap, graph, targetModules, plannerState);
+    }
+  }
+
+  return unlockValue;
 }
 
 /**
  * Immediately update logic satisfaction when a module is selected.
  */
 function updateLogicSatisfaction(
-  selectedModule: string,
+  selectedModuleId: string,
   plannerState: PlannerState,
+  edgeMap: EdgeMap,
   graph: NormalisedGraph
 ): void {
-  const moduleId = findModuleId(selectedModule, graph);
-  if (!moduleId) return;
-
   // Find parent logic nodes and start cascading updates
-  const parentLogics = graph.edges
-    .filter(e => e.to === moduleId && isNofNode(graph.nodes[e.from]))
-    .map(e => e.from);
+  const parentLogics = edgeMap[selectedModuleId].in || [];
 
   const toCheck = new Set(parentLogics);
 
@@ -141,110 +169,23 @@ function updateLogicSatisfaction(
     const logicStatus = plannerState.logicStatus[logicId];
     const logicNode = graph.nodes[logicId];
     
+    // If logic is already satisfied or not a logic node, skip
     if (!logicStatus || logicStatus.satisfied || !isNofNode(logicNode)) {
       continue;
     }
 
-    const satisfiedCount = getCurrentLogicSatisfaction(logicId, plannerState, graph);
-    const wasNotSatisfied = !logicStatus.satisfied;
-    
-    logicStatus.satisfiedCount = satisfiedCount;
-    
-    if (satisfiedCount >= logicNode.n) {
+    logicStatus.satisfiedCount += 1;
+
+    if (logicStatus.satisfiedCount >= logicStatus.requires) {
       logicStatus.satisfied = true;
       plannerState.satisfiedLogicNodes.add(logicId);
 
-      // If this logic was newly satisfied, check its parents too
-      if (wasNotSatisfied) {
-        const grandparentLogics = graph.edges
-          .filter(e => e.to === logicId && isNofNode(graph.nodes[e.from]))
-          .map(e => e.from);
-        
-        for (const parentId of grandparentLogics) {
+      // Recursively check its parents too
+      const grandparentLogics = edgeMap[logicId].in || [];
+
+      for (const parentId of grandparentLogics) {
           toCheck.add(parentId);
-        }
       }
     }
   }
-}
-
-/**
- * Calculate how many requirements of a logic node are currently satisfied.
- */
-function getCurrentLogicSatisfaction(
-  logicId: string,
-  plannerState: PlannerState,
-  graph: NormalisedGraph
-): number {
-  const options = graph.edges.filter(e => e.from === logicId);
-  
-  return options.filter(edge => {
-    const optionNode = graph.nodes[edge.to];
-    
-    if (isModuleData(optionNode)) {
-      return plannerState.completedModules.has(optionNode.code);
-    }
-    
-    if (isNofNode(optionNode)) {
-      return plannerState.logicStatus[edge.to]?.satisfied || false;
-    }
-    
-    return false;
-  }).length;
-}
-
-/**
- * Calculate the value of satisfying a logic node (what it unlocks toward targets).
- */
-function calculateLogicUnlockValue(
-  logicId: string,
-  graph: NormalisedGraph,
-  targetModules: Set<string>,
-  plannerState: PlannerState
-): number {
-  // Find what modules/logics require this logic node
-  const unlockedNodes = graph.edges
-    .filter(e => e.to === logicId)
-    .map(e => e.from);
-
-  let unlockValue = 0;
-
-  for (const nodeId of unlockedNodes) {
-    const node = graph.nodes[nodeId];
-    
-    if (isModuleData(node)) {
-      // Direct target unlock
-      if (targetModules.has(node.code)) {
-        unlockValue += 0.5;  // High value for direct target unlock
-      } else {
-        unlockValue += 0.1;  // Some value for unlocking any module
-      }
-    } else if (isNofNode(node)) {
-      // Recursively calculate value of unlocking this logic
-      unlockValue += calculateLogicUnlockValue(nodeId, graph, targetModules, plannerState) * 0.5;
-    }
-  }
-
-  return unlockValue;
-}
-
-/**
- * Helper functions
- */
-export function findModuleNode(moduleCode: string, graph: NormalisedGraph): any | null {
-  for (const node of Object.values(graph.nodes)) {
-    if (isModuleData(node) && node.code === moduleCode) {
-      return node;
-    }
-  }
-  return null;
-}
-
-export function findModuleId(moduleCode: string, graph: NormalisedGraph): string | null {
-  for (const [id, node] of Object.entries(graph.nodes)) {
-    if (isModuleData(node) && node.code === moduleCode) {
-      return id;
-    }
-  }
-  return null;
 }

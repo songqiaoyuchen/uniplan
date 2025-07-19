@@ -128,6 +128,9 @@ async function buildLogicGate(
       `MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels`,
       { id: childId },
     );
+    if (labelRes.records.length === 0) {
+      throw new Error(`Node ${childId} disappeared during processing`);
+    }
 
     const labels = labelRes.records[0]?.get("labels") as string[];
     const isModule = labels?.includes("Module");
