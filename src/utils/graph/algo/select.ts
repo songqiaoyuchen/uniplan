@@ -93,9 +93,6 @@ function calculateImpact(
   // All modules have a parent logic node
   // Find logic nodes that have this module as a requirement
   if (!edgeMap[moduleId]) {
-    console.log('Missing edgeMap entry for:', moduleId);
-    console.log('Available edgeMap keys:', Object.keys(edgeMap));
-    console.log('Graph node keys:', Object.keys(graph.nodes));
     throw new Error(`Module ${moduleId} not found in edgeMap`);
   }
   const parentLogicNodes = edgeMap[moduleId].in || [];
@@ -135,7 +132,7 @@ function calculateUnlockValue(
       if (targetModules.has(nodeId)) {
         unlockValue += 20;  // High value for direct target unlock
       } else {
-        unlockValue += 1;  // Some value for unlocking any module
+        unlockValue += 0;  // Some value for unlocking any module
       }
     } else if (isNofNode(node)) {
       // Recursively calculate value of unlocking this logic
