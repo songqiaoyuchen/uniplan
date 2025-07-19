@@ -1,27 +1,24 @@
 import Box from "@mui/material/Box";
-import PlannerSemester from "./TimeTableSemester";
+import TimetableSemester from "./TimeTableSemester";
 import { useSelector } from "react-redux";
 import { RootState, useAppSelector } from "@/store";
-import { selectSemesterIds } from "@/store/timetableSlice";
+import { selectSemesterIds } from "@/store/timetableSelectors";
 import { memo } from "react";
-import { Button } from "@mui/material";
-import { useLazyGetTimetableQuery } from "@/store/apiSlice";
+import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "@/constants";
+import TimetableHeader from "./TimetableHeader";
 
 function Timetable() {
   const semesterIds = useAppSelector(selectSemesterIds) as number[];
   const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
-  const sidebarWidth = isOpen ? 300 : 36;
-
-  const [triggerGetTimetable, { isFetching }] = useLazyGetTimetableQuery();
+  const sidebarWidth = isOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
 
   return (
     <Box
       sx={{
-        minHeight: "100vh",
         display: "flex",
         flexDirection: "column",
         p: 0,
-        my: "16px",
+        my: 2,
         marginRight: { xs: 2, md: 4 },
         marginLeft: { xs: 2, md: `${sidebarWidth + 32}px` },
         transition: "margin-left 0.3s",
@@ -29,29 +26,23 @@ function Timetable() {
         minWidth: 0,
       }}
     >
-      <Button
-        onClick={() => triggerGetTimetable()}
-      >
-        {isFetching ? "Loading timetable..." : "Test Import Timetable"}
-      </Button>
+      <TimetableHeader />
       {/* semesters */}
       <Box
         sx={{
-          width: "100%",
           display: "flex",
-          minHeight: "650px",
           flexDirection: "row",
           overflowX: "auto",
           overflowY: "hidden",
-          p: 2,
-          gap: 0,
-          boxShadow: 2,
-          backgroundColor: "background.paper",
+          py: 1,
+          gap: 1,
           borderRadius: 1,
+              flex: 1,
+    minHeight: 0,
         }}
       >
         {semesterIds.map((semesterId) => (
-          <PlannerSemester
+          <TimetableSemester
             key={semesterId}
             semesterId={semesterId}
           />

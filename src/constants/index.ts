@@ -1,0 +1,3 @@
+export const SIDEBAR_WIDTH = 300;
+export const SIDEBAR_COLLAPSED_WIDTH = 36;
+export const MOBILE_DRAWER_HEIGHT = 300;

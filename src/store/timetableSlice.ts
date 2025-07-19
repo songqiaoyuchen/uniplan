@@ -1,16 +1,17 @@
 
-import { createAsyncThunk, createEntityAdapter, createSelector, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData, ModuleStatus } from "@/types/plannerTypes";
+import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
+import { Grade, ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
 import { RootState } from '.';
-import { AppStartListening } from './listenerMiddleware'
-import { closeSidebar, openSidebar } from './sidebarSlice';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
-import { checkConflicts } from '@/utils/planner/checkConflicts';
+import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload, StaticModuleData } from '@/utils/planner/checkModuleStates';
 
 export interface ModuleState {
   code: string; // code as id
   status: ModuleStatus;
+  issues: ModuleIssue[];
+  grade?: Grade;
+  tags?: string[]
 }
 
 export interface Semester {
@@ -23,13 +24,14 @@ export interface TimetableSliceState {
   semesters: EntityState<Semester, number>; 
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
+  isMinimalView: boolean // for Timetable
 }
 
-const modulesAdapter = createEntityAdapter({
+export const modulesAdapter = createEntityAdapter({
   selectId: (m: ModuleState) => m.code,
 });
 
-const semestersAdapter = createEntityAdapter({
+export const semestersAdapter = createEntityAdapter({
   selectId: (s: Semester) => s.id,
 });
 
@@ -39,16 +41,10 @@ const timetableSlice = createSlice({
     modules: modulesAdapter.getInitialState(),
     semesters: semestersAdapter.getInitialState(),
     selectedModuleCode: null,
+    draggedOverSemesterId: null,
+    isMinimalView: false
   } as TimetableSliceState,
   reducers: {
-    // handles initialisation of timetable
-    modulesSet(state, action: PayloadAction<ModuleState[]>) {
-      modulesAdapter.setAll(state.modules, action.payload);
-    },
-    semestersSet(state, action: PayloadAction<Semester[]>) {
-      semestersAdapter.setAll(state.semesters, action.payload);
-    },
-    
     // handles adding a module to the timeable
     moduleAdded(
       state,
@@ -63,7 +59,8 @@ const timetableSlice = createSlice({
       if (!exists) { // defensive check
         modulesAdapter.addOne(state.modules, {
           code: moduleCode,
-          status: ModuleStatus.Unlocked,
+          status: ModuleStatus.Satisfied,
+          issues: []
         });
       }
 
@@ -73,7 +70,30 @@ const timetableSlice = createSlice({
       }
     },
 
-    // handles module movement within timetable
+    // for intra-semester reordering only
+    moduleReordered(
+      state,
+      action: PayloadAction<{
+        semesterId: number;
+        activeModuleCode: string;
+        overModuleCode: string | null;
+      }>
+    ) {
+      const { semesterId, activeModuleCode, overModuleCode } = action.payload;
+      const sem = state.semesters.entities[semesterId];
+      if (!sem) return;
+
+      const oldIndex = sem.moduleCodes.indexOf(activeModuleCode);
+      const newIndex = overModuleCode
+        ? sem.moduleCodes.indexOf(overModuleCode)
+        : sem.moduleCodes.length;
+
+      if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
+
+      sem.moduleCodes = arrayMove(sem.moduleCodes, oldIndex, newIndex);
+    },
+
+    // for inter-semester moves only
     moduleMoved(
       state,
       action: PayloadAction<{
@@ -90,37 +110,47 @@ const timetableSlice = createSlice({
         destSemesterId,
       } = action.payload;
 
+      if (sourceSemesterId === destSemesterId) return; // handled by moduleReordered
+
       const src = state.semesters.entities[sourceSemesterId];
       const dst = state.semesters.entities[destSemesterId];
-
       if (!src || !dst) return;
 
-      const isSameSemester = sourceSemesterId === destSemesterId;
+      // prevent duplication if dropped on empty area
+      if (!overModuleCode || activeModuleCode === overModuleCode) {
+        const stillPlanned = dst.moduleCodes.includes(activeModuleCode);
+        if (stillPlanned) return;
+      }
 
-      if (isSameSemester) {
-        const oldIndex = src.moduleCodes.indexOf(activeModuleCode);
-        const newIndex = overModuleCode
-          ? src.moduleCodes.indexOf(overModuleCode)
-          : src.moduleCodes.length;
+      // remove from source
+      src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
 
-        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
-
-        src.moduleCodes = arrayMove(src.moduleCodes, oldIndex, newIndex);
-      } else {
-        if (!overModuleCode || activeModuleCode === overModuleCode) {
-          const stillPlanned = dst.moduleCodes.includes(activeModuleCode);
-          if (stillPlanned) return; // avoid duplication
-        }
-
-        // remove from source
-        src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
-
-        // dtermine insert index
-        const insertIndex = overModuleCode && dst.moduleCodes.includes(overModuleCode)
+      // determine insert index in destination
+      const insertIndex =
+        overModuleCode && dst.moduleCodes.includes(overModuleCode)
           ? dst.moduleCodes.indexOf(overModuleCode)
           : dst.moduleCodes.length;
-        // insert to destination
-        dst.moduleCodes.splice(insertIndex, 0, activeModuleCode);
+
+      dst.moduleCodes.splice(insertIndex, 0, activeModuleCode);
+    },
+
+    // for module removal
+    moduleRemoved: (state, action: PayloadAction<{ moduleCode: string }>) => {
+      const { moduleCode } = action.payload;
+
+      // Remove from the modules entity
+      modulesAdapter.removeOne(state.modules, moduleCode);
+
+      // Remove the moduleCode from any semester.moduleCodes it's in
+      Object.values(state.semesters.entities).forEach((semester) => {
+        if (semester) {
+          semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        }
+      });
+
+      // Deselect if the removed module was selected
+      if (state.selectedModuleCode === moduleCode) {
+        state.selectedModuleCode = null;
       }
     },
 
@@ -138,160 +168,87 @@ const timetableSlice = createSlice({
     },
     semesterDraggedOverCleared(state) {
       state.draggedOverSemesterId = null
-    }
+    },
+
+    // handles timetable view mode
+    minimalViewToggled: (state) => {
+      state.isMinimalView = !state.isMinimalView;
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
-    builder.addCase(updateConflicts.fulfilled, (state, action) => {
+    builder.addCase(updateModuleStates.fulfilled, (state, action) => {
       modulesAdapter.updateMany(state.modules, action.payload);
     });
     // populates states when timetable fetched
     builder.addMatcher(
       apiSlice.endpoints.getTimetable.matchFulfilled,
       (state, action) => {
-        const { semesters, modules } = action.payload;
+        const { semesters } = action.payload;
 
-        semestersAdapter.setAll(state.semesters, semesters);
-        const typedModules: ModuleState[] = modules.map((m) => ({
-          code: m.code,
-          status: m.status as unknown as ModuleStatus, 
+        const uniqueModuleCodes = [
+          ...new Set(semesters.flatMap((s) => s.moduleCodes)),
+        ];
+
+        const modules: ModuleState[] = uniqueModuleCodes.map((code) => ({
+          code,
+          status: ModuleStatus.Satisfied,
+          issues: []
         }));
-        modulesAdapter.setAll(state.modules, typedModules);
+
+        modulesAdapter.setAll(state.modules, modules);
+        semestersAdapter.setAll(state.semesters, semesters);
       }
     );
   }
 });
 
 export const {
-  modulesSet,
-  semestersSet,
   moduleAdded,
   moduleMoved,
+  moduleReordered,
+  moduleRemoved,
   moduleSelected,
   moduleUnselected,
   semesterDraggedOverSet,
-  semesterDraggedOverCleared
+  semesterDraggedOverCleared,
+  minimalViewToggled
 } = timetableSlice.actions;
 export default timetableSlice.reducer;
 
-// --- selectors ---
-export const {
-  selectIds: selectSemesterIds,
-  selectById: selectSemesterById,
-} = semestersAdapter.getSelectors((s: RootState) => s.timetable.semesters);
-
-export const {
-  selectById: selectModuleByCode,
-} = modulesAdapter.getSelectors((s: RootState) => s.timetable.modules);
-
-export const selectSelectedModuleCode = (state: RootState) => state.timetable.selectedModuleCode;
-export const selectDraggedOverSemesterId = (state: RootState) => state.timetable.draggedOverSemesterId;
-
-// --- memoized selectors / selector factories ---
-export const makeSelectModuleCodesBySemesterId = (semesterId: number) =>
-  createSelector(
-    (state: RootState) => state.timetable.semesters.entities[semesterId]?.moduleCodes ?? [],
-    (moduleCodes) => moduleCodes
-  );
-export const makeIsModuleSelectedSelector = (moduleCode: string) =>
-  createSelector([selectSelectedModuleCode], (selectedCode) => selectedCode === moduleCode);
-export const makeIsSemesterDraggedOverSelector = (semesterId: number) =>
-  createSelector([selectDraggedOverSemesterId], (draggedOverSemesterId) => draggedOverSemesterId === semesterId);
-export const makeIsModulePlannedSelector = (moduleCode: string) =>
-  createSelector(
-    (state: RootState) => state.timetable.semesters.entities,
-    (semesters) =>
-      Object.values(semesters).some((semester) =>
-        semester?.moduleCodes.includes(moduleCode)
-      )
-  );
-export const makeSelectModuleStatusByCode = (code: string) =>
-  createSelector(
-    (state: RootState) => state.timetable.modules.entities[code],
-    (module) => module?.status ?? null
-  );
-
 // --- async thunks ---
-export const updateConflicts = createAsyncThunk(
-  'timetable/updateConflicts',
+export const updateModuleStates = createAsyncThunk<
+  ModuleUpdatePayload[],
+  void,                  
+  { state: RootState }   
+>(
+  'timetable/updateModuleStates',
   async (_, { getState }) => {
-    const state = getState() as RootState;
-
-    // 1. ASSEMBLE THE DATA
-    const { semesters, modules: statefulModules } = state.timetable;
-    const allModuleCodesOnBoard = statefulModules.ids as string[];
+    const state = getState();
     
-    const modulesToTest: Record<string, ModuleData> = {};
+    // --- 1. gather inputs ---
+    // a) Dynamic state from timetable slice
+    const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
+    const plannedModuleCodes = moduleEntities.ids as string[];
 
-    for (const code of allModuleCodesOnBoard) {
-      const staticData = apiSlice.endpoints.getModuleByCode.select(code)(state)?.data;
-      const dynamicData = statefulModules.entities[code];
-
-      // Find the module's current planned semester
-      let plannedSemester: number | null = null;
-      for (const sem of Object.values(semesters.entities)) {
-        if (sem.moduleCodes.includes(code)) {
-          plannedSemester = sem.id;
-          break;
-        }
-      }
-
-      if (staticData && dynamicData) {
-        modulesToTest[code] = {
-          ...staticData,
-          status: dynamicData.status,
-          plannedSemester: plannedSemester,
-        };
+    // b) Static data from RTK Query cache
+    const staticModulesData: Record<string, StaticModuleData> = {};
+    for (const code of plannedModuleCodes) {
+      const cached = apiSlice.endpoints.getModuleByCode.select(code)(state);
+      if (cached.data) {
+        staticModulesData[code] = cached.data;
       }
     }
 
-    // 2. CALL THE UTILITY FUNCTION
-    const conflictedModulesResult = checkConflicts(modulesToTest);
+    // c) Prepare arguments for pure state-checking function
+    const args: CheckModuleStatesArgs = {
+      staticModulesData,
+      semesterEntities: semesterEntities.entities,
+      moduleEntities: moduleEntities.entities,
+    };
 
-    // 3. DETERMINE THE CHANGES
-    const updates: { id: string; changes: { status: ModuleStatus } }[] = [];
-    for (const code of allModuleCodesOnBoard) {
-      const originalStatus = modulesToTest[code]?.status;
-      const newStatus = conflictedModulesResult[code]?.status;
-      if (newStatus && newStatus !== originalStatus) {
-        updates.push({ id: code, changes: { status: newStatus } });
-      }
-    }
-    return updates;
+    // --- 2. RUN CHECK AND RETURN DELTAS ---
+    const deltas = checkModuleStates(args);
+    return deltas;
   }
 );
-
-// --- listening middleware ---
-export const addTimetableListeners = (startAppListening: AppStartListening) => {
-  // Open sidebar on module selected
-  startAppListening({
-    actionCreator: moduleSelected,
-    effect: async (_, api) => {
-      api.dispatch(openSidebar());
-    },
-  });
-
-  // Close sidebar on module unselected
-  startAppListening({
-    actionCreator: moduleUnselected,
-    effect: async (_, api) => {
-      api.dispatch(closeSidebar());
-    },
-  });
-
-  startAppListening({
-    actionCreator: moduleMoved,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateConflicts());
-    },
-  });
-
-  startAppListening({
-  actionCreator: moduleAdded,
-  effect: async (_, api) => {
-    api.cancelActiveListeners();
-    api.dispatch(updateConflicts());
-  },
-});
-};

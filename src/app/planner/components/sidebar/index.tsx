@@ -12,30 +12,30 @@ import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import ModuleSearch from "./ModuleSearch";
 import { useModuleState } from "../../hooks";
-import { selectSelectedModuleCode } from "@/store/timetableSlice";
-import { memo } from "react";
+import { MOBILE_DRAWER_HEIGHT, SIDEBAR_WIDTH } from "@/constants";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const isOpen = useAppSelector((state) => state.sidebar.isOpen);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const sidebarWidth = 300;
-  const mobileDrawerHeight = 300;
 
   const handleToggle = () => dispatch(toggleSidebar());
 
-  const selectedModuleCode = useAppSelector(selectSelectedModuleCode);
+  const selectedModuleCode = searchParams.get("module");
   const { module, isPlanned } = useModuleState(selectedModuleCode);
 
   return isMobile ? (
     <Box
       sx={{
         position: "fixed",
-        bottom: isOpen ? 0 : -mobileDrawerHeight,
+        bottom: isOpen ? 0 : -MOBILE_DRAWER_HEIGHT,
         left: 0,
         right: 0,
-        height: mobileDrawerHeight,
+        height: MOBILE_DRAWER_HEIGHT,
         backgroundColor: "background.default",
         borderTopLeftRadius: 8,
         borderTopRightRadius: 8,
@@ -64,7 +64,7 @@ const Sidebar: React.FC = () => {
         top: "64px",
         bottom: 0,
         left: 0,
-        width: sidebarWidth,
+        width: SIDEBAR_WIDTH,
         display: { xs: "none", md: "flex" },
         flexDirection: "column",
         backgroundColor: "background.default",
@@ -72,7 +72,7 @@ const Sidebar: React.FC = () => {
         borderColor: "divider",
         transform: isOpen
           ? "translateX(0)"
-          : `translateX(-${sidebarWidth - 38}px)`,
+          : `translateX(-${SIDEBAR_WIDTH - 38}px)`,
         transition: "transform 0.3s",
       }}
     >
@@ -119,4 +119,4 @@ const Sidebar: React.FC = () => {
   );
 };
 
-export default memo(Sidebar);
+export default Sidebar;

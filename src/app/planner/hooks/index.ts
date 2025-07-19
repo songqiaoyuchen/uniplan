@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '@/store'; 
-import { makeIsModulePlannedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStatusByCode } from '@/store/timetableSlice';
+import { makeIsModulePlannedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStateByCode } from '@/store/timetableSelectors';
 import { useGetModuleByCodeQuery } from '@/store/apiSlice';
-import { ModuleData } from '@/types/plannerTypes';
+import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
+import { useTheme } from '@mui/material';
 
 export const useModuleState = (moduleCode: string | null) => {
-  // ModuleData
+  // 1. Fetch static data (RTK Query)
   const {
     data: staticData,
     isLoading,
@@ -14,46 +15,42 @@ export const useModuleState = (moduleCode: string | null) => {
     skip: moduleCode === null,
   });
 
-  const selectModuleStatus = useMemo(
-    () => (moduleCode ? makeSelectModuleStatusByCode(moduleCode)
-    : () => null),
-  [moduleCode]);
+  // 2. Memoized selectors
+  const selectModuleState = useMemo(
+    () => (moduleCode ? makeSelectModuleStateByCode(moduleCode) : () => null),
+    [moduleCode]
+  );
+  const isModuleSelectedSelector = useMemo(
+    () => (moduleCode ? makeIsModuleSelectedSelector(moduleCode) : () => false),
+    [moduleCode]
+  );
+  const isModulePlannedSelector = useMemo(
+    () => (moduleCode ? makeIsModulePlannedSelector(moduleCode) : () => false),
+    [moduleCode]
+  );
 
-  const moduleStatus = useAppSelector(selectModuleStatus);
+  // 3. Use selectors
+  const moduleState = useAppSelector(selectModuleState);
+  const isSelected = useAppSelector(isModuleSelectedSelector);
+  const isPlanned = useAppSelector(isModulePlannedSelector);
 
+  // 4. Merge static + dynamic state
   const module = useMemo<ModuleData | null>(() => {
-    if (!staticData) {
-      return null;
-    }
-    if (!moduleStatus) {
-      return staticData
-    }
+    if (!staticData) return null;
+    if (!moduleState) return staticData;
     return {
       ...staticData,
-      status: moduleStatus,
+      status: moduleState.status,
+      issues: moduleState.issues,
     };
-  }, [staticData, moduleStatus]);
-
-  // selected state
-  const isModuleSelectedSelector = useMemo(() => (moduleCode 
-    ? makeIsModuleSelectedSelector(moduleCode) 
-    : () => false), 
-  [moduleCode]);
-  const isSelected = useAppSelector(isModuleSelectedSelector);
-
-  // planned state
-  const isModulePlannedSelector = useMemo(() => ( moduleCode
-    ? makeIsModulePlannedSelector(moduleCode)
-    : () => false), 
-  [moduleCode]);
-  const isPlanned = useAppSelector(isModulePlannedSelector);
+  }, [staticData, moduleState]);
 
   return {
     module,
     isLoading,
     isError,
     isSelected,
-    isPlanned
+    isPlanned,
   };
 };
 
@@ -69,3 +66,25 @@ export const useSemesterState = (semesterId: number) => {
     isDraggedOver,
   };
 };
+
+export function useModuleCardColors(status: ModuleStatus = ModuleStatus.Satisfied) {
+  const theme = useTheme();
+
+  const {
+    backgroundColors,
+    borderColors,
+    selectedBorderWidth,
+    selectedGlowWidth,
+    selectedBorderColor,
+  } = theme.palette.custom.moduleCard;
+
+  return {
+    backgroundColor: backgroundColors[status],
+    borderColor: borderColors[status],
+    selectedBorderWidth,
+    selectedGlowWidth,
+    selectedBorderColor,
+  };
+}
+
+

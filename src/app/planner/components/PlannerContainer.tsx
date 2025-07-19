@@ -20,9 +20,11 @@ import Sidebar from "./sidebar";
 import Box from "@mui/material/Box";
 import Timetable from "./timetable";
 import ModuleCard from "./timetable/ModuleCard";
-import { useGetModuleByCodeQuery } from "@/store/apiSlice";
-import { useAppDispatch } from "@/store";
-import { moduleAdded, moduleMoved, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDraggedOverCleared, semesterDraggedOverSet } from "@/store/timetableSlice";
+import { useModuleState } from "../hooks";
+import DeleteZone from "./DeleteZone";
+import MiniModuleCard from "./timetable/MiniModuleCard";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -31,9 +33,8 @@ const PlannerContainer: React.FC = () => {
 
   // drag overlay states
   const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
-  const { data: draggingModule } = useGetModuleByCodeQuery(draggingModuleCode!, {
-    skip: draggingModuleCode === null,
-  });
+  const { module: draggingModule, isPlanned } = useModuleState(draggingModuleCode);
+  const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const dispatch = useAppDispatch();
 
@@ -67,37 +68,52 @@ const PlannerContainer: React.FC = () => {
 
     const [draggingModuleCode, source] = (active.id as string).split('-');
 
-    const sourceSemesterId = active.data.current?.semesterId;
-    const destSemesterId = over.data.current?.semesterId;
-
-    if (
-      typeof destSemesterId !== 'number'
-    ) return;
-
-    if (source === "sidebar") {
-      dispatch(moduleAdded({
-        moduleCode: draggingModuleCode,
-        destSemesterId
-      }));
+    if (over?.id === "delete-zone") {
+      dispatch(moduleRemoved({ moduleCode: draggingModuleCode }));
       return;
     }
 
-    const overModuleCode = over.data.current?.type === 'module' 
-      ? (over.id as string).split('-')[0] 
-      : null;
+    const sourceSemesterId = active.data.current?.semesterId;
+    const destSemesterId = over.data.current?.semesterId;
 
-    dispatch(
-      moduleMoved({
-        activeModuleCode: draggingModuleCode,
-        overModuleCode,
-        sourceSemesterId,
-        destSemesterId,
-      })
-    );
+    // Sidebar drop
+    if (source === "sidebar") {
+      if (typeof destSemesterId !== "number") return;
+      dispatch(moduleAdded({ moduleCode: draggingModuleCode, destSemesterId }));
+      return;
+    }
+
+    // Drop must be over a semester
+    if (typeof sourceSemesterId !== "number" || typeof destSemesterId !== "number") return;
+
+    const overModuleCode =
+      over.data.current?.type === "module"
+        ? (over.id as string).split("-")[0]
+        : null;
+
+    if (sourceSemesterId === destSemesterId) {
+      dispatch(
+        moduleReordered({
+          semesterId: sourceSemesterId,
+          activeModuleCode: draggingModuleCode,
+          overModuleCode,
+        })
+      );
+    } else {
+      dispatch(
+        moduleMoved({
+          activeModuleCode: draggingModuleCode,
+          overModuleCode,
+          sourceSemesterId,
+          destSemesterId,
+        })
+      );
+    }
   }, [dispatch]);
 
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "row" }}>
+    <Box sx={{ display: "flex", flexDirection: "row", flex: 1 }}>
       <DndContext
         sensors={sensors}
         collisionDetection={rectIntersection}
@@ -112,11 +128,18 @@ const PlannerContainer: React.FC = () => {
         {createPortal(
           <DragOverlay>
             {draggingModuleCode && draggingModule && (
-              <ModuleCard module={draggingModule} />
+              isMinimalView 
+                ? <MiniModuleCard module={draggingModule} isDragging/>
+                : <ModuleCard module={draggingModule} />
             )}
           </DragOverlay>,
           document.body,
         )}
+
+        {draggingModuleCode && isPlanned &&
+          createPortal(<DeleteZone />, document.body)
+        }
+
       </DndContext>
     </Box>
   );
