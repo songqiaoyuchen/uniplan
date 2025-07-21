@@ -46,10 +46,12 @@ export type LogicStatus = {
 
 export type PlannerState = {
   availableModules: Set<string>;
+  redundantModules: Set<string>;
   completedModules: Set<string>;
   logicStatus: Record<string, LogicStatus>;
   satisfiedLogicNodes: Set<string>;
 };
+
 export interface ScoredModule {
   code: string;
   score: number;

@@ -80,6 +80,7 @@ export function runScheduler(
       availableThisSemester,
       plannerState,
       edgeMap,
+      codeToIdMap,
       graph,
       targetSet
     );
@@ -104,3 +105,4 @@ export function runScheduler(
 
   return plan;
 }
+

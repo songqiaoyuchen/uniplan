@@ -13,6 +13,7 @@ export function selectModulesForSemester(
   availableSnapshot: Set<string>, // Now contains IDs
   plannerState: PlannerState,
   edgeMap: EdgeMap,
+  codetoIdMap: Map<string, string>, // Map from code to ID
   graph: NormalisedGraph,
   targetModules: Set<string> // Now contains IDs
 ): string[] {
@@ -39,6 +40,16 @@ export function selectModulesForSemester(
     selected.push(bestModuleId);
     usedCredits += credits;
     remainingModules.delete(bestModuleId);
+    for (const preclusion of node.preclusions) {
+      if (!codetoIdMap.get(preclusion)) {
+        continue;
+      }
+      const preclusionId = codetoIdMap.get(preclusion);
+      if (preclusionId !== undefined) {
+        remainingModules.delete(preclusionId);
+        plannerState.redundantModules.add(preclusionId);
+      }
+    }
     plannerState.completedModules.add(bestModuleId);
 
     // Immediately update logic satisfaction to prevent redundant selections
@@ -84,9 +95,9 @@ function calculateImpact(
   targetModules: Set<string> // Now contains IDs
 ): number {
   // Target modules get maximum impact
-  if (targetModules.has(moduleId)) {
-    return 100.0;
-  }
+  // if (targetModules.has(moduleId)) {
+  //   return 100.0;
+  // }
 
   let totalImpact = 0;
 
@@ -101,12 +112,12 @@ function calculateImpact(
     // If parent logic is already satisfied, zero additional impact
     if (plannerState.logicStatus[logicNode]?.satisfied) continue;
 
-    const unlockValue = calculateUnlockValue(logicNode, edgeMap, graph, targetModules, plannerState);
+    const unlockValue = calculateUnlockValue(logicNode, edgeMap, graph, targetModules, plannerState) * 1.2;
     
     totalImpact += unlockValue;
   }
 
-  return Math.min(100.0, totalImpact);
+  return Math.min(Number.POSITIVE_INFINITY, totalImpact);
 }
 
 /**
@@ -132,7 +143,7 @@ function calculateUnlockValue(
       if (targetModules.has(nodeId)) {
         unlockValue += 20;  // High value for direct target unlock
       } else {
-        unlockValue += 0;  // Some value for unlocking any module
+        unlockValue += 0.1;  // Some value for unlocking any module
       }
     } else if (isNofNode(node)) {
       // Recursively calculate value of unlocking this logic

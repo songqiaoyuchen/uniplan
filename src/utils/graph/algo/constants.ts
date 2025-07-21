@@ -7,7 +7,7 @@ import { LogicNode } from "@/types/graphTypes";
 import { ModuleData } from "@/types/plannerTypes";
 
 // Scheduling constraints
-export const MAX_MCS_PER_SEMESTER = 20;
+export const MAX_MCS_PER_SEMESTER = 24;
 export const MAX_SEMESTERS = 20;
 
 // Type guards

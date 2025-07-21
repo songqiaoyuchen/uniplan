@@ -13,6 +13,7 @@ export function initialise(
 ): PlannerState {
   const availableModules = new Set<string>();
   const completedModules = new Set<string>(exemptedIds);
+  const redundantModules = new Set<string>();
 
   // Satisfaction status of logic nodes
   const logicStatus: Record<string, LogicStatus> = {};
@@ -29,5 +30,5 @@ export function initialise(
     }
   }
 
-  return { availableModules, completedModules, logicStatus, satisfiedLogicNodes };
+  return { availableModules, completedModules, redundantModules, logicStatus, satisfiedLogicNodes };
 }

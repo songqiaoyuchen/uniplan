@@ -16,7 +16,7 @@ export function calculateAvailableModules(
     if (!isModuleData(node)) continue;
     
     // Skip if already completed
-    if (plannerState.completedModules.has(moduleId)) continue;
+    if (plannerState.completedModules.has(moduleId) || plannerState.redundantModules.has(moduleId)) continue;
 
     // Check if all prerequisites are satisfied before adding to available
     const prerequisites = edgeMap[moduleId]?.out || [];
