@@ -9,6 +9,7 @@ import type { Node as NeoNode } from "neo4j-driver";
 import { Neo4jGraph } from "@/types/neo4jTypes";
 import {
   Exam,
+  Grade,
   ModuleData,
   ModuleStatus,
   SemesterLabel,
@@ -90,6 +91,21 @@ export function mapModuleData(node: NeoNode): ModuleData {
     if (matches) preclusions.push(...matches);
   }
 
+  // Ensure grade is a valid Grade enum
+  const validGrades = Object.values(Grade);
+  const rawGrade = typeof props.grade === "string" ? props.grade : undefined;
+  const grade = validGrades.includes(rawGrade as Grade)
+    ? (rawGrade as Grade)
+    : undefined;
+
+  // Determine status
+  let status: ModuleStatus | undefined;
+  if (grade) {
+    status = ModuleStatus.Completed;
+  } else if (typeof props.status === "string" && Object.values(ModuleStatus).includes(props.status as ModuleStatus)) {
+    status = props.status as ModuleStatus;
+  }
+
   return {
     id: node.identity.toString(),
     code: props.moduleCode,
@@ -102,11 +118,8 @@ export function mapModuleData(node: NeoNode): ModuleData {
       props.plannedSemester !== undefined
         ? parseInt(props.plannedSemester)
         : null,
-    grade: typeof props.grade === "string" ? props.grade : undefined,
-    status:
-      props.status !== undefined
-        ? (parseInt(props.status) as ModuleStatus)
-        : undefined,
+    grade,
+    status,
     description: props.description ?? undefined,
     faculty: props.faculty ?? undefined,
     department: props.department ?? undefined,

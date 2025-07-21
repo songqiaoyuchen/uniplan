@@ -253,8 +253,11 @@ function removeRedundantParts(
     }
   }
 
-  const filteredEdges = relationships.filter((r) =>
-    visitedRelationships.has(r.id),
+  const filteredEdges = relationships.filter(
+    (r) =>
+      visitedRelationships.has(r.id) &&
+      r.from in filteredNodes &&
+      r.to in filteredNodes,
   );
 
   return {

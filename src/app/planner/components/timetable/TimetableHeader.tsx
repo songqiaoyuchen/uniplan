@@ -9,6 +9,15 @@ const TimetableHeader = () => {
   const [triggerGetTimetable, { isFetching }] = useLazyGetTimetableQuery();
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
   const dispatch = useDispatch();
+
+  const requiredModuleCodes = [
+    "MA1301", "MA5401", "CS5330", "MA5198", "HSA1000", "NGN2001A",
+    "CP4101", "CS1101S", "CS2030S", "CS2040S", "CS1231S", "CS2105", "CS2109S",
+    "CS2103T", "CS2100", "ST2334", "CS2107", "Cs3230", "DTK1234", "MA2002",
+    "MA2001", "ES2660", "MA2101", "MA2104", "MA2108", "IS1108", "MA2202",
+    "MA2213", "MA5206"
+  ];
+  const exemptedModuleCodes = [] as string[];
   
   return (
     <Box
@@ -27,7 +36,7 @@ const TimetableHeader = () => {
       </Stack>
 
       <Stack direction="row" spacing={2}>
-        <Button variant="outlined" onClick={() => triggerGetTimetable()}>
+        <Button variant="outlined" onClick={() => triggerGetTimetable({ requiredModuleCodes, exemptedModuleCodes })}>
           {isFetching ? "Loading timetable..." : "Test Import Timetable"}
         </Button>
         <Button

@@ -5,7 +5,7 @@ export type ModuleData = {
   credits: number; // number of MC
   semestersOffered: SemesterLabel[]; // e.g. ["First", "Second"]
   exam: Exam | null;
-  preclusions: string[]; // module id
+  preclusions: string[]; // module codes
   plannedSemester?: number | null; // e.g. 5 = y3s2, 0 = y1s1 NO LONGER IN USE
   grade?: Grade; // e.g. A+, B, C, etc.
   status?: ModuleStatus;

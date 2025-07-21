@@ -1,51 +1,45 @@
-import { FormattedGraph, PlannerState } from "@/types/graphTypes";
+import { EdgeMap, NormalisedGraph, PlannerState } from '@/types/graphTypes';
+import { isModuleData, isNofNode } from './constants';
+import { SemesterLabel } from '@/types/plannerTypes';
 
-export function applySemester(
-  taken: string[],
-  state: PlannerState,
-  graph: FormattedGraph,
-): void {
-  for (const code of taken) {
-    state.completedModules.add(code);
-    state.availableModules.delete(code);
+/**
+ * Calculate snapshot of modules available for a semester.
+ * Only updated at semester start.
+ */
+export function calculateAvailableModules(
+  currentSemester: number,
+  plannerState: PlannerState,
+  edgeMap: EdgeMap,
+  graph: NormalisedGraph
+): Set<string> {
+  const available = new Set<string>();
 
-    // Update downstream logic nodes
-    const modNode = Object.entries(graph.nodes).find(
-      ([, n]) => n.type === "single" && n.info.code === code,
-    )?.[0];
+  for (const [moduleId, node] of Object.entries(graph.nodes)) {
+    if (!isModuleData(node)) continue;
+    
+    // Skip if already completed
+    if (plannerState.completedModules.has(moduleId) || plannerState.redundantModules.has(moduleId)) continue;
 
-    if (!modNode) continue;
+    // Check if all prerequisites are satisfied before adding to available
+    const prerequisites = edgeMap[moduleId]?.out || [];
 
-    for (const edge of graph.edges) {
-      if (edge.from === modNode && graph.nodes[edge.to]?.type === "logic") {
-        const logic = state.logicStatus[edge.to];
-        if (logic && !logic.satisfied) {
-          logic.satisfiedCount++;
-          if (logic.satisfiedCount >= logic.requires) {
-            logic.satisfied = true;
-          }
-        }
+    const allPrereqsSatisfied = prerequisites.every((prereqId) => {
+      const prereqNode = graph.nodes[prereqId];
+      if (isModuleData(prereqNode)) {
+        return plannerState.completedModules.has(prereqId);
       }
-
-      if (edge.from === modNode && graph.nodes[edge.to]?.type === "single") {
-        const prereqSatisfied = checkLogicSatisfied(edge.to, state, graph);
-        if (prereqSatisfied) {
-          const modCode = (graph.nodes[edge.to] as any).info.code;
-          state.availableModules.add(modCode);
-        }
+      if (isNofNode(prereqNode)) {
+        return plannerState.logicStatus[prereqId].satisfied;
       }
+    });
+    
+    const actualSem = currentSemester % 2 === 0 ? SemesterLabel.First : SemesterLabel.Second;
+    const isOffered = node.semestersOffered.some((sem) => sem === actualSem);
+
+    if (allPrereqsSatisfied && isOffered) {
+      available.add(moduleId);
     }
   }
-}
 
-function checkLogicSatisfied(
-  nodeId: string,
-  state: PlannerState,
-  graph: FormattedGraph,
-): boolean {
-  const logicParents = graph.edges
-    .filter((e) => e.to === nodeId && graph.nodes[e.from]?.type === "logic")
-    .map((e) => e.from);
-
-  return logicParents.every((pid) => state.logicStatus[pid]?.satisfied);
+  return available;
 }

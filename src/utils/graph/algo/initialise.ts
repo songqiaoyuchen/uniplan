@@ -1,42 +1,34 @@
-import { FormattedGraph } from "@/types/graphTypes";
-import { LogicStatus, PlannerState } from "@/types/graphTypes";
+/**
+ * Initializes the planner state by analyzing the graph structure.
+ * Identifies initially available modules, sets up logic node tracking,
+ * and establishes the starting conditions for scheduling.
+ */
+import { NormalisedGraph, LogicStatus, PlannerState, EdgeMap } from '@/types/graphTypes';
+import { isNofNode } from './constants';
 
-export function initialise(graph: FormattedGraph): PlannerState {
+export function initialise(
+  graph: NormalisedGraph,
+  edgeMap: EdgeMap,
+  exemptedIds: string[]
+): PlannerState {
   const availableModules = new Set<string>();
-  const completedModules = new Set<string>(); // optional: if you prefill known completed modules
+  const completedModules = new Set<string>();
+  const redundantModules = new Set<string>(exemptedIds);
+
+  // Satisfaction status of logic nodes
   const logicStatus: Record<string, LogicStatus> = {};
+  const satisfiedLogicNodes = new Set<string>();
 
-  const incomingEdgesCount: Record<string, number> = {};
-
-  // Step 1: Count incoming edges for each node
-  for (const edge of graph.edges) {
-    incomingEdgesCount[edge.to] = (incomingEdgesCount[edge.to] || 0) + 1;
-  }
-
-  // Step 2: Process each node
+  // Initialize all logic nodes
   for (const [id, node] of Object.entries(graph.nodes)) {
-    if (node.type === "logic") {
-      logicStatus[id] = {
-        satisfied: false,
-        requires: node.requires,
-        satisfiedCount: 0,
-      };
-    } else if (node.type === "single") {
-      const moduleCode = node.info.code;
-      const hasPrereqs = incomingEdgesCount[id] > 0;
-
-      if (!hasPrereqs) {
-        availableModules.add(moduleCode);
-      }
-    } else {
-      // Module groups are not handled in this function yet
-      console.warn(`Unknown node type for ${id}: ${node.type}`);
+    if (isNofNode(node)) {
+      const satisfied = node.n === 0;
+      const prereqIds = edgeMap[id].out || [];
+      const count = prereqIds.filter(prereqId => completedModules.has(prereqId)).length;
+      logicStatus[id] = { satisfied, requires: node.n, satisfiedCount: count };
+      if (satisfied) satisfiedLogicNodes.add(id);
     }
   }
 
-  return {
-    availableModules,
-    completedModules,
-    logicStatus,
-  };
+  return { availableModules, completedModules, redundantModules, logicStatus, satisfiedLogicNodes };
 }

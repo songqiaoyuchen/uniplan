@@ -1,54 +1,114 @@
-import { FormattedGraph } from "@/types/graphTypes";
-import { initialise } from "./initialise";
-import { prioritizeModules } from "./prioritise";
-import { applySemester } from "./update";
+/**
+ * Main scheduler coordinator - clean implementation from scratch.
+ * Handles semester-by-semester planning with snapshot-based availability.
+ */
 
-const MAX_MCS = 20;
+import { NormalisedGraph, Semester, TimetableData } from '@/types/graphTypes';
+import { initialise } from './initialise';
+import { selectModulesForSemester} from './select';
+import { calculateAvailableModules } from './update';
+import { MAX_SEMESTERS } from './constants';
+import { validateSchedule, generateValidationReport } from './check';
+import { isModuleData, isNofNode } from './constants';
 
+/**
+ * Runs the complete scheduling algorithm.
+ */
 export function runScheduler(
-  graph: FormattedGraph,
-  targetModules: string[],
-): string[][] {
-  const state = initialise(graph);
-  const targetSet = new Set(targetModules);
-  const plan: string[][] = [];
+  graph: NormalisedGraph,
+  targetModules: string[] = [], // module codes
+  exemptedModules: string[] = [] // module codes
+): TimetableData {
+  // Build a map from node id to its edges
+  const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
 
-  while (!isSatisfied(state.completedModules, targetSet)) {
-    const prioritized = prioritizeModules(
-      state.availableModules,
-      graph,
-      targetSet,
-    );
-
-    const thisSemester: string[] = [];
-    let usedMCs = 0;
-
-    for (const mod of prioritized) {
-      const node = Object.values(graph.nodes).find(
-        (n) => n.type === "single" && (n as any).info.code === mod.code,
-      );
-      const mc =
-        node &&
-        node.type === "single" &&
-        "info" in node &&
-        node.info.moduleCredit
-          ? parseInt((node as any).info.moduleCredit)
-          : 4;
-
-      if (usedMCs + mc <= MAX_MCS) {
-        thisSemester.push(mod.code);
-        usedMCs += mc;
-      }
-    }
-
-    applySemester(thisSemester, state, graph);
-    plan.push(thisSemester);
+  for (const nodeId of Object.keys(graph.nodes)) {
+    edgeMap[nodeId] = { out: [], in: [] };
   }
 
-  return plan;
-}
+  for (const edge of graph.edges) {
+    // edge.to is prerequisite for edge.from
+    edgeMap[edge.from].out.push(edge.to);    // 'from' requires 'to' (prerequisite)
+    edgeMap[edge.to].in.push(edge.from);     // 'to' unlocks 'from' (dependent)
+  }
+  
+  // Convert module codes to IDs
+  const codeToIdMap = new Map<string, string>();
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    if (isModuleData(node)) {
+      codeToIdMap.set(node.code, id);
+    }
+  }
 
-function isSatisfied(completed: Set<string>, target: Set<string>): boolean {
-  for (const code of target) if (!completed.has(code)) return false;
-  return true;
+  // Convert target and completed modules from codes to IDs
+  const targetIds = targetModules.map(code => codeToIdMap.get(code)).filter(Boolean) as string[];
+  const exemptedIds = exemptedModules.map(code => codeToIdMap.get(code)).filter(Boolean) as string[];
+
+  const missingTargets = targetModules.filter(code => !codeToIdMap.has(code));
+  if (missingTargets.length > 0) {
+    throw new Error(`Target modules not found in graph: ${missingTargets.join(', ')}`);
+  }
+    
+  // Initialize planner state
+  const plannerState = initialise(graph, edgeMap, exemptedIds);
+
+  const targetSet = new Set(targetIds);
+  
+  const semesters: Semester[] = [];
+
+  for (let semester = 0; semester <= MAX_SEMESTERS; semester++) {
+    // Check if all targets completed
+    const allTargetsPlanned = targetIds.every((id) =>
+      plannerState.completedModules.has(id)
+    );
+
+    if (allTargetsPlanned) {
+      console.log(`All target modules completed by semester ${semester}. Stopping planning.`);
+      break;
+    }
+      
+    // Calculate available modules snapshot for this semester
+    const availableThisSemester = calculateAvailableModules(semester, plannerState, edgeMap, graph);
+    
+    if (availableThisSemester.size === 0) {
+      console.log(`No available modules for semester ${semester}. Stopping planning.`);
+      break;
+    }
+
+    // Select modules for this semester
+    const selectedModuleIds = selectModulesForSemester(
+      availableThisSemester,
+      plannerState,
+      edgeMap,
+      codeToIdMap,
+      graph,
+      targetSet
+    );
+
+    // Build semester data - collect all codes for this semester
+    const semesterCodes: string[] = [];
+    for (const moduleId of selectedModuleIds) {
+      plannerState.completedModules.add(moduleId);
+      const node = graph.nodes[moduleId];
+      if (isModuleData(node)) {
+        semesterCodes.push(node.code);
+      }
+    }
+    
+    // Only add semester if it has modules
+    if (semesterCodes.length > 0) {
+      semesters.push({ 
+        id: semester, 
+        moduleCodes: semesterCodes 
+      });
+    }
+  }
+
+  const timetableData: TimetableData = { semesters };
+
+  const validation = validateSchedule(timetableData, graph, targetModules);
+  const report = generateValidationReport(validation);
+  console.log('Validation Report:', report);
+
+  return timetableData;
 }

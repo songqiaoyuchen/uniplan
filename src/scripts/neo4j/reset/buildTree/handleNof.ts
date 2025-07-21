@@ -23,15 +23,42 @@ export async function handleNof(
   const logicId = logicRes.records[0].get("logicId");
 
   for (const child of children) {
-    const childId = await processTree(child, session);
-    const rel = typeof child === "string" ? "OPTION" : "REQUIRES";
+    // Special handling for wildcards in NOF - flatten them directly
+    if (typeof child === "string" && child.includes("%")) {
+      const moduleIds = await resolveModuleCodes(child, session);
+      
+      for (const moduleId of moduleIds) {
+        await session.run(
+          `MATCH (l) WHERE id(l) = $lid
+           MATCH (m) WHERE id(m) = $mid
+           MERGE (l)-[:OPTION]->(m)`,
+          { lid: logicId, mid: moduleId },
+        );
+      }
+    } else {
+      const childId = await processTree(child, session);
+      if (childId === null) {
+        console.warn(`⚠️ Skipping child in NOF due to missing node`);
+        continue;
+      }
 
-    await session.run(
-      `MATCH (l) WHERE id(l) = $lid
-      MATCH (c) WHERE id(c) = $cid
-      MERGE (l)-[:${rel}]->(c)`,
-      { lid: logicId, cid: childId },
-    );
+      // Use same logic as buildLogicGate - check actual node type
+      const labelRes = await session.run(
+        `MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels`,
+        { id: childId },
+      );
+
+      const labels = labelRes.records[0]?.get("labels") as string[];
+      const isModule = labels?.includes("Module");
+      const rel = isModule ? "OPTION" : "REQUIRES";
+
+      await session.run(
+        `MATCH (l) WHERE id(l) = $lid
+        MATCH (c) WHERE id(c) = $cid
+        MERGE (l)-[:${rel}]->(c)`,
+        { lid: logicId, cid: childId },
+      );
+    }
   }
 
   return logicId;

@@ -12,8 +12,11 @@ export const apiSlice = createApi({
       keepUnusedDataFor: Number.MAX_VALUE,
     }),
 
-    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, void> ({
-      query: () => `/timetable`,
+    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[] }> ({
+      query: (args) => {
+        const { requiredModuleCodes, exemptedModuleCodes } = args;
+        return `/timetable?required=${requiredModuleCodes.join(",")}&exempted=${exemptedModuleCodes.join(",")}`;
+      },
     }),
   }),
 });
