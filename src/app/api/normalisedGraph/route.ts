@@ -8,6 +8,7 @@ import { ErrorResponse } from "@/types/errorTypes";
 import { cleanGraph } from "@/utils/graph/cleanGraph";
 import { normaliseNodes } from "@/utils/graph/normaliseNodes";
 import { NormalisedGraph } from "@/types/graphTypes";
+import { checkGraph } from "@/utils/graph/checkGraph";
 
 export async function GET(
   request: NextRequest,
@@ -28,7 +29,11 @@ export async function GET(
 
   try {
     const graph = await getMergedTree(codes);
-    return NextResponse.json(cleanGraph(normaliseNodes(graph), codes));
+    const cleaned = cleanGraph(normaliseNodes(graph), codes)
+    if (!checkGraph(cleaned)) {
+      console.log("invalid graph")
+    }
+    return NextResponse.json(cleaned);
   } catch (err) {
     console.error("exportGraph error:", err);
     return NextResponse.json(
