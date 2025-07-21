@@ -1,11 +1,13 @@
 import { EdgeMap, NormalisedGraph, PlannerState } from '@/types/graphTypes';
 import { isModuleData, isNofNode } from './constants';
+import { SemesterLabel } from '@/types/plannerTypes';
 
 /**
  * Calculate snapshot of modules available for a semester.
  * Only updated at semester start.
  */
 export function calculateAvailableModules(
+  currentSemester: number,
   plannerState: PlannerState,
   edgeMap: EdgeMap,
   graph: NormalisedGraph
@@ -30,8 +32,11 @@ export function calculateAvailableModules(
         return plannerState.logicStatus[prereqId].satisfied;
       }
     });
+    
+    const actualSem = currentSemester % 2 === 0 ? SemesterLabel.First : SemesterLabel.Second;
+    const isOffered = node.semestersOffered.some((sem) => sem === actualSem);
 
-    if (allPrereqsSatisfied) {
+    if (allPrereqsSatisfied && isOffered) {
       available.add(moduleId);
     }
   }

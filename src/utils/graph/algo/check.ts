@@ -5,26 +5,31 @@
  * credit limits, and target module completion.
  **/
 
-import { NormalisedGraph, TimetableData, ValidationResult, PlannerState } from '@/types/graphTypes';
+import { NormalisedGraph, TimetableData, Semester, ValidationResult, PlannerState } from '@/types/graphTypes';
 import { isNofNode, isModuleData, MAX_MCS_PER_SEMESTER } from './constants';
 
 /**
  * Validates that a generated timetable satisfies all constraints
  */
 export function validateSchedule(
-  timetable: TimetableData[],
+  timetable: TimetableData,
   graph: NormalisedGraph,
   targetModules: string[]
 ): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
   
-  // Group by semester
-  const bySemester = timetable.reduce((acc, item) => {
-    if (!acc[item.semester]) acc[item.semester] = [];
-    acc[item.semester].push(item);
-    return acc;
-  }, {} as Record<number, TimetableData[]>);
+  const bySemester: Record<number, Array<{code: string, semester: number}>> = {};
+  const flatTimetable: Array<{code: string, semester: number}> = [];
+  
+  for (const semester of timetable.semesters) {
+    bySemester[semester.id] = [];
+    for (const moduleCode of semester.moduleCodes) {
+      const item = { code: moduleCode, semester: semester.id };
+      bySemester[semester.id].push(item);
+      flatTimetable.push(item);
+    }
+  }
 
   // Track completed modules as we go through semesters
   const completedModules = new Set<string>();
@@ -41,7 +46,7 @@ export function validateSchedule(
   }
 
   // Check for duplicate modules
-  const allModules = timetable.map(item => item.code);
+  const allModules = flatTimetable.map(item => item.code);
   const duplicates = allModules.filter((code, index) => allModules.indexOf(code) !== index);
   if (duplicates.length > 0) {
     errors.push(`Duplicate modules scheduled: ${[...new Set(duplicates)].join(', ')}`);
@@ -138,7 +143,7 @@ export function validateSchedule(
   }
 
   // Check for modules that appear in timetable but aren't in graph
-  for (const { code } of timetable) {
+  for (const { code } of flatTimetable) {
     if (!moduleToNode.has(code)) {
       warnings.push(`Module ${code} in timetable but not found in graph`);
     }
@@ -154,9 +159,9 @@ export function validateSchedule(
   }
 
   const stats = {
-    totalModules: timetable.length,
+    totalModules: flatTimetable.length,
     totalSemesters: semesters.length,
-    totalCredits: timetable.reduce((sum, item) => {
+    totalCredits: flatTimetable.reduce((sum, item) => {
       const node = graph.nodes[moduleToNode.get(item.code) || ''];
       return sum + (isModuleData(node) ? (node.credits || 4) : 4);
     }, 0),

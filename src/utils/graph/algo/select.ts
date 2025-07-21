@@ -143,7 +143,7 @@ function calculateUnlockValue(
       if (targetModules.has(nodeId)) {
         unlockValue += 20;  // High value for direct target unlock
       } else {
-        unlockValue += 0.1;  // Some value for unlocking any module
+        unlockValue += 0;  // Some value for unlocking any module
       }
     } else if (isNofNode(node)) {
       // Recursively calculate value of unlocking this logic

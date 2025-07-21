@@ -64,9 +64,14 @@ export interface ChainLengthInfo {
 }
 
 export type TimetableData = {
-  code: string;
-  semester: number;
+  semesters: Semester[];
 }
+
+export type Semester = {
+  id: number;
+  moduleCodes: string[];
+}
+
 export interface ValidationResult {
   isValid: boolean;
   errors: string[];

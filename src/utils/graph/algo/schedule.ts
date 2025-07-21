@@ -3,7 +3,7 @@
  * Handles semester-by-semester planning with snapshot-based availability.
  */
 
-import { NormalisedGraph, TimetableData } from '@/types/graphTypes';
+import { NormalisedGraph, Semester, TimetableData } from '@/types/graphTypes';
 import { initialise } from './initialise';
 import { selectModulesForSemester} from './select';
 import { calculateAvailableModules } from './update';
@@ -18,7 +18,7 @@ export function runScheduler(
   graph: NormalisedGraph,
   targetModules: string[] = [], // module codes
   exemptedModules: string[] = [] // module codes
-): TimetableData[] {
+): TimetableData {
   // Build a map from node id to its edges
   const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
 
@@ -54,21 +54,21 @@ export function runScheduler(
 
   const targetSet = new Set(targetIds);
   
-  const plan: TimetableData[] = [];
+  const semesters: Semester[] = [];
 
-  for (let semester = 1; semester <= MAX_SEMESTERS; semester++) {
+  for (let semester = 0; semester <= MAX_SEMESTERS; semester++) {
     // Check if all targets completed
     const allTargetsPlanned = targetIds.every((id) =>
       plannerState.completedModules.has(id)
     );
 
-  if (allTargetsPlanned) {
-    console.log(`All target modules completed by semester ${semester}. Stopping planning.`);
-    break;
-  }
+    if (allTargetsPlanned) {
+      console.log(`All target modules completed by semester ${semester}. Stopping planning.`);
+      break;
+    }
       
     // Calculate available modules snapshot for this semester
-    const availableThisSemester = calculateAvailableModules(plannerState, edgeMap, graph);
+    const availableThisSemester = calculateAvailableModules(semester, plannerState, edgeMap, graph);
     
     if (availableThisSemester.size === 0) {
       console.log(`No available modules for semester ${semester}. Stopping planning.`);
@@ -85,24 +85,30 @@ export function runScheduler(
       targetSet
     );
 
-    // Add to plan (convert IDs back to codes for output)
+    // Build semester data - collect all codes for this semester
+    const semesterCodes: string[] = [];
     for (const moduleId of selectedModuleIds) {
       plannerState.completedModules.add(moduleId);
       const node = graph.nodes[moduleId];
       if (isModuleData(node)) {
-        plan.push({
-          code: node.code,
-          semester
-        });
+        semesterCodes.push(node.code);
       }
+    }
+    
+    // Only add semester if it has modules
+    if (semesterCodes.length > 0) {
+      semesters.push({ 
+        id: semester, 
+        moduleCodes: semesterCodes 
+      });
     }
   }
 
-  const codesBySemester = plan.map(item => ({ code: item.code, semester: item.semester }));
-  const validation = validateSchedule(codesBySemester, graph, targetModules);
+  const timetableData: TimetableData = { semesters };
+
+  const validation = validateSchedule(timetableData, graph, targetModules);
   const report = generateValidationReport(validation);
   console.log('Validation Report:', report);
 
-  return plan;
+  return timetableData;
 }
-
