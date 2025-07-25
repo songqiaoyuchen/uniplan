@@ -1,13 +1,14 @@
 // get prereq graph for a given module from Neo4j as FormattedGraph
 
 import { FormattedGraph } from "@/types/graphTypes";
-import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import {  getNeo4jDriver } from "./neo4j";
 import { mapGraph } from "@/utils/graph/mapGraph";
 
 export async function getGraph(
   moduleCode: string,
 ): Promise<FormattedGraph | null> {
-  const { driver, session } = await connectToNeo4j();
+  const driver = getNeo4jDriver();
+  const session = driver.session(); 
 
   try {
     const result = await session.run(
@@ -34,6 +35,6 @@ export async function getGraph(
     console.error(`❌ Failed to query graph for ${moduleCode}:`, err);
     throw err;
   } finally {
-    await closeNeo4jConnection(driver, session);
+    await session.close();
   }
 }

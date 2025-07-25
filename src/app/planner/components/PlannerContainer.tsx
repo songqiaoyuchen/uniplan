@@ -25,6 +25,8 @@ import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDragg
 import { useModuleState } from "../hooks";
 import DeleteZone from "./DeleteZone";
 import MiniModuleCard from "./timetable/MiniModuleCard";
+import ErrorMiniModuleCard from "@/components/placeholders/ErrorMiniModuleCard";
+import ErrorModuleCard from "@/components/placeholders/ErrorModuleCard";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -33,7 +35,7 @@ const PlannerContainer: React.FC = () => {
 
   // drag overlay states
   const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
-  const { module: draggingModule, isPlanned } = useModuleState(draggingModuleCode);
+  const { module: draggingModule, isPlanned, isError } = useModuleState(draggingModuleCode);
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const dispatch = useAppDispatch();

@@ -4,7 +4,7 @@
 
 import type { Node as NeoNode, Relationship as NeoRel } from "neo4j-driver";
 import type { Record as NeoRecord } from "neo4j-driver";
-import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { getNeo4jDriver } from "./neo4j";
 import { mapGraph } from "@/utils/graph/mapGraph";
 import { FormattedGraph } from "@/types/graphTypes";
 
@@ -15,7 +15,8 @@ import { FormattedGraph } from "@/types/graphTypes";
 export async function getMergedTree(
   moduleCodes: string[],
 ): Promise<FormattedGraph> {
-  const { driver, session } = await connectToNeo4j();
+  const driver = getNeo4jDriver();
+  const session = driver.session(); 
   try {
     // Single Cypher query to unwind, collect, and dedupe subgraphs
     const result = await session.run(
@@ -49,6 +50,6 @@ export async function getMergedTree(
     const mapped = mapGraph({ nodes: neoNodes, relationships: neoRels });
     return mapped;
   } finally {
-    await closeNeo4jConnection(driver, session);
+    await session.close();
   }
 }

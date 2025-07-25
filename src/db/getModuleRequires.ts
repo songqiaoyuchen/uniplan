@@ -1,23 +1,30 @@
 import { parsePrereq } from "@/utils/planner/parsePrereq";
-import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { getNeo4jDriver } from "./neo4j";
 import { PrereqTree } from "@/types/plannerTypes";
 
 export async function getModuleRequires(
   moduleCode: string,
 ): Promise<PrereqTree | null> {
-  const { driver, session } = await connectToNeo4j();
+  const driver = getNeo4jDriver();
+  const session = driver.session(); 
 
   try {
     const result = await session.run(
       `
         MATCH (start:Module { moduleCode: $code })
-        MATCH path = (start)-[:HAS_PREREQ|REQUIRES|OPTION*1..]->(target:Module)
-        WHERE ALL(n IN nodes(path)[1..-1] WHERE n:Logic)
 
-        WITH collect(DISTINCT nodes(path)) AS pathNodes, collect(DISTINCT relationships(path)) AS pathRels
-        WITH apoc.coll.flatten(pathNodes) AS nodes, apoc.coll.flatten(pathRels) AS relationships
+        CALL apoc.path.expandConfig(start, {
+          relationshipFilter: "HAS_PREREQ>|REQUIRES>|OPTION>",
+          labelFilter: "/Module",
+          minLevel: 1,
+          uniqueness: "RELATIONSHIP_GLOBAL"
+        }) YIELD path
 
-        RETURN nodes, relationships
+        WITH collect(DISTINCT nodes(path)) AS pathNodes,
+            collect(DISTINCT relationships(path)) AS pathRels
+
+        RETURN apoc.coll.flatten(pathNodes) AS nodes,
+              apoc.coll.flatten(pathRels) AS relationships
       `,
       { code: moduleCode },
     );
@@ -25,6 +32,7 @@ export async function getModuleRequires(
     const { nodes, relationships } = result.records[0].toObject();
     return parsePrereq(nodes, relationships);
   } finally {
-    await closeNeo4jConnection(driver, session);
+    await session.close(); 
   }
 }
+

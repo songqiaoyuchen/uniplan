@@ -11,13 +11,14 @@
 
 import { mapGraph } from "@/utils/graph/mapGraph";
 import type { Node as NeoNode, Relationship as NeoRel } from "neo4j-driver";
-import { connectToNeo4j, closeNeo4jConnection } from "./neo4j";
+import { getNeo4jDriver } from "./neo4j";
 import { FormattedGraph } from "@/types/graphTypes";
 
 export async function getPrereqTree(
   moduleCode: string,
 ): Promise<FormattedGraph | null> {
-  const { driver, session } = await connectToNeo4j();
+  const driver = getNeo4jDriver();
+  const session = driver.session(); 
 
   try {
     const result = await session.run(
@@ -40,6 +41,6 @@ export async function getPrereqTree(
 
     return mapGraph({ nodes: neoNodes, relationships: neoRels });
   } finally {
-    await closeNeo4jConnection(driver, session);
+    await session.close();
   }
 }
