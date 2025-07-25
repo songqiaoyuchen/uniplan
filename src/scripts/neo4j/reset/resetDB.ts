@@ -1,4 +1,4 @@
-import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { closeNeo4jDriver, getNeo4jDriver } from "../../../db/neo4j";
 import { uploadModules } from "./uploadModules";
 import { deduplicateLogicNodes } from "./deduplicateLogicNodes";
 import { downloadData } from "./downloadData";
@@ -8,15 +8,17 @@ import { uploadAllPrereqTrees } from "./uploadPrerequisites";
 
 async function resetDB(): Promise<void> {
   const startTime = Date.now();
+  const driver = await getNeo4jDriver();
+  const session = driver.session();
 
   try {
-    await deleteGraph();
+    await deleteGraph(session);
     // Uncomment the following lines to download the latest NUSMods data (Don't spam it!)
     // await downloadData();
-    await uploadModules();
-    await uploadAllPrereqTrees();
-    await deduplicateLogicNodes();
-    await deleteYSCModules();
+    await uploadModules(session);
+    await uploadAllPrereqTrees(session);
+    await deduplicateLogicNodes(session);
+    await deleteYSCModules(session);
     console.log("✅ Graph reset and rebuilt successfully.");
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(2);
@@ -25,6 +27,8 @@ async function resetDB(): Promise<void> {
     );
   } catch (err) {
     console.error("❌ Error resetting and rebuilding graph:", err);
+  } finally {
+    closeNeo4jDriver();
   }
 }
 

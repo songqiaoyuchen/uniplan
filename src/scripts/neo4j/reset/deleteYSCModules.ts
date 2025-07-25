@@ -1,8 +1,6 @@
-import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { Session } from "neo4j-driver";
 
-export async function deleteYSCModules() {
-  const { driver, session } = await connectToNeo4j();
-
+export async function deleteYSCModules(session: Session) {
   const deleteModulesCypher = `
     MATCH (m:Module)
     WHERE m.moduleCode STARTS WITH 'YSC'
@@ -27,14 +25,5 @@ export async function deleteYSCModules() {
     console.log(`🧹 Deleted ${deletedLogic} orphaned logic nodes.`);
   } catch (err) {
     console.error("❌ Error deleting modules or logic nodes:", err);
-  } finally {
-    await closeNeo4jConnection(driver, session);
   }
-}
-
-if (require.main === module) {
-  deleteYSCModules().catch((err) => {
-    console.error("❌ Failed to delete YSC modules and logic nodes:", err);
-    process.exit(1);
-  });
 }

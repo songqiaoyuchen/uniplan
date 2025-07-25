@@ -1,13 +1,9 @@
 import { LogicType } from "@/types/neo4jTypes";
-import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
 import { Session } from "neo4j-driver";
 
-export async function deduplicateLogicNodes() {
-  let driver, session;
+export async function deduplicateLogicNodes(session: Session) {
 
   try {
-    ({ driver, session } = await connectToNeo4j());
-
     const types = ["OR", "AND", "NOF"];
     let globalChanged = true;
     let globalIteration = 1;
@@ -47,10 +43,6 @@ export async function deduplicateLogicNodes() {
   } catch (err) {
     console.error("❌ Failed to connect to Neo4j:", err);
     throw err;
-  } finally {
-    if (session && driver) {
-      await closeNeo4jConnection(driver, session);
-    }
   }
 }
 
@@ -174,14 +166,4 @@ function buildDeduplicationQuery(logicType: LogicType) {
     
     RETURN count(logicGroup) AS mergedGroups;
   `;
-}
-
-// Script execution support
-if (require.main === module) {
-  deduplicateLogicNodes()
-    .then(() => console.log(`✅ Deduplication script completed successfully.`))
-    .catch((err) => {
-      console.error(`❌ Deduplication script failed:`, err);
-      process.exit(1);
-    });
 }
