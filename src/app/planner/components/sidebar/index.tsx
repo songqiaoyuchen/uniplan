@@ -14,6 +14,7 @@ import ModuleSearch from "./ModuleSearch";
 import { useModuleState } from "../../hooks";
 import { MOBILE_DRAWER_HEIGHT, SIDEBAR_WIDTH } from "@/constants";
 import { useRouter, useSearchParams } from "next/navigation";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -26,7 +27,7 @@ const Sidebar: React.FC = () => {
   const handleToggle = () => dispatch(toggleSidebar());
 
   const selectedModuleCode = searchParams.get("module");
-  const { module, isPlanned } = useModuleState(selectedModuleCode);
+  const { module, isPlanned, isLoading, isFetching } = useModuleState(selectedModuleCode);
 
   return isMobile ? (
     <Box
@@ -54,7 +55,12 @@ const Sidebar: React.FC = () => {
       </IconButton>
       <Box sx={{ p: 2, gap: 2 }}>
         {isOpen && <ModuleSearch />}
-        {module && isOpen && <ModuleDetails module={module} isPlanned={isPlanned} />}
+        {isOpen && (isLoading || isFetching) && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {module && isOpen && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
       </Box>
     </Box>
   ) : (
@@ -113,7 +119,12 @@ const Sidebar: React.FC = () => {
         }}
       >
         {isOpen && <ModuleSearch />}
-        {module && isOpen && selectedModuleCode && <ModuleDetails module={module} isPlanned={isPlanned} />}
+        {isOpen && (isLoading || isFetching) && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
+            <CircularProgress />
+          </Box>
+        )}
+        {module && isOpen && selectedModuleCode && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
       </Box>
     </Box>
   );

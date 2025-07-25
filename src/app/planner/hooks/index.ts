@@ -10,7 +10,9 @@ export const useModuleState = (moduleCode: string | null) => {
   const {
     data: staticData,
     isLoading,
+    isFetching,
     isError,
+    refetch,
   } = useGetModuleByCodeQuery(moduleCode!, {
     skip: moduleCode === null,
   });
@@ -48,9 +50,11 @@ export const useModuleState = (moduleCode: string | null) => {
   return {
     module,
     isLoading,
+    isFetching,
     isError,
     isSelected,
     isPlanned,
+    refetch,
   };
 };
 

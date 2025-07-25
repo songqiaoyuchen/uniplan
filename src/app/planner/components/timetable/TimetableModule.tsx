@@ -3,13 +3,16 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import ModuleCard from "./ModuleCard";
-import Box from "@mui/material/Box";
 import { memo, useCallback, useMemo } from "react";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { moduleSelected, moduleUnselected } from "@/store/timetableSlice";
 import { useModuleState } from "../../hooks";
 import { useRouter } from "next/navigation";
 import MiniModuleCard from "./MiniModuleCard";
+import ModuleCardPlaceholder from "@/components/placeholders/ModuleCardPlaceholder";
+import ErrorModuleCard from "@/components/placeholders/ErrorModuleCard";
+import MiniModuleCardPlaceholder from "@/components/placeholders/MiniModuleCardPlaceholder";
+import MiniErrorModuleCard from "@/components/placeholders/ErrorMiniModuleCard";
 
 interface TimetableModuleProps {
   moduleCode: string;
@@ -21,7 +24,7 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
   const router = useRouter();
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
-  const { module, isLoading, isError, isSelected } = useModuleState(moduleCode);
+  const { module, isFetching, isError, isSelected, refetch } = useModuleState(moduleCode);
 
   const {
     attributes,
@@ -60,12 +63,36 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
     }
   }, [dispatch, isSelected, moduleCode]);
 
-  // loading presentation to be refined
-  if (isLoading) {
-    return <Box ref={setNodeRef} style={style}>Loading…</Box>;
+  if (isFetching) {
+    const Placeholder = isMinimalView
+      ? MiniModuleCardPlaceholder
+      : ModuleCardPlaceholder;
+
+    return (
+      <div
+        style={style}
+      >
+        <Placeholder />
+      </div>
+    );
   }
+
   if (isError || !module) {
-    return <Box ref={setNodeRef} style={style}>Error loading module</Box>;
+    const ErrorPlaceholder = isMinimalView
+      ? MiniErrorModuleCard
+      : ErrorModuleCard;
+
+    return (
+      <div
+        style={style}
+        onClick={(e) => {
+          e.stopPropagation();
+          refetch();
+        }}
+      >
+        <ErrorPlaceholder moduleCode={moduleCode} />
+      </div>
+    );
   }
 
   return (

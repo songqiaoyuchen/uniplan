@@ -25,8 +25,8 @@ export async function GET(
       );
     }
 
-    const requires = await getModuleRequires(moduleCode);
-    return NextResponse.json({ ...module, requires }, { status: 200 });
+    module.requires = await getModuleRequires(moduleCode);
+    return NextResponse.json(module, { status: 200 });
   } catch (err) {
     console.error('getModule error:', err);
     return NextResponse.json(

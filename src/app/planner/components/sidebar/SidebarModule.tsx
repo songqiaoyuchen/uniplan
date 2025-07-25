@@ -3,6 +3,9 @@ import { useModuleState } from "../../hooks";
 import { memo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import ModuleTooltip from "./ModuleTooltip";
+import { moduleSelected } from "@/store/timetableSlice";
+import { useDispatch } from "react-redux";
+import ModuleTooltipPlaceholder from "@/components/placeholders/ModuleTooltipPlaceholder";
 
 interface SidebarModuleProps {
   moduleCode: string;
@@ -10,6 +13,7 @@ interface SidebarModuleProps {
 
 const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
   const router = useRouter();
+  const dispatch = useDispatch();
   const { module, isPlanned, isLoading, isError } = useModuleState(moduleCode);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: moduleCode + '-sidebar',
@@ -24,13 +28,14 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
 
   const handleClick = useCallback(() => {
     router.push(`?module=${moduleCode}`, { scroll: false });
+    dispatch(moduleSelected(moduleCode))
   }, [moduleCode]);
 
   if (isLoading) {
-    return <div ref={setNodeRef}>Loading…</div>;
+    return <ModuleTooltipPlaceholder />
   }
   if (isError || !module) {
-    return <div ref={setNodeRef}>Error loading module</div>;
+    return 
   }
   
   return (
