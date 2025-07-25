@@ -7,7 +7,7 @@
 import fs from "fs";
 import path from "path";
 import { Prerequisite } from "@/types/neo4jTypes";
-import { attachPrereqTree } from "./buildTree/attachTree";
+import { attachPrereqTree } from "../buildTree/attachTree";
 import { Session } from "neo4j-driver";
 
 export async function uploadAllPrereqTrees(session: Session): Promise<void> {
