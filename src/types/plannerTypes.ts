@@ -1,4 +1,14 @@
-export type ModuleData = {
+export type ModuleData = StaticModuleData & DynamicModuleData;
+
+export type DynamicModuleData = {
+  plannedSemester?: number | null; // e.g. 5 = y3s2, 0 = y1s1 NO LONGER IN USE
+  grade?: Grade; // e.g. A+, B, C, etc.
+  status?: ModuleStatus;
+  issues?: ModuleIssue[];
+  tags?: string[];
+};
+
+export type StaticModuleData = {
   id: string; // neo4j node id or uuid
   code: string; // e.g. CS1101S
   title: string; // e.g. Data Structures and Algorithms
@@ -6,16 +16,13 @@ export type ModuleData = {
   semestersOffered: SemesterLabel[]; // e.g. ["First", "Second"]
   exam: Exam | null;
   preclusions: string[]; // module codes
-  plannedSemester?: number | null; // e.g. 5 = y3s2, 0 = y1s1 NO LONGER IN USE
-  grade?: Grade; // e.g. A+, B, C, etc.
-  status?: ModuleStatus;
   description?: string; // optional description
   faculty?: string; // optional faculty name
   department?: string; // optional department name
-  requires?: PrereqTree | null; // module codes that this module requires (e.g. CS1010)
+  requires?: PrereqTree; // module codes that this module requires (e.g. CS1010)
   unlocks?: string[]; // module codes that this module unlocks (e.g. CS1101S)
-  issues?: ModuleIssue[]
-};
+}
+
 
 export type MiniModuleData = {
   code: string; // e.g. CS1101S

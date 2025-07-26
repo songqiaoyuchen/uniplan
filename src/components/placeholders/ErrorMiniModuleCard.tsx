@@ -13,7 +13,7 @@ const MiniErrorModuleCard: React.FC = () => {
         userSelect: 'none',
         backgroundColor: theme.palette.error.light,
         border: `2px solid ${theme.palette.error.main}`,
-        borderRadius: 2,
+        borderRadius: 1,
         display: 'flex',
         alignItems: 'center',
         gap: 1,
