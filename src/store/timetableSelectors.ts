@@ -14,6 +14,7 @@ export const {
 
 export const selectSelectedModuleCode = (state: RootState) => state.timetable.selectedModuleCode;
 export const selectDraggedOverSemesterId = (state: RootState) => state.timetable.draggedOverSemesterId;
+export const selectIsMinimalView = (state: RootState) => state.timetable.isMinimalView;
 
 // --- memoized selectors / selector factories ---
 export const makeSelectModuleCodesBySemesterId = (semesterId: number) =>
@@ -42,4 +43,28 @@ export const makeSelectModuleStateByCode = (moduleCode: string) =>
     [(state: RootState) => state.timetable.modules.entities[moduleCode]],
     (moduleState) =>
       moduleState ? { ...moduleState } : null
+  );
+
+export const makeSelectSemesterHeaderInfo = () =>
+  createSelector(
+    [
+      (state: RootState) => state.timetable.semesters.entities,
+      (state: RootState) => state.timetable.modules.entities,
+      (_state: RootState, semesterId: number) => semesterId
+    ],
+    (semesters, modules, semesterId) => {
+      const semester = semesters[semesterId];
+      if (!semester) {
+        console.error(`Semester ${semesterId} not found`);
+        return { moduleCount: 0, totalMCs: 0 };
+      }
+      
+      const moduleCount = semester.moduleCodes.length;
+      const totalMCs = semester.moduleCodes.reduce(
+        (acc, moduleCode) => acc + (modules[moduleCode]?.credits ?? 0),
+        0
+      );
+      
+      return { moduleCount, totalMCs };
+    }
   );
