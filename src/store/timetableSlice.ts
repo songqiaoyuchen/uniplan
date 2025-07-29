@@ -1,18 +1,10 @@
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { Grade, ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
+import { ModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
 import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload, StaticModuleData } from '@/utils/planner/checkModuleStates';
-
-export interface ModuleState {
-  code: string; // code as id
-  status: ModuleStatus;
-  issues: ModuleIssue[];
-  grade?: Grade;
-  tags?: string[]
-}
 
 export interface Semester {
   id: number; // e.g., 0 for Y1S1, 1 for Y1Winter, 2 for Y1S2, 3 for Y1Summer
@@ -20,7 +12,7 @@ export interface Semester {
 }
 
 export interface TimetableSliceState {
-  modules: EntityState<ModuleState, string>;
+  modules: EntityState<ModuleData, string>;
   semesters: EntityState<Semester, number>; 
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
@@ -28,7 +20,7 @@ export interface TimetableSliceState {
 }
 
 export const modulesAdapter = createEntityAdapter({
-  selectId: (m: ModuleState) => m.code,
+  selectId: (m: ModuleData) => m.code,
 });
 
 export const semestersAdapter = createEntityAdapter({
@@ -45,28 +37,38 @@ const timetableSlice = createSlice({
     isMinimalView: false
   } as TimetableSliceState,
   reducers: {
+    timetableInitialised(
+      state,
+      action: PayloadAction<{
+        modules: ModuleData[];
+        semesters: Semester[];
+      }>
+    ) {
+      modulesAdapter.setAll(state.modules, action.payload.modules);
+      semestersAdapter.setAll(state.semesters, action.payload.semesters);
+    },
+    
     // handles adding a module to the timeable
     moduleAdded(
       state,
       action: PayloadAction<{ 
-        moduleCode: string; 
+        module: ModuleData; 
         destSemesterId: number 
       }>
     ) {
-      const { moduleCode, destSemesterId } = action.payload;
+      const { module, destSemesterId } = action.payload;
 
-      const exists = state.modules.entities[moduleCode];
+      const exists = state.modules.entities[module.code];
       if (!exists) { // defensive check
-        modulesAdapter.addOne(state.modules, {
-          code: moduleCode,
-          status: ModuleStatus.Satisfied,
-          issues: []
-        });
+        modulesAdapter.addOne(state.modules, module);
       }
 
       const semester = state.semesters.entities[destSemesterId];
-      if (semester && !semester.moduleCodes.includes(moduleCode)) { // defensive checks
-        semester.moduleCodes.push(moduleCode);
+      if (semester && !semester.moduleCodes.includes(module.code)) { // defensive checks
+        semester.moduleCodes.push(module.code);
+      } else if (!semester) {
+        // Handle case where semester doesn't exist
+        console.warn(`Semester with id ${destSemesterId} does not exist`);
       }
     },
 
@@ -180,30 +182,18 @@ const timetableSlice = createSlice({
     builder.addCase(updateModuleStates.fulfilled, (state, action) => {
       modulesAdapter.updateMany(state.modules, action.payload);
     });
-    // populates states when timetable fetched
     builder.addMatcher(
       apiSlice.endpoints.getTimetable.matchFulfilled,
       (state, action) => {
-        const { semesters } = action.payload;
-
-        const uniqueModuleCodes = [
-          ...new Set(semesters.flatMap((s) => s.moduleCodes)),
-        ];
-
-        const modules: ModuleState[] = uniqueModuleCodes.map((code) => ({
-          code,
-          status: ModuleStatus.Satisfied,
-          issues: []
-        }));
-
-        modulesAdapter.setAll(state.modules, modules);
-        semestersAdapter.setAll(state.semesters, semesters);
+        semestersAdapter.setAll(state.semesters, action.payload.semesters);
+        modulesAdapter.removeAll(state.modules); // clear stale modules
       }
     );
   }
 });
 
 export const {
+  timetableInitialised,
   moduleAdded,
   moduleMoved,
   moduleReordered,
@@ -214,7 +204,10 @@ export const {
   semesterDraggedOverCleared,
   minimalViewToggled
 } = timetableSlice.actions;
+
 export default timetableSlice.reducer;
+export const timetableActions = timetableSlice.actions;
+
 
 // --- async thunks ---
 export const updateModuleStates = createAsyncThunk<

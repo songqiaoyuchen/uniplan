@@ -1,6 +1,6 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
-import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, updateModuleStates } from './timetableSlice'
+import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
 
@@ -53,6 +53,28 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     effect: async (_, api) => {
       api.cancelActiveListeners();
       api.dispatch(updateModuleStates());
+    },
+  });
+
+  startAppListening({
+    matcher: apiSlice.endpoints.getModuleByCode.matchFulfilled,
+    effect: async (action, api) => {
+      const moduleData = action.payload;
+      const moduleCode = moduleData.code;
+      const state = api.getState() as RootState;
+
+      // Check if this module code exists in any semester
+      const isInTimetable = Object.values(state.timetable.semesters.entities).some(semester =>
+        semester?.moduleCodes.includes(moduleCode)
+      );
+
+      // If it's part of the timetable, add it to the slice
+      if (isInTimetable) {
+        api.dispatch(timetableActions.moduleAdded({
+          module: moduleData,
+          destSemesterId: -1, // Don't add it to any specific semester, just store it in the timetable state
+        }));
+      }
     },
   });
 
