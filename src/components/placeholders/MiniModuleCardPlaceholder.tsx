@@ -3,7 +3,7 @@
 import { Card, Skeleton, useTheme, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 
-const MotionCard = motion(Card);
+const MotionCard = motion.create(Card);
 
 const MiniModuleCardPlaceholder: React.FC = () => {
   const theme = useTheme();

@@ -6,7 +6,12 @@ import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
 import { useTheme } from '@mui/material';
 
 export const useModuleState = (moduleCode: string | null) => {
-  // 1. Fetch static data (RTK Query)
+  // 1. Get module from timetable if available
+  const existingModule = useAppSelector(
+    (state) => (moduleCode ? state.timetable.modules.entities[moduleCode] ?? null : null)
+  );
+
+  // 2. Fetch from RTK only if not already stored
   const {
     data: staticData,
     isLoading,
@@ -14,7 +19,7 @@ export const useModuleState = (moduleCode: string | null) => {
     isError,
     refetch,
   } = useGetModuleByCodeQuery(moduleCode!, {
-    skip: moduleCode === null,
+    skip: moduleCode === null || !!existingModule,
   });
 
   // 2. Memoized selectors
@@ -36,21 +41,23 @@ export const useModuleState = (moduleCode: string | null) => {
   const isSelected = useAppSelector(isModuleSelectedSelector);
   const isPlanned = useAppSelector(isModulePlannedSelector);
 
-  // 4. Merge static + dynamic state
+  // 4. Compose final module
   const module = useMemo<ModuleData | null>(() => {
+    if (existingModule) return existingModule;
     if (!staticData) return null;
     if (!moduleState) return staticData;
+
     return {
       ...staticData,
       status: moduleState.status,
       issues: moduleState.issues,
     };
-  }, [staticData, moduleState]);
+  }, [existingModule, staticData, moduleState]);
 
   return {
     module,
-    isLoading,
-    isFetching,
+    isLoading: !existingModule && isLoading,
+    isFetching: !existingModule && isFetching,
     isError,
     isSelected,
     isPlanned,

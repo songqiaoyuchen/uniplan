@@ -66,9 +66,6 @@ const timetableSlice = createSlice({
       const semester = state.semesters.entities[destSemesterId];
       if (semester && !semester.moduleCodes.includes(module.code)) { // defensive checks
         semester.moduleCodes.push(module.code);
-      } else if (!semester) {
-        // Handle case where semester doesn't exist
-        console.warn(`Semester with id ${destSemesterId} does not exist`);
       }
     },
 

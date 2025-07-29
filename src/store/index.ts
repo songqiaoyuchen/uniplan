@@ -21,6 +21,7 @@ import { listenerMiddleware } from './listenerMiddleware'
 const persistConfig = {
   key: "root",
   storage,
+  blacklist: [apiSlice.reducerPath],
 };
 
 const rootReducer = combineReducers({
