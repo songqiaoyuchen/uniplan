@@ -70,9 +70,8 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
 
       // If it's part of the timetable, add it to the slice
       if (isInTimetable) {
-        api.dispatch(timetableActions.moduleAdded({
+        api.dispatch(timetableActions.moduleCached({
           module: moduleData,
-          destSemesterId: -1, // Don't add it to any specific semester, just store it in the timetable state
         }));
       }
     },

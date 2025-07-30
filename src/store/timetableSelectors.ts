@@ -55,7 +55,7 @@ export const makeSelectSemesterHeaderInfo = () =>
     (semesters, modules, semesterId) => {
       const semester = semesters[semesterId];
       if (!semester) {
-        console.error(`Semester ${semesterId} not found`);
+        console.error(`Semester ID=${semesterId} not found`);
         return { moduleCount: 0, totalMCs: 0 };
       }
       

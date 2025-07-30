@@ -10,27 +10,23 @@ import {
   PrereqTree,
   ModuleData,
   SemesterLabel,
+  StaticModuleData,
 } from '@/types/plannerTypes';
-import { ModuleState, Semester } from '@/store/timetableSlice';
+import { Semester } from '@/store/timetableSlice';
 
-export type StaticModuleData = Pick<
-  ModuleData,
-  'code' | 'requires' | 'preclusions' | 'exam' | 'semestersOffered'
->;
 export interface CheckModuleStatesArgs {
-  staticModulesData: Record<string, StaticModuleData>;
   semesterEntities: Record<number, Semester>;
-  moduleEntities: Record<string, ModuleState>;
+  moduleEntities: Record<string, ModuleData>;
 }
 export type ModuleUpdatePayload = {
   id: string;
-  changes: Pick<ModuleState, 'status' | 'issues'>;
+  changes: Pick<ModuleData, 'status' | 'issues'>;
 };
 
 export function checkModuleStates(
   args: CheckModuleStatesArgs
 ): ModuleUpdatePayload[] {
-  const { staticModulesData, semesterEntities, moduleEntities } = args;
+  const { semesterEntities, moduleEntities } = args;
 
   // Map each planned module to its semester
   const moduleToSemester = new Map<string, number>();
@@ -39,7 +35,7 @@ export function checkModuleStates(
   });
 
   // Build conflict issues for all modules
-  const conflictMap = buildIssuesMap(staticModulesData, moduleToSemester);
+  const conflictMap = buildIssuesMap(moduleEntities, moduleToSemester);
 
   // Track seen modules to evaluate prerequisites
   const modulesSeen: Record<string, ModuleStatus> = {};
@@ -63,7 +59,7 @@ export function checkModuleStates(
       const current = moduleEntities[code];
       if (!current) continue;
 
-      const staticData = staticModulesData[code];
+      const module = moduleEntities[code];
       let status: ModuleStatus;
       let issues: ModuleIssue[] = conflictMap.get(code) || [];
 
@@ -75,8 +71,8 @@ export function checkModuleStates(
         issues = conflictMap.get(code) || [];
 
         // Always check for prereq satisfaction
-        const prereqSatisfied = !staticData?.requires || evaluatePrereqTree(
-          staticData.requires,
+        const prereqSatisfied = !module?.requires || evaluatePrereqTree(
+          module.requires,
           prereq => {
             const seen = modulesSeen[prereq];
             return seen === ModuleStatus.Completed || seen === ModuleStatus.Satisfied;
@@ -137,7 +133,7 @@ export function checkModuleStates(
  * @returns examClashMap: Map of moduleCodes to an array of moduleCodes that it clashes with
  */
 function buildExamClashMap(
-  staticModulesData: Record<string, StaticModuleData>,
+  moduleData: Record<string, ModuleData>,
   moduleToSemesterMap: Map<string, number>
 ): Map<string, string[]> {
 
@@ -152,7 +148,7 @@ function buildExamClashMap(
 
   // collect exam windows
   for (const code of moduleToSemesterMap.keys()) {
-    const mod = staticModulesData[code];
+    const mod = moduleData[code];
     const semId = moduleToSemesterMap.get(code);
     if (mod?.exam && semId !== undefined) {
       const start = new Date(mod.exam.startTime).getTime();
@@ -204,7 +200,7 @@ function buildIssuesMap(
     const issues: ModuleIssue[] = [];
 
     const semId = moduleToSemesterMap.get(code)!;
-    const actualSem = semId % 2 === 0 ? SemesterLabel.First : SemesterLabel.Second;
+    const actualSem = semId % 4 as SemesterLabel;
     if (!mod.semestersOffered.includes(actualSem)) {
       issues.push({ type: 'InvalidSemester' });
     }

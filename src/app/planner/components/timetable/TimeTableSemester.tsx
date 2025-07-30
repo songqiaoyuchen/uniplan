@@ -26,10 +26,10 @@ const TimetableSemester: React.FC<TimetableSemesterProps> = ({ semesterId }) => 
   return (
     <div
       ref={setNodeRef}
-      style={isMinimalView ? { flex: 1, minWidth: 0, minHeight: 0 } : undefined}
+      style={isMinimalView ? { flex: 1 } : undefined}
     >
       <SortableContext items={moduleCodes}>
-          <SemesterColumn moduleCodes={moduleCodes} semesterId={semesterId} isDraggedOver={isDraggedOver}/>
+        <SemesterColumn moduleCodes={moduleCodes} semesterId={semesterId} isDraggedOver={isDraggedOver}/>
       </SortableContext>
     </div>
   );

@@ -1,10 +1,10 @@
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData } from "@/types/plannerTypes";
+import { ModuleData, StaticModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
-import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload, StaticModuleData } from '@/utils/planner/checkModuleStates';
+import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload } from '@/utils/planner/checkModuleStates';
 
 export interface Semester {
   id: number; // e.g., 0 for Y1S1, 1 for Y1Winter, 2 for Y1S2, 3 for Y1Summer
@@ -69,6 +69,36 @@ const timetableSlice = createSlice({
       }
     },
 
+    moduleCached(
+      state,
+      action: PayloadAction<{ 
+        module: ModuleData; 
+      }>
+    ) {
+      const { module } = action.payload;
+
+      const exists = state.modules.entities[module.code];
+      if (!exists) { // defensive check
+        modulesAdapter.addOne(state.modules, module);
+      }
+    },
+
+    semesterAdded: (state, action: PayloadAction<{ id: number }>) => {
+      const { id } = action.payload;
+      if (!state.semesters.entities[id]) {
+        state.semesters.entities[id] = {
+          id,
+          moduleCodes: [],
+        };
+        state.semesters.ids.push(id);
+      }
+    },
+    semesterRemoved: (state, action: PayloadAction<{ semesterId: number }>) => {
+      const { semesterId } = action.payload;
+      semestersAdapter.removeOne(state.semesters, semesterId);
+    },
+
+
     // for intra-semester reordering only
     moduleReordered(
       state,
@@ -123,6 +153,13 @@ const timetableSlice = createSlice({
 
       // remove from source
       src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
+      const termOffset = src.id % 4;
+      const isSpecialTerm = termOffset === 1 || termOffset === 3;
+
+      if (src.moduleCodes.length === 0 && isSpecialTerm) {
+        // If no modules left, remove the semester
+        semestersAdapter.removeOne(state.semesters, src.id);
+      }
 
       // determine insert index in destination
       const insertIndex =
@@ -142,8 +179,12 @@ const timetableSlice = createSlice({
 
       // Remove the moduleCode from any semester.moduleCodes it's in
       Object.values(state.semesters.entities).forEach((semester) => {
-        if (semester) {
-          semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        const termOffset = semester.id % 4;
+        const isSpecialTerm = termOffset === 1 || termOffset === 3;
+        if (semester.moduleCodes.length === 0 && isSpecialTerm) {
+          // If no modules left, remove the semester
+          semestersAdapter.removeOne(state.semesters, semester.id);
         }
       });
 
@@ -192,6 +233,9 @@ const timetableSlice = createSlice({
 export const {
   timetableInitialised,
   moduleAdded,
+  moduleCached,
+  semesterAdded,
+  semesterRemoved,
   moduleMoved,
   moduleReordered,
   moduleRemoved,
@@ -219,26 +263,17 @@ export const updateModuleStates = createAsyncThunk<
     // --- 1. gather inputs ---
     // a) Dynamic state from timetable slice
     const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
-    const plannedModuleCodes = moduleEntities.ids as string[];
-
-    // b) Static data from RTK Query cache
-    const staticModulesData: Record<string, StaticModuleData> = {};
-    for (const code of plannedModuleCodes) {
-      const cached = apiSlice.endpoints.getModuleByCode.select(code)(state);
-      if (cached.data) {
-        staticModulesData[code] = cached.data;
-      }
-    }
 
     // c) Prepare arguments for pure state-checking function
     const args: CheckModuleStatesArgs = {
-      staticModulesData,
       semesterEntities: semesterEntities.entities,
       moduleEntities: moduleEntities.entities,
     };
 
     // --- 2. RUN CHECK AND RETURN DELTAS ---
     const deltas = checkModuleStates(args);
+    console.log("Deltas to apply:", deltas);
+
     return deltas;
   }
 );

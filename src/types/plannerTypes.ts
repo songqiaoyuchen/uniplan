@@ -36,8 +36,8 @@ export type Exam = {
 
 export enum SemesterLabel {
   First,
-  Second,
   SpecialTerm1,
+  Second,
   SpecialTerm2,
 }
 
