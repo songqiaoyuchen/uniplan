@@ -50,7 +50,23 @@ const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ module, isSelected = fa
         disableTouchListener={isDragging}
         disableFocusListener={isDragging}
         disableHoverListener={isDragging}
-        title={`${module.code}: ${module.title}`} arrow placement="right">
+        title={`${module.code}: ${module.title}`} arrow placement="right"
+        slotProps={{
+          popper: {
+            modifiers: [
+              {
+                name: 'customStyle',
+                enabled: true,
+                phase: 'beforeWrite',
+                fn: ({ state }) => {
+                  Object.assign(state.elements.popper.style, {
+                    userSelect: 'none',
+                    cursor: 'default',
+                  });
+                },
+              },
+            ],}
+        }}>
         <Typography variant="body2" fontWeight="bold" textAlign="center">
           {module.code}
         </Typography>
