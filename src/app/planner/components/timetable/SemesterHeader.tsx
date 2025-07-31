@@ -37,9 +37,9 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
   const isMinimalView = useAppSelector(selectIsMinimalView);
   const selectSemesterHeaderInfo = useMemo(makeSelectSemesterHeaderInfo, []);
 
-  const { totalMCs } = useAppSelector((state) => {
+  const { totalCredits } = useAppSelector((state) => {
     const semester = state.timetable.semesters.entities[semesterId];
-    if (!semester) return { totalMCs: 0 };
+    if (!semester) return { totalCredits: 0 };
     return selectSemesterHeaderInfo(state, semesterId);
   });
 
@@ -103,7 +103,7 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
               width: isMinimalView ? "100%" : "auto",
             }}
           >
-            {totalMCs} MC
+            {totalCredits} MC
           </Typography>}
       </Paper>
     </Box>

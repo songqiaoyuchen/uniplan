@@ -260,19 +260,14 @@ export const updateModuleStates = createAsyncThunk<
   async (_, { getState }) => {
     const state = getState();
     
-    // --- 1. gather inputs ---
-    // a) Dynamic state from timetable slice
     const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
 
-    // c) Prepare arguments for pure state-checking function
     const args: CheckModuleStatesArgs = {
       semesterEntities: semesterEntities.entities,
       moduleEntities: moduleEntities.entities,
     };
 
-    // --- 2. RUN CHECK AND RETURN DELTAS ---
     const deltas = checkModuleStates(args);
-    console.log("Deltas to apply:", deltas);
 
     return deltas;
   }

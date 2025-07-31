@@ -56,15 +56,44 @@ export const makeSelectSemesterHeaderInfo = () =>
       const semester = semesters[semesterId];
       if (!semester) {
         console.error(`Semester ID=${semesterId} not found`);
-        return { moduleCount: 0, totalMCs: 0 };
+        return { moduleCount: 0, totalCredits: 0 };
       }
       
       const moduleCount = semester.moduleCodes.length;
-      const totalMCs = semester.moduleCodes.reduce(
+      const totalCredits = semester.moduleCodes.reduce(
         (acc, moduleCode) => acc + (modules[moduleCode]?.credits ?? 0),
         0
       );
       
-      return { moduleCount, totalMCs };
+      return { moduleCount, totalCredits };
     }
   );
+
+export const selectTotalCredits = createSelector(
+  [
+    (state: RootState) => state.timetable.semesters.entities, 
+    (state: RootState) => state.timetable.modules.entities
+  ],
+  (semesters, modules) => {
+    return Object.values(semesters).reduce((total, semester) => {
+      return total + semester.moduleCodes.reduce((sum, code) => {
+        const mod = modules[code];
+        return sum + (mod ? mod.credits : 0);
+      }, 0);
+    }, 0);
+  }
+);
+
+export const selectLatestNormalSemester = createSelector(
+  [(state: RootState) => state.timetable.semesters.entities],
+  (semesters) => {
+    const normalSemesters = Object.values(semesters).filter(
+      (s) => s.id % 2 === 0
+    );
+    if (normalSemesters.length === 0) return 0;
+
+    return normalSemesters.reduce((latest, current) =>
+      current.id > latest.id ? current : latest
+    ).id;
+  }
+);
