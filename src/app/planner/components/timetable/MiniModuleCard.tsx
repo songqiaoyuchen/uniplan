@@ -44,6 +44,7 @@ const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ module, isSelected = fa
           boxShadow: 6,
         },
         color: theme.palette.text.primary,
+        minWidth: 80,
       }}
     >
       <Tooltip 

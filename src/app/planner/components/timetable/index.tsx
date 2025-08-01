@@ -49,6 +49,7 @@ function Timetable() {
           height: "100%",
         }}
       >
+        {/* Semesters */}
         {semesterIds
           .filter((id) => id % 2 === 0) // main terms
           .map((mainId) => {
@@ -66,12 +67,12 @@ function Timetable() {
                   justifyContent: isMinimalView ? "space-between" : "flex-start",
                 }}
               >
-                {/* Main semester fills remaining height */}
+                {/* Main semesters */}
                 <Box sx={{ flex: isMinimalView ? 1 : 'unset', minHeight: 0 }}>
                   <TimetableSemester semesterId={mainId} />
                 </Box>
 
-                {/* Special term (or button) sits at bottom */}
+                {/* Special term */}
                 <Box>
                   {hasSpecialTerm ? (
                     <TimetableSemester semesterId={mainId + 1} />
@@ -92,6 +93,34 @@ function Timetable() {
                 </Box>
               </Box>);
             })}
+        {/* Add Semester */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            flex: 1,
+            height: "100%",
+            justifyContent: isMinimalView ? "space-between" : "flex-start",
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={() => {
+              const maxId = Math.max(...semesterIds.filter(id => id % 2 === 0));
+              dispatch(semesterAdded({ id: maxId + 2 }));
+            }}
+            sx={{ 
+              borderRadius: 1,
+              width: '100%',
+              minWidth: isMinimalView ? 'unset' : '245px',
+              fontWeight: isMinimalView ? 500 : 600,
+              py: isMinimalView ? 0.5 : 1,
+              }}
+          >
+            + Semester
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

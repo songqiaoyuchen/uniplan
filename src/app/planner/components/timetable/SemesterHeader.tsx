@@ -2,7 +2,7 @@ import { useAppDispatch, useAppSelector } from "@/store";
 import { useMemo } from "react";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
-import { makeSelectSemesterHeaderInfo, selectIsMinimalView } from "@/store/timetableSelectors";
+import { makeSelectSemesterHeaderInfo, selectIsMinimalView, selectLatestNormalSemester } from "@/store/timetableSelectors";
 import { SemesterLabel } from "@/types/plannerTypes";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
@@ -44,8 +44,9 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
   });
 
   const isSpecialTerm = semesterId % 2 === 1;
-  const showDelete = isSpecialTerm && isEmpty;
-
+  const latestNormalSemester = useAppSelector(selectLatestNormalSemester);
+  const showDelete = (isSpecialTerm || latestNormalSemester == semesterId) && isEmpty;
+  
   const { full: fullTitle, abbrev } = getSemesterTitles(semesterId);
   const displayTitle = isMinimalView ? abbrev : fullTitle;
 

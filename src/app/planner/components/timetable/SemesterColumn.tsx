@@ -29,6 +29,7 @@ const SemesterColumn: React.FC<SemesterColumnProps> = ({ semesterId, moduleCodes
         transition: 'border 0.2s ease',
         userSelect: 'none',
         height: '100%',
+        width: isMinimalView ? '100%' : '245px',
       }}
     >
       <SemesterHeader semesterId={semesterId} isEmpty={moduleCodes.length === 0} />
