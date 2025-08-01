@@ -1,6 +1,7 @@
 import { createSelector } from "reselect";
 import { RootState } from ".";
 import { modulesAdapter, semestersAdapter } from "./timetableSlice";
+import { flattenPrereqTree } from "@/utils/planner/flattenPrereqTree";
 
 // --- selectors ---
 export const {
@@ -97,3 +98,28 @@ export const selectLatestNormalSemester = createSelector(
     ).id;
   }
 );
+
+export const makeIsModuleRelatedSelector = (code: string) =>
+  createSelector(
+    [
+      (state: RootState) => state.timetable.selectedModuleCode,
+      (state: RootState) => state.timetable.modules.entities,
+    ],
+    (selectedCode, modules) => {
+      if (!selectedCode || code === selectedCode) return false;
+
+      const selectedModule = modules[selectedCode];
+      if (!selectedModule) return false;
+
+      const forwardSet = flattenPrereqTree(selectedModule.requires);
+
+      const isForward = forwardSet.has(code);
+      const isReverse = Object.values(modules).some((mod) => {
+        if (!mod?.requires) return false;
+        const prereqs = flattenPrereqTree(mod.requires);
+        return prereqs.has(selectedCode) && mod.code === code;
+      });
+
+      return isForward || isReverse;
+    }
+  );

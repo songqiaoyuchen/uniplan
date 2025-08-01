@@ -12,10 +12,11 @@ import { useModuleCardColors } from '../../hooks';
 interface MiniModuleCardProps {
   module: Pick<ModuleData, 'code' | 'title' | 'status'>;
   isSelected?: boolean;
-  isDragging?: boolean
+  isDragging?: boolean;
+  isRelated?: boolean;
 }
 
-const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ module, isSelected = false, isDragging = false }) => {
+const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ module, isSelected = false, isDragging = false, isRelated = false }) => {
   const theme = useTheme();
   const status = module.status ?? ModuleStatus.Satisfied;
   const {
@@ -35,6 +36,8 @@ const MiniModuleCard: React.FC<MiniModuleCardProps> = ({ module, isSelected = fa
         backgroundColor,
         border: isSelected
           ? `${selectedBorderWidth} solid ${alpha(selectedBorderColor, 0.8)}`
+          : isRelated
+          ? `2px solid white`
           : `2px solid ${alpha(borderColor, 0.5)}`,
         boxShadow: isSelected
           ? `0 0 0 ${selectedGlowWidth} ${alpha(selectedBorderColor, 0.5)}`

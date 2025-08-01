@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useAppSelector } from '@/store'; 
-import { makeIsModulePlannedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStateByCode } from '@/store/timetableSelectors';
+import { makeIsModulePlannedSelector, makeIsModuleRelatedSelector, makeIsModuleSelectedSelector, makeIsSemesterDraggedOverSelector, makeSelectModuleCodesBySemesterId, makeSelectModuleStateByCode } from '@/store/timetableSelectors';
 import { useGetModuleByCodeQuery } from '@/store/apiSlice';
 import { ModuleData, ModuleStatus } from '@/types/plannerTypes';
 import { useTheme } from '@mui/material';
@@ -35,11 +35,16 @@ export const useModuleState = (moduleCode: string | null) => {
     () => (moduleCode ? makeIsModulePlannedSelector(moduleCode) : () => false),
     [moduleCode]
   );
+  const isModuleRelatedSelector = useMemo(
+    () => (moduleCode ? makeIsModuleRelatedSelector(moduleCode) : () => false),
+    [moduleCode]
+  );
 
   // 3. Use selectors
   const moduleState = useAppSelector(selectModuleState);
   const isSelected = useAppSelector(isModuleSelectedSelector);
   const isPlanned = useAppSelector(isModulePlannedSelector);
+  const isRelated = useAppSelector(isModuleRelatedSelector);
 
   // 4. Compose final module
   const module = useMemo<ModuleData | null>(() => {
@@ -61,6 +66,7 @@ export const useModuleState = (moduleCode: string | null) => {
     isError,
     isSelected,
     isPlanned,
+    isRelated,
     refetch,
   };
 };

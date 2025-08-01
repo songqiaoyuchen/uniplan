@@ -14,9 +14,10 @@ import Tag from "@/components/ui/Tag";
 interface ModuleCardProps {
   module: Pick<ModuleData, "code" | "title" | "status" | "credits" | "grade">;
   isSelected?: boolean;
+  isRelated?: boolean;
 }
 
-const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) => {
+const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false, isRelated = false }) => {
   const theme = useTheme();
   const status = module.status ?? ModuleStatus.Satisfied;
   const {
@@ -37,6 +38,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false }) =
         backgroundColor,
         border: isSelected
           ? `${selectedBorderWidth} solid ${selectedBorderColor}`
+          : isRelated
+          ? `2px solid white`
           : `2px solid ${borderColor}`,
         boxShadow: isSelected
           ? `0 0 0 ${selectedGlowWidth} ${selectedBorderColor}80`
