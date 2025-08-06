@@ -25,6 +25,8 @@ export interface TimetableSliceState {
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
   isMinimalView: boolean // for Timetable
+  isVerticalView: boolean // for Timetable
+  exemptedModules: string[]; // list of exempted module codes
 }
 
 export const modulesAdapter = createEntityAdapter({
@@ -42,7 +44,9 @@ const timetableSlice = createSlice({
     semesters: semestersAdapter.getInitialState(),
     selectedModuleCode: null,
     draggedOverSemesterId: null,
-    isMinimalView: false
+    isMinimalView: false,
+    isVerticalView: true,
+    exemptedModules: [],
   } as TimetableSliceState,
   reducers: {
     // handles adding a module to the timeable
@@ -174,6 +178,22 @@ const timetableSlice = createSlice({
     minimalViewToggled: (state) => {
       state.isMinimalView = !state.isMinimalView;
     },
+    verticalViewToggled: (state) => {
+      state.isVerticalView = !state.isVerticalView;
+    },
+
+    // handles exempted modules
+    exemptedModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.exemptedModules.includes(action.payload)) {
+        state.exemptedModules.push(action.payload);
+      }
+    },
+    exemptedModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.exemptedModules = state.exemptedModules.filter(code => code !== action.payload);
+    },
+    exemptedModulesCleared: (state) => {
+      state.exemptedModules = [];
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
@@ -212,7 +232,11 @@ export const {
   moduleUnselected,
   semesterDraggedOverSet,
   semesterDraggedOverCleared,
-  minimalViewToggled
+  minimalViewToggled,
+  verticalViewToggled,
+  exemptedModuleAdded,
+  exemptedModuleRemoved,
+  exemptedModulesCleared
 } = timetableSlice.actions;
 export default timetableSlice.reducer;
 

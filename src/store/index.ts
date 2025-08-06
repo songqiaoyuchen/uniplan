@@ -21,6 +21,14 @@ import { listenerMiddleware } from './listenerMiddleware'
 const persistConfig = {
   key: "root",
   storage,
+  version: 1,
+  migrate: (state: any) => {
+    // Handle migration for exemptedModules field
+    if (state && state.timetable && !state.timetable.exemptedModules) {
+      state.timetable.exemptedModules = [];
+    }
+    return Promise.resolve(state);
+  },
 };
 
 const rootReducer = combineReducers({

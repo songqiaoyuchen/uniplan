@@ -15,19 +15,31 @@ import { useModuleState } from "../../hooks";
 import { MOBILE_DRAWER_HEIGHT, SIDEBAR_WIDTH } from "@/constants";
 import { useRouter, useSearchParams } from "next/navigation";
 import CircularProgress from "@mui/material/CircularProgress";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
+import EditCalendarIcon from "@mui/icons-material/EditCalendar";
+import SettingsIcon from "@mui/icons-material/Settings";
+import { useState } from "react";
+import Generate from "./Generate";
+import Settings from "./Settings";
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOpen = useAppSelector((state) => state.sidebar.isOpen);
+  const isOpen = useAppSelector((state: { sidebar: { isOpen: any; }; }) => state.sidebar.isOpen);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [tabValue, setTabValue] = useState(0);
 
   const handleToggle = () => dispatch(toggleSidebar());
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   const selectedModuleCode = searchParams.get("module");
-  const { module, isPlanned, isLoading, isFetching } = useModuleState(selectedModuleCode);
+  const { module, isPlanned, isLoading, isFetching }  = useModuleState(selectedModuleCode);
 
   return isMobile ? (
     <Box
@@ -46,6 +58,12 @@ const Sidebar: React.FC = () => {
         zIndex: 1200,
       }}
     >
+      <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+        <Tab icon={<InfoOutlineIcon />} />
+        <Tab icon={<EditCalendarIcon />} />
+        <Tab icon={<SettingsIcon />} />
+      </Tabs>
+
       <IconButton
         onClick={handleToggle}
         size="small"
@@ -54,13 +72,27 @@ const Sidebar: React.FC = () => {
         <CloseIcon />
       </IconButton>
       <Box sx={{ p: 2, gap: 2 }}>
-        {isOpen && <ModuleSearch />}
-        {isOpen && (isLoading || isFetching) && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
-            <CircularProgress />
+        {tabValue === 0 && (
+          <>
+            {isOpen && <ModuleSearch />}
+            {isOpen && (isLoading || isFetching) && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
+                <CircularProgress />
+              </Box>
+            )}
+            {module && isOpen && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
+          </>
+        )}
+        {tabValue === 1 && (
+          <Box sx={{ p: 2 }}>
+            <Generate />
           </Box>
         )}
-        {module && isOpen && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
+        {tabValue === 2 && (
+          <Box sx={{ p: 2 }}>
+            <Settings />
+          </Box>
+        )}
       </Box>
     </Box>
   ) : (
@@ -107,8 +139,6 @@ const Sidebar: React.FC = () => {
           flex: 1,
           flexDirection: "column",
           alignItems: "flex-start",
-          p: "26px",
-          gap: 2,
           width: "100%",
           overflowY: "auto",
           // hide scrollbar unless on hover
@@ -118,13 +148,37 @@ const Sidebar: React.FC = () => {
           },
         }}
       >
-        {isOpen && <ModuleSearch />}
-        {isOpen && (isLoading || isFetching) && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
-            <CircularProgress />
-          </Box>
+        {isOpen && (
+          <Tabs value={tabValue} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', width: '100%' }}>
+            <Tab icon={<InfoOutlineIcon />} />
+            <Tab icon={<EditCalendarIcon />} />
+            <Tab icon={<SettingsIcon />} />
+          </Tabs>
         )}
-        {module && isOpen && selectedModuleCode && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
+        
+        <Box sx={{ p: isOpen ? "26px" : 0, gap: 2, width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+          {tabValue === 0 && (
+            <>
+              {isOpen && <ModuleSearch />}
+              {isOpen && (isLoading || isFetching) && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 240, width: '100%' }}>
+                  <CircularProgress />
+                </Box>
+              )}
+              {module && isOpen && selectedModuleCode && !(isLoading || isFetching) && <ModuleDetails module={module} isPlanned={isPlanned} />}
+            </>
+          )}
+          {tabValue === 1 && isOpen && (
+            <Box sx={{ p: 2 }}>
+              <Generate />
+            </Box>
+          )}
+          {tabValue === 2 && isOpen && (
+            <Box sx={{ p: 2 }}>
+              <Settings />
+            </Box>
+          )}
+        </Box>
       </Box>
     </Box>
   );
