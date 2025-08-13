@@ -89,7 +89,7 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       // Dispatch getModuleByCode for each code and wait for all to resolve
       await Promise.all(
         uniqueModuleCodes.map((code) =>
-          api.dispatch(apiSlice.endpoints.getModuleByCode.initiate(code))
+          api.dispatch(apiSlice.endpoints.getModuleByCode.initiate(code, { forceRefetch: true }))
         )
       );
       // Now all static data should be in cache, so check issues
