@@ -3,6 +3,7 @@ import type { RootState, AppDispatch } from '.'
 import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
+import { currentTimetableSet, plannerInitialised, plannerSelectors, switchTimetable } from './plannerSlice';
 
 export const listenerMiddleware = createListenerMiddleware()
 
@@ -32,6 +33,7 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     },
   });
 
+  // module updates
   startAppListening({
     actionCreator: moduleMoved,
     effect: async (_, api) => {
@@ -39,7 +41,6 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       api.dispatch(updateModuleStates());
     },
   });
-
   startAppListening({
     actionCreator: moduleAdded,
     effect: async (_, api) => {
@@ -47,7 +48,6 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       api.dispatch(updateModuleStates());
     },
   });
-
   startAppListening({
     actionCreator: moduleRemoved,
     effect: async (_, api) => {
@@ -98,4 +98,20 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
   });
 };
 
+const addPlannerListeners = (startAppListening: AppStartListening) => {
+  // On app init: ensure a timetable exists and load it (via thunk)
+  startAppListening({
+    actionCreator: plannerInitialised,
+    effect: async (_, api) => {
+      const state = api.getState() as RootState;
+      const active = state.planner.activeTimetableName;
+      if (active) {
+        api.dispatch(switchTimetable(active));
+      }
+    },
+  });
+
+};
+
+addPlannerListeners(startAppListening);
 addTimetableListeners(startAppListening)

@@ -1,6 +1,6 @@
 
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData, StaticModuleData } from "@/types/plannerTypes";
+import { ModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -37,7 +37,7 @@ const timetableSlice = createSlice({
     isMinimalView: false
   } as TimetableSliceState,
   reducers: {
-    timetableInitialised(
+    timetableLoaded(
       state,
       action: PayloadAction<{
         modules: ModuleData[];
@@ -231,7 +231,7 @@ const timetableSlice = createSlice({
 });
 
 export const {
-  timetableInitialised,
+  timetableLoaded,
   moduleAdded,
   moduleCached,
   semesterAdded,
