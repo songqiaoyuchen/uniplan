@@ -43,13 +43,11 @@ export const plannerSlice = createSlice({
     },
 
     timetableAdded: (state, action: PayloadAction<{ name: string }>) => {
-      const current = state.timetables.entities[state.activeTimetableName!];
       timetableAdapter.addOne(state.timetables, {
         name: action.payload.name,
-        modules: current ? current.modules : emptyModules,
-        semesters: current ? current.semesters : emptySemesters,
+        modules: { ids: [], entities: {} },
+        semesters: { ids: [], entities: {} },
       });
-      state.activeTimetableName = action.payload.name;
     },
 
     timetableRemoved: (state, action: PayloadAction<string>) => {

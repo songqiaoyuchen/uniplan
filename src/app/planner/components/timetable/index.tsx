@@ -65,6 +65,7 @@ function Timetable() {
                   flex: 1,
                   height: "100%",
                   justifyContent: isMinimalView ? "space-between" : "flex-start",
+                  maxWidth: isMinimalView ? '100%' : '245px',   // cap width in normal view
                 }}
               >
                 {/* Main semesters */}
@@ -107,16 +108,17 @@ function Timetable() {
           <Button
             variant="outlined"
             onClick={() => {
-              const maxId = Math.max(...semesterIds.filter(id => id % 2 === 0));
-              dispatch(semesterAdded({ id: maxId + 2 }));
+              const evenIds = semesterIds.filter((id) => id % 2 === 0);
+              const nextMainId = evenIds.length ? Math.max(...evenIds) + 2 : 0;
+              dispatch(semesterAdded({ id: nextMainId }));
             }}
-            sx={{ 
+            sx={{
               borderRadius: 1,
               width: '100%',
               minWidth: isMinimalView ? 'unset' : '245px',
               fontWeight: isMinimalView ? 500 : 600,
               py: isMinimalView ? 0.5 : 1,
-              }}
+            }}
           >
             + Semester
           </Button>
