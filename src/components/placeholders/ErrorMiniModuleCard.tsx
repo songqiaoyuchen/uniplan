@@ -18,7 +18,7 @@ const MiniErrorModuleCard: React.FC = () => {
         alignItems: 'center',
         gap: 1,
         color: theme.palette.error.main,
-        transition: 'all 0.2s ease',
+        transition: "transform 150ms ease, opacity 150ms ease, border-color 150ms ease",
         '&:hover': {
           boxShadow: 4,
         },

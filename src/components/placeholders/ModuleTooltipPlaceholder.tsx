@@ -21,7 +21,7 @@ const ModuleTooltipPlaceholder: React.FC = () => {
         borderRadius: 1,
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.2s ease',
+        transition: "transform 150ms ease, opacity 150ms ease, border-color 150ms ease",
         '&:hover': {
           boxShadow: 4,
         },

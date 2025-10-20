@@ -47,24 +47,27 @@ export const lightTheme = createTheme({
     background: { default: "#ffffff", paper: "#ececec" },
     text: { primary: "#000000", secondary: "#333333" },
     custom: {
-      moduleCard: {
-        selectedBorderWidth: "2px",
-        selectedGlowWidth: "1px",
-        selectedBorderColor: "#ff80c8",
-        backgroundColors: {
-          [ModuleStatus.Completed]: "#b3f4bd",
-          [ModuleStatus.Satisfied]: "#c1aff3",
-          [ModuleStatus.Unsatisfied]: "#f8ed96",
-          [ModuleStatus.Conflicted]: "#fcadad",
-        },
-        borderColors: {
-          [ModuleStatus.Completed]: "#4fe058",
-          [ModuleStatus.Satisfied]: "#764fd1",
-          [ModuleStatus.Unsatisfied]: "#f1cc29",
-          [ModuleStatus.Conflicted]: "#f04040",
-        },
-      },
+  moduleCard: {
+    selectedBorderWidth: "2px",
+    selectedGlowWidth: "5px",           
+    selectedBorderColor: "#8048dad2",  
+    relatedBorderColor: "#40c3d4cc",   
+
+    backgroundColors: {
+      [ModuleStatus.Completed]:   "#DCEFE5", 
+      [ModuleStatus.Unsatisfied]: "#F1E8CA", 
+      [ModuleStatus.Conflicted]:  "#F3D8D8", 
     },
+    borderColors: {
+      [ModuleStatus.Completed]:   "#44a8762c", 
+      [ModuleStatus.Satisfied]:   "#6656a831", 
+      [ModuleStatus.Unsatisfied]: "#a88b3a4123", 
+      [ModuleStatus.Conflicted]:  "#c25a5a4b", 
+    },
+  },
+},
+
+
   },
   components: {
     ...commonOptions.components,
@@ -119,23 +122,27 @@ export const darkTheme = createTheme({
     text: { primary: "#ececec", secondary: "#acacac" },
     custom: {
       moduleCard: {
-        selectedBorderWidth: "2px",
-        selectedGlowWidth: "1px",
-        selectedBorderColor: "#ff80c8",
+        selectedBorderWidth: "2px",         
+        selectedGlowWidth: "5px",           
+        selectedBorderColor: "#47fcb0cc",   
+        relatedBorderColor: "#45c2d3ff",
         backgroundColors: {
-          [ModuleStatus.Completed]: "#265e33",
-          [ModuleStatus.Satisfied]: "#3d2d66",
-          [ModuleStatus.Unsatisfied]: "#554616",
-          [ModuleStatus.Conflicted]: "#611d1d",
+          [ModuleStatus.Completed]:   "#1A3023",  
+          [ModuleStatus.Satisfied]:   "#292341ff",
+          [ModuleStatus.Unsatisfied]: "#2B2411",  
+          [ModuleStatus.Conflicted]:  "#2E1212",  
         },
+
         borderColors: {
-          [ModuleStatus.Completed]: "#4fe058",
-          [ModuleStatus.Satisfied]: "#764fd1",
-          [ModuleStatus.Unsatisfied]: "#f1cc29",
-          [ModuleStatus.Conflicted]: "#f04040",
+          [ModuleStatus.Completed]:   "#45C962CC",  
+          [ModuleStatus.Satisfied]:   "#4f438bcc",  
+          [ModuleStatus.Unsatisfied]: "#756229ff",  
+          [ModuleStatus.Conflicted]:  "#E15A5ACC",
         },
       },
     },
+
+
   },
   components: {
     ...commonOptions.components,

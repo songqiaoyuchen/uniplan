@@ -58,17 +58,6 @@ const TimetableHeader: React.FC = () => {
   const latestNormalSemester = useAppSelector(selectLatestNormalSemester) ?? 0;
   const estimatedTrackDuration = latestNormalSemester / 4 + 0.5;
 
-  const handleSave = useCallback(() => {
-    try {
-      const serialized = JSON.stringify(timetable);
-      localStorage.setItem(activeName, serialized);
-      alert("Timetable saved!");
-    } catch (error) {
-      console.error("Save failed", error);
-      alert("Failed to save timetable.");
-    }
-  }, [timetable, activeName]);
-
   const commitRename = () => {
     const trimmed = tempName.trim();
     if (!trimmed || trimmed === activeName) {
@@ -152,9 +141,6 @@ const TimetableHeader: React.FC = () => {
             onClick={() => triggerGetTimetable({ requiredModuleCodes, exemptedModuleCodes })}
           >
             {isFetching ? "Loading timetable..." : "Test Import Timetable"}
-          </Button>
-          <Button variant="outlined" onClick={handleSave}>
-            Save
           </Button>
           <Button
             variant="outlined"

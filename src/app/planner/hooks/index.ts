@@ -93,6 +93,7 @@ export function useModuleCardColors(status: ModuleStatus = ModuleStatus.Satisfie
     selectedBorderWidth,
     selectedGlowWidth,
     selectedBorderColor,
+    relatedBorderColor,
   } = theme.palette.custom.moduleCard;
 
   return {
@@ -101,6 +102,7 @@ export function useModuleCardColors(status: ModuleStatus = ModuleStatus.Satisfie
     selectedBorderWidth,
     selectedGlowWidth,
     selectedBorderColor,
+    relatedBorderColor,
   };
 }
 
