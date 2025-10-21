@@ -1,8 +1,9 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
-import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, updateModuleStates } from './timetableSlice'
+import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
+import { currentTimetableSet, plannerInitialised, plannerSelectors, switchTimetable } from './plannerSlice';
 
 export const listenerMiddleware = createListenerMiddleware()
 
@@ -32,6 +33,7 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     },
   });
 
+  // module updates
   startAppListening({
     actionCreator: moduleMoved,
     effect: async (_, api) => {
@@ -39,7 +41,6 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       api.dispatch(updateModuleStates());
     },
   });
-
   startAppListening({
     actionCreator: moduleAdded,
     effect: async (_, api) => {
@@ -47,12 +48,32 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       api.dispatch(updateModuleStates());
     },
   });
-
   startAppListening({
     actionCreator: moduleRemoved,
     effect: async (_, api) => {
       api.cancelActiveListeners();
       api.dispatch(updateModuleStates());
+    },
+  });
+
+  startAppListening({
+    matcher: apiSlice.endpoints.getModuleByCode.matchFulfilled,
+    effect: async (action, api) => {
+      const moduleData = action.payload;
+      const moduleCode = moduleData.code;
+      const state = api.getState() as RootState;
+
+      // Check if this module code exists in any semester
+      const isInTimetable = Object.values(state.timetable.semesters.entities).some(semester =>
+        semester?.moduleCodes.includes(moduleCode)
+      );
+
+      // If it's part of the timetable, add it to the slice
+      if (isInTimetable) {
+        api.dispatch(timetableActions.moduleCached({
+          module: moduleData,
+        }));
+      }
     },
   });
 
@@ -68,7 +89,7 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       // Dispatch getModuleByCode for each code and wait for all to resolve
       await Promise.all(
         uniqueModuleCodes.map((code) =>
-          api.dispatch(apiSlice.endpoints.getModuleByCode.initiate(code))
+          api.dispatch(apiSlice.endpoints.getModuleByCode.initiate(code, { forceRefetch: true }))
         )
       );
       // Now all static data should be in cache, so check issues
@@ -77,4 +98,20 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
   });
 };
 
+const addPlannerListeners = (startAppListening: AppStartListening) => {
+  // On app init: ensure a timetable exists and load it (via thunk)
+  startAppListening({
+    actionCreator: plannerInitialised,
+    effect: async (_, api) => {
+      const state = api.getState() as RootState;
+      const active = state.planner.activeTimetableName;
+      if (active) {
+        api.dispatch(switchTimetable(active));
+      }
+    },
+  });
+
+};
+
+addPlannerListeners(startAppListening);
 addTimetableListeners(startAppListening)
