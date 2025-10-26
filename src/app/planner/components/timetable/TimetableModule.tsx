@@ -24,7 +24,7 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
   const router = useRouter();
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
-  const { module, isFetching, isError, isSelected, refetch } = useModuleState(moduleCode);
+  const { module, isFetching, isError, isSelected, isRelated, refetch } = useModuleState(moduleCode);
 
   const {
     attributes,
@@ -104,8 +104,8 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
       onClick={handleClick}
     >
       {isMinimalView 
-        ? (<MiniModuleCard module={module} isSelected={isSelected} />) 
-        : (<ModuleCard module={module} isSelected={isSelected} />)}
+        ? (<MiniModuleCard module={module} isSelected={isSelected} isRelated={isRelated} />) 
+        : (<ModuleCard module={module} isSelected={isSelected} isRelated={isRelated} />)}
     </div>
   );
 };

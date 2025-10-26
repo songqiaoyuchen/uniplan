@@ -22,6 +22,7 @@ declare module "@mui/material/styles" {
         selectedBorderWidth: string;
         selectedGlowWidth: string;
         selectedBorderColor: string;
+        relatedBorderColor: string;
         backgroundColors: ModuleStatusColorMap;
         borderColors: ModuleStatusColorMap;
       };
@@ -35,6 +36,7 @@ declare module "@mui/material/styles" {
         selectedBorderWidth?: string;
         selectedGlowWidth?: string;
         selectedBorderColor?: string;
+        relatedBorderColor?: string;
         backgroundColors?: Partial<ModuleStatusColorMap>;
         borderColors?: Partial<ModuleStatusColorMap>;
       };

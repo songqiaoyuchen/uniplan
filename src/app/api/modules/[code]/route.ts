@@ -25,7 +25,10 @@ export async function GET(
       );
     }
 
-    module.requires = await getModuleRequires(moduleCode);
+    const requires = await getModuleRequires(moduleCode);
+    if (requires) {
+      module.requires = requires;
+    }
     return NextResponse.json(module, { status: 200 });
   } catch (err) {
     console.error('getModule error:', err);

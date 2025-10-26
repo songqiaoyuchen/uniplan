@@ -1,16 +1,24 @@
 import Box from "@mui/material/Box";
 import TimetableSemester from "./TimeTableSemester";
-import { useSelector } from "react-redux";
-import { RootState, useAppSelector } from "@/store";
-import { selectSemesterIds } from "@/store/timetableSelectors";
-import { memo } from "react";
-import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "@/constants";
 import TimetableHeader from "./TimetableHeader";
+import Button from "@mui/material/Button";
+import { useAppSelector, useAppDispatch } from "@/store";
+import { selectIsMinimalView, selectSemesterIds } from "@/store/timetableSelectors";
+import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "@/constants";
+import { semesterAdded } from "@/store/timetableSlice"; // Update path if different
+import { memo } from "react";
+import { RootState } from "@/store";
 
 function Timetable() {
   const semesterIds = useAppSelector(selectSemesterIds) as number[];
-  const isOpen = useSelector((state: RootState) => state.sidebar.isOpen);
+  const isOpen = useAppSelector((state: RootState) => state.sidebar.isOpen);
+  const isMinimalView = useAppSelector(selectIsMinimalView);
   const sidebarWidth = isOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
+  const dispatch = useAppDispatch();
+
+  const handleAddSpecialTerm = (id: number) => {
+    dispatch(semesterAdded({ id }));
+  };
 
   return (
     <Box
@@ -27,7 +35,7 @@ function Timetable() {
       }}
     >
       <TimetableHeader />
-      {/* semesters */}
+
       <Box
         sx={{
           display: "flex",
@@ -37,16 +45,84 @@ function Timetable() {
           py: 1,
           gap: 1,
           borderRadius: 1,
-              flex: 1,
-    minHeight: 0,
+          flex: 1,
+          height: "100%",
         }}
       >
-        {semesterIds.map((semesterId) => (
-          <TimetableSemester
-            key={semesterId}
-            semesterId={semesterId}
-          />
-        ))}
+        {/* Semesters */}
+        {semesterIds
+          .filter((id) => id % 2 === 0) // main terms
+          .map((mainId) => {
+            const hasSpecialTerm = semesterIds.includes(mainId + 1);
+
+            return (
+              <Box
+                key={mainId}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1,
+                  flex: 1,
+                  height: "100%",
+                  justifyContent: isMinimalView ? "space-between" : "flex-start",
+                  maxWidth: isMinimalView ? '100%' : '245px',   // cap width in normal view
+                }}
+              >
+                {/* Main semesters */}
+                <Box sx={{ flex: isMinimalView ? 1 : 'unset', minHeight: 0 }}>
+                  <TimetableSemester semesterId={mainId} />
+                </Box>
+
+                {/* Special term */}
+                <Box>
+                  {hasSpecialTerm ? (
+                    <TimetableSemester semesterId={mainId + 1} />
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      onClick={() => handleAddSpecialTerm(mainId + 1)}
+                      sx={{ 
+                        borderRadius: 1,
+                        width: '100%',
+                        fontWeight: isMinimalView ? 500 : 600,
+                        py: isMinimalView ? 0.5 : 1,
+                       }}
+                    >
+                      + Special Term
+                    </Button>
+                  )}
+                </Box>
+              </Box>);
+            })}
+        {/* Add Semester */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            flex: 1,
+            height: "100%",
+            justifyContent: isMinimalView ? "space-between" : "flex-start",
+          }}
+        >
+          <Button
+            variant="outlined"
+            onClick={() => {
+              const evenIds = semesterIds.filter((id) => id % 2 === 0);
+              const nextMainId = evenIds.length ? Math.max(...evenIds) + 2 : 0;
+              dispatch(semesterAdded({ id: nextMainId }));
+            }}
+            sx={{
+              borderRadius: 1,
+              width: '100%',
+              minWidth: isMinimalView ? 'unset' : '245px',
+              fontWeight: isMinimalView ? 500 : 600,
+              py: isMinimalView ? 0.5 : 1,
+            }}
+          >
+            + Semester
+          </Button>
+        </Box>
       </Box>
     </Box>
   );

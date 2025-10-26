@@ -25,8 +25,6 @@ import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDragg
 import { useModuleState } from "../hooks";
 import DeleteZone from "./DeleteZone";
 import MiniModuleCard from "./timetable/MiniModuleCard";
-import ErrorMiniModuleCard from "@/components/placeholders/ErrorMiniModuleCard";
-import ErrorModuleCard from "@/components/placeholders/ErrorModuleCard";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -35,14 +33,14 @@ const PlannerContainer: React.FC = () => {
 
   // drag overlay states
   const [draggingModuleCode, setDraggingModuleCode] = useState<string | null>(null);
-  const { module: draggingModule, isPlanned, isError } = useModuleState(draggingModuleCode);
+  const { module: draggingModule, isPlanned } = useModuleState(draggingModuleCode);
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const dispatch = useAppDispatch();
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
+  const handleDragStart = (event: DragStartEvent) => {
     setDraggingModuleCode(event.active.id.toString().split('-')[0]);
-  }, []);
+  };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { over } = event;
@@ -60,7 +58,7 @@ const PlannerContainer: React.FC = () => {
     }
   };
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
     setDraggingModuleCode(null);
@@ -80,8 +78,8 @@ const PlannerContainer: React.FC = () => {
 
     // Sidebar drop
     if (source === "sidebar") {
-      if (typeof destSemesterId !== "number") return;
-      dispatch(moduleAdded({ moduleCode: draggingModuleCode, destSemesterId }));
+      if (typeof destSemesterId !== "number" || !draggingModule) return;
+      dispatch(moduleAdded({ module: draggingModule, destSemesterId }));
       return;
     }
 
@@ -111,7 +109,7 @@ const PlannerContainer: React.FC = () => {
         })
       );
     }
-  }, [dispatch]);
+  };
 
 
   return (

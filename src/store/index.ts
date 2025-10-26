@@ -14,6 +14,7 @@ import storage from "redux-persist/lib/storage";
 import themeReducer from "./themeSlice";
 import sidebarReducer from "./sidebarSlice";
 import timetableReducer from "./timetableSlice"
+import plannerReducer from './plannerSlice'
 import { apiSlice } from "./apiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { listenerMiddleware } from './listenerMiddleware'
@@ -21,21 +22,15 @@ import { listenerMiddleware } from './listenerMiddleware'
 const persistConfig = {
   key: "root",
   storage,
-  version: 1,
-  migrate: (state: any) => {
-    // Handle migration for exemptedModules field
-    if (state && state.timetable && !state.timetable.exemptedModules) {
-      state.timetable.exemptedModules = [];
-    }
-    return Promise.resolve(state);
-  },
+  blacklist: [apiSlice.reducerPath],
 };
 
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
   theme: themeReducer,
   sidebar: sidebarReducer,
-  timetable: timetableReducer
+  timetable: timetableReducer,
+  planner: plannerReducer
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
