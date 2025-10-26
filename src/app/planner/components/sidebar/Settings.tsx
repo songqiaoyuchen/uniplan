@@ -25,11 +25,18 @@ const Settings: React.FC = () => {
     };
 
     return (
-        <Box>
-            <Typography variant="h5" sx={{ mb: 2 }}>
-                Timetable Layout
-            </Typography>
-            
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+            {/* Header */}
+            <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
+                    Timetable Layout
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                    Choose how your timetable is displayed
+                </Typography>
+            </Box>
+
+            {/* Toggle Button Group */}
             <ToggleButtonGroup
                 value={isVerticalView ? 'vertical' : 'horizontal'}
                 exclusive
@@ -37,24 +44,36 @@ const Settings: React.FC = () => {
                 aria-label="layout orientation"
                 sx={{ 
                     width: '100%',
+                    '& .MuiToggleButtonGroup-grouped': {
+                        border: 1,
+                        borderColor: 'divider',
+                        '&:not(:first-of-type)': {
+                            marginLeft: 0,
+                            borderLeft: 1,
+                            borderLeftColor: 'divider'
+                        },
+                        '&:not(:last-of-type)': {
+                            borderRight: 1,
+                            borderRightColor: 'divider'
+                        }
+                    },
                     '& .MuiToggleButton-root': {
                         flex: 1,
-                        py: 2,
-                        border: '1px solid',
-                        borderColor: 'divider',
+                        py: 1.5,
+                        textTransform: 'none',
+                        transition: 'all 0.2s ease',
                         '&.Mui-selected': {
                             backgroundColor: 'primary.main',
                             color: 'primary.contrastText',
+                            borderColor: 'primary.main !important',
                             '&:hover': {
                                 backgroundColor: 'primary.dark',
                             }
                         },
                         '&:not(.Mui-selected)': {
-                            opacity: 0.6,
                             backgroundColor: 'background.paper',
                             color: 'text.secondary',
                             '&:hover': {
-                                opacity: 0.8,
                                 backgroundColor: 'action.hover',
                             }
                         }
@@ -62,22 +81,23 @@ const Settings: React.FC = () => {
                 }}
             >
                 <ToggleButton value="vertical" aria-label="vertical layout">
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                        <ViewColumnIcon />
-                        <Typography variant="body2">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                        <ViewColumnIcon fontSize="small" />
+                        <Typography variant="caption" sx={{ fontWeight: 500 }}>
                             Vertical
                         </Typography>
                     </Box>
                 </ToggleButton>
                 <ToggleButton value="horizontal" aria-label="horizontal layout">
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                        <ViewStreamIcon />
-                        <Typography variant="body2">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+                        <ViewStreamIcon fontSize="small" />
+                        <Typography variant="caption" sx={{ fontWeight: 500 }}>
                             Horizontal
                         </Typography>
                     </Box>
                 </ToggleButton>
             </ToggleButtonGroup>
+
         </Box>
     )
 };
