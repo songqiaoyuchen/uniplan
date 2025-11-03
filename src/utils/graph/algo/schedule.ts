@@ -71,8 +71,8 @@ export function runScheduler(
     const availableThisSemester = calculateAvailableModules(semester, plannerState, edgeMap, graph);
     
     if (availableThisSemester.size === 0) {
-      console.log(`No available modules for semester ${semester}. Stopping planning.`);
-      break;
+      console.log(`No available modules for semester ${semester}. Skipping to next.`);
+      continue;
     }
 
     // Select modules for this semester

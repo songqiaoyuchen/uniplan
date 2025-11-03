@@ -11,10 +11,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useState, useMemo } from 'react';
 import miniModuleData from '@/data/miniModuleData.json';
-import { useLazyGetTimetableQuery } from '@/store/apiSlice';
+import { useLazyGetTimetableQuery, useGetModuleByCodeQuery } from '@/store/apiSlice';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/store';
-import { exemptedModuleAdded, exemptedModuleRemoved } from '@/store/timetableSlice';
+import { exemptedModuleAdded, exemptedModuleRemoved, moduleCached } from '@/store/timetableSlice';
+import { useAppDispatch } from '@/store';
 
 const Generate: React.FC = () => {
   const [degree, setDegree] = useState<string | null>(null);
@@ -23,7 +24,7 @@ const Generate: React.FC = () => {
   const [additionalTracks, setAdditionalTracks] = useState<Array<{ code: string; title: string; label: string; } | null>>([null]);
   const [exemptedSearchFields, setExemptedSearchFields] = useState<Array<{ code: string; title: string; label: string; } | null>>([null]);
   
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [triggerGetTimetable, { isFetching, error }] = useLazyGetTimetableQuery();
 
   const exemptedModuleCodes = useSelector((state: RootState) => {
@@ -118,7 +119,7 @@ const Generate: React.FC = () => {
       </Box>
 
       {/* Collapsible "Coming Soon" Section */}
-      <Box sx={{ 
+      {/* <Box sx={{ 
         p: 1.5, 
         backgroundColor: 'action.hover', 
         borderRadius: 1,
@@ -132,7 +133,6 @@ const Generate: React.FC = () => {
           </Typography>
         </Box>
 
-        {/* Degree */}
         <Box sx={{ mb: 1.5 }}>
           <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block', color: 'text.secondary' }}>
             Degree Program
@@ -152,7 +152,6 @@ const Generate: React.FC = () => {
           />
         </Box>
 
-        {/* Major */}
         <Box sx={{ mb: 1.5 }}>
           <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block', color: 'text.secondary' }}>
             Major
@@ -172,7 +171,6 @@ const Generate: React.FC = () => {
           />
         </Box>
 
-        {/* Cohort */}
         <Box>
           <Typography variant="caption" sx={{ fontWeight: 600, mb: 0.5, display: 'block', color: 'text.secondary' }}>
             Cohort
@@ -191,7 +189,7 @@ const Generate: React.FC = () => {
             )}
           />
         </Box>
-      </Box>
+      </Box> */}
 
       {/* Target Modules */}
       <Box>
