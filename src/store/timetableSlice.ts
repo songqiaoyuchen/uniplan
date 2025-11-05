@@ -1,4 +1,3 @@
-
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { ModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
@@ -18,6 +17,7 @@ export interface TimetableSliceState {
   draggedOverSemesterId: number | null; // for TimetableSemester
   isMinimalView: boolean // for Timetable
   isVerticalView: boolean // for Timetable
+  targetModules: string[]; // list of target module codes for generation
   exemptedModules: string[]; // list of exempted module codes
 }
 
@@ -38,6 +38,7 @@ const timetableSlice = createSlice({
     draggedOverSemesterId: null,
     isMinimalView: false,
     isVerticalView: true,
+    targetModules: [],
     exemptedModules: [],
   } as TimetableSliceState,
   reducers: {
@@ -222,6 +223,19 @@ const timetableSlice = createSlice({
       state.isVerticalView = !state.isVerticalView;
     },
 
+    // handles target modules
+    targetModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.targetModules.includes(action.payload)) {
+        state.targetModules.push(action.payload);
+      }
+    },
+    targetModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.targetModules = state.targetModules.filter(code => code !== action.payload);
+    },
+    targetModulesCleared: (state) => {
+      state.targetModules = [];
+    },
+
     // handles exempted modules
     exemptedModuleAdded: (state, action: PayloadAction<string>) => {
       if (!state.exemptedModules.includes(action.payload)) {
@@ -265,6 +279,9 @@ export const {
   semesterDraggedOverCleared,
   minimalViewToggled,
   verticalViewToggled,
+  targetModuleAdded,
+  targetModuleRemoved,
+  targetModulesCleared,
   exemptedModuleAdded,
   exemptedModuleRemoved,
   exemptedModulesCleared

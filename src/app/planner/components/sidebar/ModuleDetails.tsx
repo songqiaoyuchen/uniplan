@@ -8,13 +8,31 @@ import ExpandableText from "@/components/ui/ExpandableText";
 import PrereqTreeView from "./PrereqTreeView";
 import DraggableAddButton from "./DraggableAddButton";
 import { memo } from "react";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import TargetedButton from "./TargetedButton";
+import ExemptedButton from "./ExemptedButton";
+import { useAppSelector } from "@/store";
+import { RootState } from "@/store";
 
 interface ModuleDetailsProps {
   module: ModuleData;
   isPlanned: boolean;
 }
 
-const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
+const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned }) => {
+  const targetModuleCodes = useAppSelector((state: RootState) => {
+    const targeted = state.timetable.targetModules;
+    return Array.isArray(targeted) ? targeted : [];
+  });
+
+  const exemptedModuleCodes = useAppSelector((state: RootState) => {
+    const exempted = state.timetable.exemptedModules;
+    return Array.isArray(exempted) ? exempted : [];
+  });
+
+  const isTargeted = targetModuleCodes.includes(module.code);
+  const isExempted = exemptedModuleCodes.includes(module.code);
+
   return (
     <Box
       sx={{
@@ -28,19 +46,22 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned}) => {
       }}
     >
       {/* Header */}
-      <Typography
-        variant="h5"
-        fontWeight={700}
-        display="flex"
-        alignItems="center"
-      >
-        {module.code}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: 'nowrap' }}>
+        <Typography
+          variant="h5"
+          fontWeight={700}
+          sx={{ whiteSpace: 'nowrap' }}
+        >
+          {module.code}
+        </Typography>
         {!isPlanned && <DraggableAddButton moduleCode={module.code} />}
-      </Typography>
-
-      <Typography variant="subtitle2" color="primary.extraLight">
-        {module.credits} MC
-      </Typography>
+        
+        {/* Toggle Buttons for Target/Exempt */}
+        <Box sx={{ display: 'flex', gap: 1, ml: 'auto' }}>
+          <TargetedButton moduleCode={module.code} size="small" />
+          <ExemptedButton moduleCode={module.code} size="small" />
+        </Box>
+      </Box>
 
       <Typography variant="subtitle2" fontWeight={500} color="text.secondary">
         {module.title}

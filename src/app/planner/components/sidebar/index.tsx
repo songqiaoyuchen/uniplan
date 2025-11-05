@@ -1,7 +1,7 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/store";
-import { toggleSidebar } from "@/store/sidebarSlice";
+import { toggleSidebar, setActiveTab } from "@/store/sidebarSlice";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
@@ -18,7 +18,6 @@ import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 import SettingsIcon from "@mui/icons-material/Settings";
-import { useState } from "react";
 import Generate from "./Generate";
 // import Settings from "./Settings";
 import { motion } from "framer-motion";
@@ -34,14 +33,14 @@ const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const isOpen = useAppSelector((state: { sidebar: { isOpen: any; }; }) => state.sidebar.isOpen);
+  const isOpen = useAppSelector((state) => state.sidebar.isOpen);
+  const tabValue = useAppSelector((state) => state.sidebar.activeTab);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [tabValue, setTabValue] = useState(0);
 
   const handleToggle = () => dispatch(toggleSidebar());
   const handleTabChange = (newValue: number) => {
-    setTabValue(newValue);
+    dispatch(setActiveTab(newValue));
   };
 
   const selectedModuleCode = searchParams.get("module");
