@@ -1,4 +1,3 @@
-
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
 import { ModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
@@ -17,6 +16,9 @@ export interface TimetableSliceState {
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
   isMinimalView: boolean // for Timetable
+  isVerticalView: boolean // for Timetable
+  targetModules: string[]; // list of target module codes for generation
+  exemptedModules: string[]; // list of exempted module codes
 }
 
 export const modulesAdapter = createEntityAdapter({
@@ -34,7 +36,10 @@ const timetableSlice = createSlice({
     semesters: semestersAdapter.getInitialState(),
     selectedModuleCode: null,
     draggedOverSemesterId: null,
-    isMinimalView: false
+    isMinimalView: false,
+    isVerticalView: true,
+    targetModules: [],
+    exemptedModules: [],
   } as TimetableSliceState,
   reducers: {
     timetableLoaded(
@@ -214,6 +219,35 @@ const timetableSlice = createSlice({
     minimalViewToggled: (state) => {
       state.isMinimalView = !state.isMinimalView;
     },
+    verticalViewToggled: (state) => {
+      state.isVerticalView = !state.isVerticalView;
+    },
+
+    // handles target modules
+    targetModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.targetModules.includes(action.payload)) {
+        state.targetModules.push(action.payload);
+      }
+    },
+    targetModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.targetModules = state.targetModules.filter(code => code !== action.payload);
+    },
+    targetModulesCleared: (state) => {
+      state.targetModules = [];
+    },
+
+    // handles exempted modules
+    exemptedModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.exemptedModules.includes(action.payload)) {
+        state.exemptedModules.push(action.payload);
+      }
+    },
+    exemptedModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.exemptedModules = state.exemptedModules.filter(code => code !== action.payload);
+    },
+    exemptedModulesCleared: (state) => {
+      state.exemptedModules = [];
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
@@ -243,7 +277,14 @@ export const {
   moduleUnselected,
   semesterDraggedOverSet,
   semesterDraggedOverCleared,
-  minimalViewToggled
+  minimalViewToggled,
+  verticalViewToggled,
+  targetModuleAdded,
+  targetModuleRemoved,
+  targetModulesCleared,
+  exemptedModuleAdded,
+  exemptedModuleRemoved,
+  exemptedModulesCleared
 } = timetableSlice.actions;
 
 export default timetableSlice.reducer;

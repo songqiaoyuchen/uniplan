@@ -1,7 +1,7 @@
 import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
 import { moduleAdded, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
-import { closeSidebar, openSidebar } from './sidebarSlice'
+import { closeSidebar, openSidebar, setActiveTab } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
 import { currentTimetableSet, plannerInitialised, plannerSelectors, switchTimetable } from './plannerSlice';
 
@@ -17,11 +17,12 @@ export const addAppListener = addListener.withTypes<RootState, AppDispatch>()
 export type AppAddListener = typeof addAppListener
 
 const addTimetableListeners = (startAppListening: AppStartListening) => {
-  // Open sidebar on module selected
+  // Open sidebar and switch to Details tab on module selected
   startAppListening({
     actionCreator: moduleSelected,
     effect: async (_, api) => {
       api.dispatch(openSidebar());
+      api.dispatch(setActiveTab(0)); // Switch to Details tab (tab 0)
     },
   });
 
