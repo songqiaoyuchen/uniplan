@@ -19,7 +19,7 @@ function Timetable() {
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const isXLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
   
-  const responsiveSidebarWidth = isLargeScreen ? 424 : SIDEBAR_WIDTH;
+  const responsiveSidebarWidth = isLargeScreen ? 336 : SIDEBAR_WIDTH;
   const sidebarWidth = isOpen ? responsiveSidebarWidth : SIDEBAR_COLLAPSED_WIDTH;
   const dispatch = useAppDispatch();
 

@@ -39,7 +39,7 @@ const Sidebar: React.FC = () => {
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
   const isXLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
 
-  const sidebarWidth = isLargeScreen ? 424 : SIDEBAR_WIDTH;
+  const sidebarWidth = isLargeScreen ? 336 : SIDEBAR_WIDTH;
 
   const handleToggle = () => dispatch(toggleSidebar());
   const handleTabChange = (newValue: number) => {
