@@ -12,7 +12,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import { useAppSelector } from "@/store";
 import { minimalViewToggled } from "@/store/timetableSlice";
 import { useDispatch } from "react-redux";
-import { useCallback, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   selectLatestNormalSemester,
   selectTotalCredits,
@@ -25,12 +25,6 @@ const TimetableHeader: React.FC = () => {
   const dispatch = useDispatch();
 
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
-
-  // current active timetable
-  const timetable = useAppSelector((state) => {
-    const { semesters, modules } = state.timetable;
-    return { semesters, modules };
-  });
 
   // active timetable name from plannerSlice
   const activeName = useAppSelector(
@@ -96,7 +90,9 @@ const TimetableHeader: React.FC = () => {
                   setTempName(activeName);
                 }
               }}
-              inputProps={{ style: { fontSize: 24, fontWeight: 500 } }}
+              slotProps={{
+                input: { style: { fontSize: 24, fontWeight: 500 } }
+              }}
               sx={{ minWidth: 200 }}
             />
           ) : (

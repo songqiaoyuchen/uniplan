@@ -31,12 +31,15 @@ const tabs = [
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const isOpen = useAppSelector((state) => state.sidebar.isOpen);
   const tabValue = useAppSelector((state) => state.sidebar.activeTab);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
+  const isXLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
+
+  const sidebarWidth = isLargeScreen ? 424 : SIDEBAR_WIDTH;
 
   const handleToggle = () => dispatch(toggleSidebar());
   const handleTabChange = (newValue: number) => {
@@ -55,8 +58,6 @@ const Sidebar: React.FC = () => {
         right: 0,
         height: MOBILE_DRAWER_HEIGHT,
         backgroundColor: "background.default",
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
         boxShadow: 4,
         overflowY: "auto",
         transition: "bottom 0.3s",
@@ -86,7 +87,6 @@ const Sidebar: React.FC = () => {
               cursor: "pointer",
               position: "relative",
               color: tabValue === index ? "primary.contrastText" : "text.secondary",
-              borderRadius: "20px",
               transition: "color 0.2s",
               zIndex: 1,
             }}
@@ -98,7 +98,7 @@ const Sidebar: React.FC = () => {
                   position: "absolute",
                   inset: 0,
                   backgroundColor: theme.palette.primary.main,
-                  borderRadius: "20px",
+                  borderRadius: "5px",
                   zIndex: -1,
                 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -142,7 +142,7 @@ const Sidebar: React.FC = () => {
         top: "64px",
         bottom: 0,
         left: 0,
-        width: SIDEBAR_WIDTH,
+        width: sidebarWidth,
         display: { xs: "none", md: "flex" },
         flexDirection: "column",
         backgroundColor: "background.default",
@@ -150,8 +150,8 @@ const Sidebar: React.FC = () => {
         borderColor: "divider",
         transform: isOpen
           ? "translateX(0)"
-          : `translateX(-${SIDEBAR_WIDTH - 38}px)`,
-        transition: "transform 0.3s",
+          : `translateX(-${sidebarWidth - 38}px)`,
+        transition: "transform 0.3s, width 0.3s",
       }}
     >
       <IconButton
@@ -210,7 +210,7 @@ const Sidebar: React.FC = () => {
                   cursor: "pointer",
                   position: "relative",
                   color: tabValue === index ? "primary.contrastText" : "text.secondary",
-                  borderRadius: "20px",
+                  borderRadius: "8px",
                   transition: "color 0.2s",
                   zIndex: 1,
                 }}
@@ -222,7 +222,7 @@ const Sidebar: React.FC = () => {
                       position: "absolute",
                       inset: 0,
                       backgroundColor: theme.palette.primary.main,
-                      borderRadius: "20px",
+                      borderRadius: "8px",
                       zIndex: -1,
                     }}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}

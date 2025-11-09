@@ -1,14 +1,54 @@
-import { NormalisedGraph } from "@/types/graphTypes";
+// Utility to check the integrity of a graph: no hanging nodes or edges
 
-export function checkGraph(graph: NormalisedGraph): boolean {
+import { NormalisedGraph, Edge } from "@/types/graphTypes";
+
+export function checkGraph(
+  graph: NormalisedGraph,
+  requiredCodes: string[] = [],
+): boolean {
   const nodeIds = new Set(Object.keys(graph.nodes));
+  const incoming: Record<string, Edge[]> = {};
+  const outgoing: Record<string, Edge[]> = {};
 
-  for (const edge of graph.edges) {
-    if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
-      console.warn(`Invalid edge: ${edge.id} - from: ${edge.from}, to: ${edge.to}`);
-      return false;
+  // --- Build adjacency and check for invalid edges ---
+  let valid = true;
+
+  for (const e of graph.edges) {
+    if (!nodeIds.has(e.from) || !nodeIds.has(e.to)) {
+      console.warn(`⚠️  Hanging edge: ${e.id} — from: ${e.from}, to: ${e.to}`);
+      valid = false;
+      continue;
+    }
+
+    (outgoing[e.from] ??= []).push(e);
+    (incoming[e.to] ??= []).push(e);
+  }
+
+  // --- Check for hanging nodes ---
+  const requiredSet = new Set(requiredCodes);
+
+  for (const [id, node] of Object.entries(graph.nodes)) {
+    const inCount = (incoming[id] ?? []).length;
+    const outCount = (outgoing[id] ?? []).length;
+
+    if ("type" in node) {
+      // Logic node (NOF, AND, etc.)
+      if (inCount === 0 && outCount === 0) {
+        console.warn(`⚠️  Hanging logic node (${node.type}) with no parents or children: ${id}`);
+        valid = false;
+      }
+    } else {
+      // Module node
+      const isRequired = requiredSet.has(node.code);
+      if (inCount === 0 && !isRequired) {
+        console.warn(`⚠️  Hanging module node (unconnected & not required): ${node.code} (${id})`);
+        valid = false;
+      }
     }
   }
 
-  return true;
+  if (valid) console.info("✅ Graph check passed — no hanging nodes or edges detected.");
+  else console.warn("❌ Graph integrity issues found above.");
+
+  return valid;
 }
