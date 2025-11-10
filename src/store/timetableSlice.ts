@@ -1,18 +1,9 @@
-
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { Grade, ModuleIssue, ModuleStatus } from "@/types/plannerTypes";
+import { ModuleData } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
-import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload, StaticModuleData } from '@/utils/planner/checkModuleStates';
-
-export interface ModuleState {
-  code: string; // code as id
-  status: ModuleStatus;
-  issues: ModuleIssue[];
-  grade?: Grade;
-  tags?: string[]
-}
+import { checkModuleStates, CheckModuleStatesArgs, ModuleUpdatePayload } from '@/utils/planner/checkModuleStates';
 
 export interface Semester {
   id: number; // e.g., 0 for Y1S1, 1 for Y1Winter, 2 for Y1S2, 3 for Y1Summer
@@ -20,15 +11,18 @@ export interface Semester {
 }
 
 export interface TimetableSliceState {
-  modules: EntityState<ModuleState, string>;
+  modules: EntityState<ModuleData, string>;
   semesters: EntityState<Semester, number>; 
   selectedModuleCode: string | null; // for Sidebar and TimetableModule
   draggedOverSemesterId: number | null; // for TimetableSemester
   isMinimalView: boolean // for Timetable
+  isVerticalView: boolean // for Timetable
+  targetModules: string[]; // list of target module codes for generation
+  exemptedModules: string[]; // list of exempted module codes
 }
 
 export const modulesAdapter = createEntityAdapter({
-  selectId: (m: ModuleState) => m.code,
+  selectId: (m: ModuleData) => m.code,
 });
 
 export const semestersAdapter = createEntityAdapter({
@@ -42,33 +36,73 @@ const timetableSlice = createSlice({
     semesters: semestersAdapter.getInitialState(),
     selectedModuleCode: null,
     draggedOverSemesterId: null,
-    isMinimalView: false
+    isMinimalView: false,
+    isVerticalView: true,
+    targetModules: [] as string[],
+    exemptedModules: [],
   } as TimetableSliceState,
   reducers: {
+    timetableLoaded(
+      state,
+      action: PayloadAction<{
+        modules: ModuleData[];
+        semesters: Semester[];
+      }>
+    ) {
+      modulesAdapter.setAll(state.modules, action.payload.modules);
+      semestersAdapter.setAll(state.semesters, action.payload.semesters);
+    },
+    
     // handles adding a module to the timeable
     moduleAdded(
       state,
       action: PayloadAction<{ 
-        moduleCode: string; 
+        module: ModuleData; 
         destSemesterId: number 
       }>
     ) {
-      const { moduleCode, destSemesterId } = action.payload;
+      const { module, destSemesterId } = action.payload;
 
-      const exists = state.modules.entities[moduleCode];
+      const exists = state.modules.entities[module.code];
       if (!exists) { // defensive check
-        modulesAdapter.addOne(state.modules, {
-          code: moduleCode,
-          status: ModuleStatus.Satisfied,
-          issues: []
-        });
+        modulesAdapter.addOne(state.modules, module);
       }
 
       const semester = state.semesters.entities[destSemesterId];
-      if (semester && !semester.moduleCodes.includes(moduleCode)) { // defensive checks
-        semester.moduleCodes.push(moduleCode);
+      if (semester && !semester.moduleCodes.includes(module.code)) { // defensive checks
+        semester.moduleCodes.push(module.code);
       }
     },
+
+    moduleCached(
+      state,
+      action: PayloadAction<{ 
+        module: ModuleData; 
+      }>
+    ) {
+      const { module } = action.payload;
+
+      const exists = state.modules.entities[module.code];
+      if (!exists) { // defensive check
+        modulesAdapter.addOne(state.modules, module);
+      }
+    },
+
+    semesterAdded: (state, action: PayloadAction<{ id: number }>) => {
+      const { id } = action.payload;
+      if (!state.semesters.entities[id]) {
+        state.semesters.entities[id] = {
+          id,
+          moduleCodes: [],
+        };
+        state.semesters.ids.push(id);
+      }
+    },
+    semesterRemoved: (state, action: PayloadAction<{ semesterId: number }>) => {
+      const { semesterId } = action.payload;
+      semestersAdapter.removeOne(state.semesters, semesterId);
+    },
+
 
     // for intra-semester reordering only
     moduleReordered(
@@ -124,6 +158,13 @@ const timetableSlice = createSlice({
 
       // remove from source
       src.moduleCodes = src.moduleCodes.filter(code => code !== activeModuleCode);
+      const termOffset = src.id % 4;
+      const isSpecialTerm = termOffset === 1 || termOffset === 3;
+
+      if (src.moduleCodes.length === 0 && isSpecialTerm) {
+        // If no modules left, remove the semester
+        semestersAdapter.removeOne(state.semesters, src.id);
+      }
 
       // determine insert index in destination
       const insertIndex =
@@ -143,8 +184,12 @@ const timetableSlice = createSlice({
 
       // Remove the moduleCode from any semester.moduleCodes it's in
       Object.values(state.semesters.entities).forEach((semester) => {
-        if (semester) {
-          semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        semester.moduleCodes = semester.moduleCodes.filter(code => code !== moduleCode);
+        const termOffset = semester.id % 4;
+        const isSpecialTerm = termOffset === 1 || termOffset === 3;
+        if (semester.moduleCodes.length === 0 && isSpecialTerm) {
+          // If no modules left, remove the semester
+          semestersAdapter.removeOne(state.semesters, semester.id);
         }
       });
 
@@ -174,37 +219,57 @@ const timetableSlice = createSlice({
     minimalViewToggled: (state) => {
       state.isMinimalView = !state.isMinimalView;
     },
+    verticalViewToggled: (state) => {
+      state.isVerticalView = !state.isVerticalView;
+    },
+
+    // handles target modules
+    targetModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.targetModules.includes(action.payload)) {
+        state.targetModules.push(action.payload);
+      }
+    },
+    targetModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.targetModules = state.targetModules.filter(code => code !== action.payload);
+    },
+    targetModulesCleared: (state) => {
+      state.targetModules = [];
+    },
+
+    // handles exempted modules
+    exemptedModuleAdded: (state, action: PayloadAction<string>) => {
+      if (!state.exemptedModules.includes(action.payload)) {
+        state.exemptedModules.push(action.payload);
+      }
+    },
+    exemptedModuleRemoved: (state, action: PayloadAction<string>) => {
+      state.exemptedModules = state.exemptedModules.filter(code => code !== action.payload);
+    },
+    exemptedModulesCleared: (state) => {
+      state.exemptedModules = [];
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
     builder.addCase(updateModuleStates.fulfilled, (state, action) => {
       modulesAdapter.updateMany(state.modules, action.payload);
     });
-    // populates states when timetable fetched
     builder.addMatcher(
       apiSlice.endpoints.getTimetable.matchFulfilled,
       (state, action) => {
-        const { semesters } = action.payload;
-
-        const uniqueModuleCodes = [
-          ...new Set(semesters.flatMap((s) => s.moduleCodes)),
-        ];
-
-        const modules: ModuleState[] = uniqueModuleCodes.map((code) => ({
-          code,
-          status: ModuleStatus.Satisfied,
-          issues: []
-        }));
-
-        modulesAdapter.setAll(state.modules, modules);
-        semestersAdapter.setAll(state.semesters, semesters);
+        semestersAdapter.setAll(state.semesters, action.payload.semesters);
+        modulesAdapter.removeAll(state.modules); // clear stale modules
       }
     );
   }
 });
 
 export const {
+  timetableLoaded,
   moduleAdded,
+  moduleCached,
+  semesterAdded,
+  semesterRemoved,
   moduleMoved,
   moduleReordered,
   moduleRemoved,
@@ -212,9 +277,19 @@ export const {
   moduleUnselected,
   semesterDraggedOverSet,
   semesterDraggedOverCleared,
-  minimalViewToggled
+  minimalViewToggled,
+  verticalViewToggled,
+  targetModuleAdded,
+  targetModuleRemoved,
+  targetModulesCleared,
+  exemptedModuleAdded,
+  exemptedModuleRemoved,
+  exemptedModulesCleared
 } = timetableSlice.actions;
+
 export default timetableSlice.reducer;
+export const timetableActions = timetableSlice.actions;
+
 
 // --- async thunks ---
 export const updateModuleStates = createAsyncThunk<
@@ -226,29 +301,15 @@ export const updateModuleStates = createAsyncThunk<
   async (_, { getState }) => {
     const state = getState();
     
-    // --- 1. gather inputs ---
-    // a) Dynamic state from timetable slice
     const { semesters: semesterEntities, modules: moduleEntities } = state.timetable;
-    const plannedModuleCodes = moduleEntities.ids as string[];
 
-    // b) Static data from RTK Query cache
-    const staticModulesData: Record<string, StaticModuleData> = {};
-    for (const code of plannedModuleCodes) {
-      const cached = apiSlice.endpoints.getModuleByCode.select(code)(state);
-      if (cached.data) {
-        staticModulesData[code] = cached.data;
-      }
-    }
-
-    // c) Prepare arguments for pure state-checking function
     const args: CheckModuleStatesArgs = {
-      staticModulesData,
       semesterEntities: semesterEntities.entities,
       moduleEntities: moduleEntities.entities,
     };
 
-    // --- 2. RUN CHECK AND RETURN DELTAS ---
     const deltas = checkModuleStates(args);
+
     return deltas;
   }
 );

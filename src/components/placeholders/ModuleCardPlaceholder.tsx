@@ -3,7 +3,7 @@
 import { Card, Box } from '@mui/material';
 import { motion } from 'framer-motion';
 
-const MotionCard = motion(Card);
+const MotionCard = motion.create(Card);
 
 const ModuleCardPlaceholder: React.FC = () => {
   return (

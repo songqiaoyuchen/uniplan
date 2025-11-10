@@ -3,7 +3,7 @@
 import { Card, Skeleton, useTheme, alpha } from '@mui/material';
 import { motion } from 'framer-motion';
 
-const MotionCard = motion(Card);
+const MotionCard = motion.create(Card);
 
 const ModuleTooltipPlaceholder: React.FC = () => {
   const theme = useTheme();
@@ -18,10 +18,10 @@ const ModuleTooltipPlaceholder: React.FC = () => {
         userSelect: 'none',
         backgroundColor: theme.palette.grey[100],
         border: `2px solid ${alpha(theme.palette.grey[400], 0.6)}`,
-        borderRadius: 2,
+        borderRadius: 1,
         display: 'flex',
         alignItems: 'center',
-        transition: 'all 0.2s ease',
+        transition: "transform 150ms ease, opacity 150ms ease, border-color 150ms ease",
         '&:hover': {
           boxShadow: 4,
         },

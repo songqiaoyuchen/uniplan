@@ -20,7 +20,7 @@ const ErrorModuleTooltip: React.FC<ErrorModuleTooltipProps> = ({
         gap: 1,
         px: 1.5,
         py: 1,
-        borderRadius: 1.5,
+        borderRadius: 1,
         backgroundColor: alpha(theme.palette.error.light, 0.3),
         border: `1px solid ${theme.palette.error.main}`,
         color: theme.palette.error.main,

@@ -15,7 +15,7 @@ export function selectModulesForSemester(
   edgeMap: EdgeMap,
   codetoIdMap: Map<string, string>, // Map from code to ID
   graph: NormalisedGraph,
-  targetModules: Set<string> // Now contains IDs
+  targetModules: Set<string>, // Now contains IDs
 ): string[] {
   const selected: string[] = [];
   let usedCredits = 0;
@@ -31,6 +31,26 @@ export function selectModulesForSemester(
 
     const node = graph.nodes[bestModuleId];
     if (!isModuleData(node)) throw new Error("Node is not ModuleData");
+    
+    // Check if this module is precluded by any already completed modules
+    let isPrecluded = false;
+    
+    for (const completedModuleId of plannerState.completedModules) {
+      const completedNode = graph.nodes[completedModuleId];
+      if (isModuleData(completedNode) && node.preclusions.includes(completedNode.code)) {
+        isPrecluded = true;
+        console.log(`Module ${node.code} is precluded because completed module ${completedNode.code} is in its preclusions`);
+        break;
+      }
+    }
+    
+    // If this module is precluded by completed modules, skip it
+    if (isPrecluded) {
+      remainingModules.delete(bestModuleId);
+      plannerState.redundantModules.add(bestModuleId);
+      continue;
+    }
+    
     const credits = node.credits || 4;
 
     // Prevent exceeding MCS limit
@@ -40,16 +60,39 @@ export function selectModulesForSemester(
     selected.push(bestModuleId);
     usedCredits += credits;
     remainingModules.delete(bestModuleId);
-    for (const preclusion of node.preclusions) {
-      if (!codetoIdMap.get(preclusion)) {
-        continue;
-      }
-      const preclusionId = codetoIdMap.get(preclusion);
-      if (preclusionId !== undefined) {
-        remainingModules.delete(preclusionId);
-        plannerState.redundantModules.add(preclusionId);
+    
+    // Handle exam clashes
+    const selectedModuleData = graph.nodes[bestModuleId];
+    if (!isModuleData(selectedModuleData)) {
+      throw new Error("Selected module is a logic node, not ModuleData");
+    }
+
+    if (selectedModuleData?.exam) {
+      // Check all remaining modules for exam clashes with the selected module
+      for (const remainingId of Array.from(remainingModules)) {
+        const remainingModuleData = graph.nodes[remainingId];
+        
+        if (!isModuleData(remainingModuleData)) {
+          continue;
+        }
+        
+        if (remainingModuleData?.exam) {
+          // Check if exams clash (overlap in time)
+          const selectedStart = new Date(selectedModuleData.exam.startTime).getTime();
+          const selectedEnd = selectedStart + selectedModuleData.exam.durationMinutes * 60 * 1000;
+          
+          const remainingStart = new Date(remainingModuleData.exam.startTime).getTime();
+          const remainingEnd = remainingStart + remainingModuleData.exam.durationMinutes * 60 * 1000;
+          
+          // Check for overlap (allowing back-to-back exams)
+          if (selectedStart < remainingEnd && remainingStart < selectedEnd) {
+            remainingModules.delete(remainingId);
+            plannerState.redundantModules.add(remainingId);
+          }
+        }
       }
     }
+    
     plannerState.completedModules.add(bestModuleId);
 
     // Immediately update logic satisfaction to prevent redundant selections

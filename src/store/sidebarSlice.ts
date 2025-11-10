@@ -1,13 +1,15 @@
 // store/sidebarSlice.ts
-import { createSelector, createSlice } from "@reduxjs/toolkit";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { RootState } from ".";
 
 interface SidebarState {
   isOpen: boolean;
+  activeTab: number; // 0 = Details, 1 = Generate
 }
 
 const initialState: SidebarState = {
   isOpen: false,
+  activeTab: 0,
 };
 
 const sidebarSlice = createSlice({
@@ -23,12 +25,16 @@ const sidebarSlice = createSlice({
     closeSidebar: (state) => {
       state.isOpen = false;
     },
+    setActiveTab: (state, action: PayloadAction<number>) => {
+      state.activeTab = action.payload;
+    },
   },
 });
 
-export const { toggleSidebar, openSidebar, closeSidebar } =
+export const { toggleSidebar, openSidebar, closeSidebar, setActiveTab } =
   sidebarSlice.actions;
 export default sidebarSlice.reducer;
 
 // --- selectors ---
 export const selectIsSidebarOpen = (state: RootState) => state.sidebar.isOpen;
+export const selectActiveTab = (state: RootState) => state.sidebar.activeTab;
