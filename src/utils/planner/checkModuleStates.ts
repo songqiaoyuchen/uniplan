@@ -205,7 +205,11 @@ function buildIssuesMap(
       issues.push({ type: 'InvalidSemester' });
     }
 
-    const precluded = mod.preclusions.filter(p => moduleToSemesterMap.has(p));
+    // Only check precluded modules in semesters <= current module's semester
+    const precluded = mod.preclusions.filter(p => {
+      const precludedSemId = moduleToSemesterMap.get(p);
+      return precludedSemId !== undefined && precludedSemId <= semId;
+    });
     if (precluded.length > 0) {
       issues.push({ type: 'Precluded', with: precluded });
     }

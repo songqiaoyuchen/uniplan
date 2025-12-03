@@ -8,12 +8,19 @@ import { SIDEBAR_COLLAPSED_WIDTH, SIDEBAR_WIDTH } from "@/constants";
 import { semesterAdded } from "@/store/timetableSlice"; // Update path if different
 import { memo } from "react";
 import { RootState } from "@/store";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
 function Timetable() {
   const semesterIds = useAppSelector(selectSemesterIds) as number[];
   const isOpen = useAppSelector((state: RootState) => state.sidebar.isOpen);
   const isMinimalView = useAppSelector(selectIsMinimalView);
-  const sidebarWidth = isOpen ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
+  const theme = useTheme();
+  const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
+  const isXLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
+  
+  const responsiveSidebarWidth = isLargeScreen ? 336 : SIDEBAR_WIDTH;
+  const sidebarWidth = isOpen ? responsiveSidebarWidth : SIDEBAR_COLLAPSED_WIDTH;
   const dispatch = useAppDispatch();
 
   const handleAddSpecialTerm = (id: number) => {

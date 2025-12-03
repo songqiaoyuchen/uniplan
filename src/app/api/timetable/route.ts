@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMergedTree } from '@/db/getMergedTree';
-import { cleanGraph } from '@/utils/graph/cleanGraph';
+import { pruneGraph } from '@/utils/graph/pruneGraph';
 import { normaliseNodes } from '@/utils/graph/normaliseNodes';
 import { runScheduler } from '@/utils/graph/algo/schedule';
 import { ErrorResponse } from '@/types/errorTypes';
@@ -36,11 +36,11 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     // Build the dependency graph for the required modules
     const rawGraph = await getMergedTree(requiredModuleCodes);
     const normalisedGraph = normaliseNodes(rawGraph);
-    const cleanedGraph = cleanGraph(normalisedGraph, requiredModuleCodes);
+    const prunedGraph = pruneGraph(normalisedGraph, requiredModuleCodes);
 
     // Run the scheduler
     const timetable = runScheduler(
-      cleanedGraph,
+      prunedGraph,
       requiredModuleCodes,
       exemptedModuleCodes
     );

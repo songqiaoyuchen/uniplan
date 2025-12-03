@@ -38,7 +38,7 @@ const timetableSlice = createSlice({
     draggedOverSemesterId: null,
     isMinimalView: false,
     isVerticalView: true,
-    targetModules: [],
+    targetModules: [] as string[],
     exemptedModules: [],
   } as TimetableSliceState,
   reducers: {

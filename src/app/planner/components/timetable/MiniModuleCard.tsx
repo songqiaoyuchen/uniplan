@@ -59,7 +59,6 @@ const MiniModuleCard: React.FC<MiniModuleCardProps> = ({
     <Box 
       sx={{ 
         position: 'relative',
-        display: 'inline-block'
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}

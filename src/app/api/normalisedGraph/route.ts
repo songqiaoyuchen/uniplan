@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getMergedTree } from "@/db/getMergedTree";
 import { ErrorResponse } from "@/types/errorTypes";
-import { cleanGraph } from "@/utils/graph/cleanGraph";
+import { pruneGraph } from "@/utils/graph/pruneGraph";
 import { normaliseNodes } from "@/utils/graph/normaliseNodes";
 import { NormalisedGraph } from "@/types/graphTypes";
 import { checkGraph } from "@/utils/graph/checkGraph";
@@ -29,11 +29,11 @@ export async function GET(
 
   try {
     const graph = await getMergedTree(codes);
-    const cleaned = cleanGraph(normaliseNodes(graph), codes)
-    if (!checkGraph(cleaned)) {
+    const pruned = pruneGraph(normaliseNodes(graph), codes);
+    if (!checkGraph(pruned, codes)) {
       console.log("invalid graph")
     }
-    return NextResponse.json(cleaned);
+    return NextResponse.json(pruned);
   } catch (err) {
     console.error("exportGraph error:", err);
     return NextResponse.json(
