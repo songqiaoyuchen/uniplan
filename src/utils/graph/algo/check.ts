@@ -14,7 +14,8 @@ import { isNofNode, isModuleData, MAX_MCS_PER_SEMESTER } from './constants';
 export function validateSchedule(
   timetable: TimetableData,
   graph: NormalisedGraph,
-  targetModules: string[]
+  targetModules: string[],
+  maxMcsPerSemester: number = MAX_MCS_PER_SEMESTER
 ): ValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
@@ -119,8 +120,8 @@ export function validateSchedule(
     }
     
     // Check credit limit
-    if (semesterCredits > MAX_MCS_PER_SEMESTER) {
-      errors.push(`Semester ${semester} has ${semesterCredits} MCs, exceeding limit of ${MAX_MCS_PER_SEMESTER}`);
+    if (semesterCredits > maxMcsPerSemester) {
+      errors.push(`Semester ${semester} has ${semesterCredits} MCs, exceeding limit of ${maxMcsPerSemester}`);
     }
     
     maxCredits = Math.max(maxCredits, semesterCredits);
@@ -229,7 +230,7 @@ function updateLogicNodeSatisfaction(
 /**
  * Generates a detailed report of the validation results
  */
-export function generateValidationReport(result: ValidationResult): string {
+export function generateValidationReport(result: ValidationResult, maxMcsPerSemester: number = MAX_MCS_PER_SEMESTER): string {
   const lines: string[] = [];
     
   lines.push(`Status: ${result.isValid ? '✅ VALID' : '❌ INVALID'}\n`);
@@ -238,7 +239,7 @@ export function generateValidationReport(result: ValidationResult): string {
   lines.push(`  - Total modules: ${result.stats.totalModules}`);
   lines.push(`  - Total semesters: ${result.stats.totalSemesters}`);
   lines.push(`  - Total credits: ${result.stats.totalCredits}`);
-  lines.push(`  - Max credits in a semester: ${result.stats.maxCreditsInSemester}/${MAX_MCS_PER_SEMESTER}`);
+  lines.push(`  - Max credits in a semester: ${result.stats.maxCreditsInSemester}/${maxMcsPerSemester}`);
   lines.push(`  - Target modules completed: ${result.stats.targetModulesCompleted}/${result.stats.targetModulesTotal}`);
   lines.push('');
   

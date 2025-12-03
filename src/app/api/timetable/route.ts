@@ -12,6 +12,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     const searchParams = request.nextUrl.searchParams;
     const requiredParam = searchParams.get('required');
     const exemptedParam = searchParams.get('exempted');
+    const specialTermsParam = searchParams.get('specialTerms');
+    const maxMcsParam = searchParams.get('maxMcs');
     
     const requiredModuleCodes = requiredParam 
       ? requiredParam.split(',').map(c => c.trim().toUpperCase()).filter(Boolean) 
@@ -19,6 +21,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     const exemptedModuleCodes = exemptedParam 
       ? exemptedParam.split(',').map(c => c.trim().toUpperCase()).filter(Boolean) 
       : [];
+    const useSpecialTerms = specialTermsParam === 'true';
+    const maxMcsPerSemester = maxMcsParam ? parseInt(maxMcsParam, 10) : 20;
 
     if (requiredModuleCodes.length === 0) {
       return NextResponse.json(
@@ -30,7 +34,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     console.log('=== START OF REPORT ===')
     console.log('📚 Generating timetable for:', {
       required: requiredModuleCodes,
-      exempted: exemptedModuleCodes
+      exempted: exemptedModuleCodes,
+      maxMcs: maxMcsPerSemester
     });
 
     // Build the dependency graph for the required modules
@@ -42,7 +47,9 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     const timetable = runScheduler(
       prunedGraph,
       requiredModuleCodes,
-      exemptedModuleCodes
+      exemptedModuleCodes,
+      useSpecialTerms,
+      maxMcsPerSemester
     );
 
     console.log('✅ Timetable generated:', timetable);

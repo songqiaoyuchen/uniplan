@@ -1,15 +1,13 @@
 import fs from "fs";
 import path from "path";
-import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { Session } from "neo4j-driver";
 import { Neo4jModuleData } from "@/types/neo4jTypes";
 
-export async function uploadModules(): Promise<void> {
+export async function uploadModules(session: Session): Promise<void> {
   const filePath = path.join(process.cwd(), "src", "data", "moduleData.json");
   const moduleList: Neo4jModuleData[] = JSON.parse(
     fs.readFileSync(filePath, "utf8"),
   );
-
-  const { driver, session } = await connectToNeo4j();
 
   try {
     const tx = session.beginTransaction();
@@ -51,14 +49,5 @@ export async function uploadModules(): Promise<void> {
     console.log(`🎉 Uploaded ${moduleList.length} modules.`);
   } catch (err) {
     console.error("❌ Error during module upload:", err);
-  } finally {
-    await closeNeo4jConnection(driver, session);
   }
-}
-
-if (require.main === module) {
-  uploadModules().catch((err) => {
-    console.error("❌ Failed to upload modules:", err);
-    process.exit(1);
-  });
 }

@@ -10,9 +10,20 @@ export function calculateAvailableModules(
   currentSemester: number,
   plannerState: PlannerState,
   edgeMap: EdgeMap,
-  graph: NormalisedGraph
+  graph: NormalisedGraph,
+  useSpecialTerms: boolean = true
 ): Set<string> {
   const available = new Set<string>();
+
+  // Map semester ID to actual semester type
+  // 0 = Y1S1, 1 = Y1Winter, 2 = Y1S2, 3 = Y1Summer, 4 = Y2S1, etc.
+  const semesterType = currentSemester % 4;
+  const isSpecialTerm = semesterType === 1 || semesterType === 3;
+
+  // If special terms are disabled and this is a special term, return empty set
+  if (!useSpecialTerms && isSpecialTerm) {
+    return available;
+  }
 
   for (const [moduleId, node] of Object.entries(graph.nodes)) {
     if (!isModuleData(node)) continue;
@@ -33,9 +44,6 @@ export function calculateAvailableModules(
       }
     });
     
-    // Map semester ID to actual semester type
-    // 0 = Y1S1, 1 = Y1Winter, 2 = Y1S2, 3 = Y1Summer, 4 = Y2S1, etc.
-    const semesterType = currentSemester % 4;
     const actualSem = semesterType === 0 ? SemesterLabel.First 
                     : semesterType === 1 ? SemesterLabel.SpecialTerm1
                     : semesterType === 2 ? SemesterLabel.Second

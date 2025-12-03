@@ -1,10 +1,15 @@
 import { ModuleStatus } from "@/types/plannerTypes";
 import { createTheme, ThemeOptions } from "@mui/material/styles";
+import "@fontsource/plus-jakarta-sans/400.css";
+import "@fontsource/plus-jakarta-sans/500.css";
+import "@fontsource/plus-jakarta-sans/600.css";
+import "@fontsource/plus-jakarta-sans/700.css";
+import "@fontsource/jetbrains-mono";
 
 // ================= COMMON OPTIONS =================
 const commonOptions: Partial<ThemeOptions> = {
   typography: {
-    fontFamily: "Roboto, Arial, sans-serif",
+    fontFamily: "Plus Jakarta Sans, Roboto, Arial, sans-serif",
     h1: { fontSize: "2.5rem", fontWeight: 700 },
     h2: { fontSize: "2rem", fontWeight: 600 },
     h3: { fontSize: "1.75rem", fontWeight: 500 },

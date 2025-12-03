@@ -5,13 +5,20 @@ import Divider from '@mui/material/Divider';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import FlagIcon from '@mui/icons-material/Flag';
 import BlockIcon from '@mui/icons-material/Block';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import Switch from '@mui/material/Switch';
+import IconButton from '@mui/material/IconButton';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import { useMemo } from 'react';
 import miniModuleData from '@/data/miniModuleData.json';
 import { useLazyGetTimetableQuery } from '@/store/apiSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useAppDispatch } from '@/store';
-import { targetModuleRemoved, exemptedModuleRemoved } from '@/store/timetableSlice';
+import { targetModuleRemoved, exemptedModuleRemoved, specialTermsToggled, maxMcsUpdated } from '@/store/timetableSlice';
 import MiniModuleCard from '../timetable/MiniModuleCard';
 import { ModuleStatus } from '@/types/plannerTypes';
 
@@ -28,6 +35,8 @@ const Generate: React.FC = () => {
     const exempted = state.timetable.exemptedModules;
     return Array.isArray(exempted) ? exempted : [];
   });
+
+  const { useSpecialTerms, maxMcsPerSemester } = useSelector((state: RootState) => state.timetable);
 
   // Create module objects from codes
   const targetModules = useMemo(() => {
@@ -64,20 +73,28 @@ const Generate: React.FC = () => {
     dispatch(exemptedModuleRemoved(moduleCode));
   };
 
-  const handleGenerate = async () => {
-    if (targetModuleCodes.length === 0) {
-      console.warn('No modules selected for generation');
-      return;
-    }
+  const handleGenerate = () => {
+    triggerGetTimetable({
+      requiredModuleCodes: targetModuleCodes,
+      exemptedModuleCodes: exemptedModuleCodes,
+      useSpecialTerms: useSpecialTerms,
+      maxMcsPerSemester: maxMcsPerSemester
+    });
+  };
 
-    try {
-      const result = await triggerGetTimetable({
-        requiredModuleCodes: targetModuleCodes,
-        exemptedModuleCodes: exemptedModuleCodes
-      }).unwrap();
-      
-    } catch (error) {
-      console.error('Error generating timetable:', error);
+  const handleSpecialTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(specialTermsToggled());
+  };
+
+  const handleIncrementMcs = () => {
+    if (maxMcsPerSemester < 40) {
+      dispatch(maxMcsUpdated(maxMcsPerSemester + 2));
+    }
+  };
+
+  const handleDecrementMcs = () => {
+    if (maxMcsPerSemester > 16) {
+      dispatch(maxMcsUpdated(maxMcsPerSemester - 2));
     }
   };
 
@@ -107,26 +124,8 @@ const Generate: React.FC = () => {
           </Typography>
         </Box>
         
-        {targetModules.length === 0 ? (
-          <Box sx={{ 
-            p: 2, 
-            backgroundColor: 'action.hover', 
-            borderRadius: 1,
-            border: 1,
-            borderColor: 'divider',
-            textAlign: 'center'
-          }}>
-            <Typography variant="caption" color="text.secondary">
-              No target modules selected.
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 1,
-            p: 1
-          }}>
+        {targetModules.length > 0 ? (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {targetModules.map((module) => (
               <MiniModuleCard
                 key={module.code}
@@ -136,15 +135,32 @@ const Generate: React.FC = () => {
               />
             ))}
           </Box>
+        ) : (
+          <Box 
+            sx={{ 
+              p: 2, 
+              border: '1px dashed', 
+              borderColor: 'divider', 
+              borderRadius: 1,
+              bgcolor: 'background.default',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <InfoOutlinedIcon color="action" sx={{ fontSize: 20 }} />
+            <Typography variant="caption" color="text.secondary" align="center">
+              No target modules selected. Search for modules to add them here.
+            </Typography>
+          </Box>
         )}
       </Box>
-
-      <Divider />
 
       {/* Exempted Modules Section */}
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-          <BlockIcon sx={{ fontSize: '1.2rem', color: 'warning.main' }} />
+          <BlockIcon sx={{ fontSize: '1.2rem', color: 'error.main' }} />
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             Exempted Modules
           </Typography>
@@ -152,27 +168,9 @@ const Generate: React.FC = () => {
             ({exemptedModules.length})
           </Typography>
         </Box>
-        
-        {exemptedModules.length === 0 ? (
-          <Box sx={{ 
-            p: 2, 
-            backgroundColor: 'action.hover', 
-            borderRadius: 1,
-            border: 1,
-            borderColor: 'divider',
-            textAlign: 'center'
-          }}>
-            <Typography variant="caption" color="text.secondary">
-              No exempted modules selected.
-            </Typography>
-          </Box>
-        ) : (
-          <Box sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap', 
-            gap: 1,
-            p: 1
-          }}>
+
+        {exemptedModules.length > 0 ? (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {exemptedModules.map((module) => (
               <MiniModuleCard
                 key={module.code}
@@ -182,59 +180,117 @@ const Generate: React.FC = () => {
               />
             ))}
           </Box>
+        ) : (
+          <Box 
+            sx={{ 
+              p: 2, 
+              border: '1px dashed', 
+              borderColor: 'divider', 
+              borderRadius: 1,
+              bgcolor: 'background.default',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 1
+            }}
+          >
+            <InfoOutlinedIcon color="action" sx={{ fontSize: 20 }} />
+            <Typography variant="caption" color="text.secondary" align="center">
+              No exempted modules. Search for modules to exempt them.
+            </Typography>
+          </Box>
         )}
       </Box>
 
-      {/* Info Message */}
-      {!isFormValid && (
+      <Divider />
+
+      {/* Max MCs Stepper */}
+      <Box>
+        <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, pb: 1 }}>
+          Max MCs per Semester
+        </Typography>
         <Box sx={{ 
           display: 'flex', 
           alignItems: 'center', 
-          gap: 1, 
-          p: 1.5,
-          backgroundColor: 'info.lighter',
+          justifyContent: 'space-between',
+          border: '1px solid',
+          borderColor: 'divider',
           borderRadius: 1,
-          border: 1,
-          borderColor: 'info.light'
+          p: 0.5
         }}>
-          <InfoOutlinedIcon fontSize="small" color="info" />
-          <Typography variant="body2" color="info.main">
-            Select at least one target module to generate your timetable
+          <IconButton 
+            size="small" 
+            onClick={handleDecrementMcs}
+            disabled={maxMcsPerSemester <= 16}
+            color="primary"
+          >
+            <RemoveIcon fontSize="small" />
+          </IconButton>
+          
+          <Typography variant="body1" sx={{ fontWeight: 500, minWidth: '3ch', textAlign: 'center' }}>
+            {maxMcsPerSemester}
           </Typography>
+          
+          <IconButton 
+            size="small" 
+            onClick={handleIncrementMcs}
+            disabled={maxMcsPerSemester >= 40}
+            color="primary"
+          >
+            <AddIcon fontSize="small" />
+          </IconButton>
         </Box>
-      )}
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
+          Recommended: 20-24 MCs
+        </Typography>
+      </Box>
+      
+      {/* Special Terms Toggle */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <FormControlLabel
+          sx={{ ml: 0 }}
+          control={
+            <Switch
+              checked={useSpecialTerms}
+              onChange={handleSpecialTermsChange}
+              name="specialTerms"
+              color="primary"
+              size="small"
+            />
+          }
+          label={
+            <Typography variant="body2">Include Special Terms</Typography>
+          }
+        />
+      </Box>
 
       {/* Generate Button */}
-      <Button
-        variant="contained"
-        onClick={handleGenerate}
-        fullWidth
-        disabled={!isFormValid || isFetching}
-        sx={{
-          py: 1.25,
-          fontWeight: 600,
-          textTransform: 'none',
-          mt: 1
-        }}
-      >
-        {isFetching ? 'Generating...' : 'Generate Timetable'}
-      </Button>
-      
-      {error && (
-        <Box sx={{ 
-          p: 1.5,
-          backgroundColor: 'error.lighter',
-          borderRadius: 1,
-          border: 1,
-          borderColor: 'error.light'
-        }}>
-          <Typography variant="caption" color="error.main">
-            Unable to generate timetable. Please try again.
+      <Box sx={{ mt: 'auto', pb: 2 }}>
+        <Button
+          variant="contained"
+          fullWidth
+          size="large"
+          onClick={handleGenerate}
+          disabled={!isFormValid || isFetching}
+          sx={{ 
+            py: 1.5,
+            fontWeight: 600,
+            textTransform: 'none',
+            boxShadow: 2
+          }}
+        >
+          {isFetching ? 'Generating...' : 'Generate Timetable'}
+        </Button>
+        
+        {error && (
+          <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
+            Error generating timetable. Please try again.
           </Typography>
-        </Box>
-      )}
+        )}
+      </Box>
     </Box>
   );
 };
 
 export default Generate;
+

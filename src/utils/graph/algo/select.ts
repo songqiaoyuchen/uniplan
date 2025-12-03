@@ -16,6 +16,7 @@ export function selectModulesForSemester(
   codetoIdMap: Map<string, string>, // Map from code to ID
   graph: NormalisedGraph,
   targetModules: Set<string>, // Now contains IDs
+  maxMcsPerSemester: number
 ): string[] {
   const selected: string[] = [];
   let usedCredits = 0;
@@ -23,7 +24,7 @@ export function selectModulesForSemester(
   // Create working copy of available modules
   const remainingModules = new Set(availableSnapshot);
 
-  while (remainingModules.size > 0 && usedCredits < MAX_MCS_PER_SEMESTER) {
+  while (remainingModules.size > 0 && usedCredits < maxMcsPerSemester) {
     // Find best module (O(n) optimization)
     const bestModuleId = findBestModule(remainingModules, plannerState, edgeMap, graph, targetModules);
 
@@ -54,7 +55,7 @@ export function selectModulesForSemester(
     const credits = node.credits || 4;
 
     // Prevent exceeding MCS limit
-    if (usedCredits + credits > MAX_MCS_PER_SEMESTER) break;
+    if (usedCredits + credits > maxMcsPerSemester) break;
 
     // Select the module
     selected.push(bestModuleId);

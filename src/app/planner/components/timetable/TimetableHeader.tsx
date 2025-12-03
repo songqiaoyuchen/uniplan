@@ -25,6 +25,7 @@ const TimetableHeader: React.FC = () => {
   const dispatch = useDispatch();
 
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
+  const useSpecialTerms = useAppSelector((state) => state.timetable.useSpecialTerms);
 
   // active timetable name from plannerSlice
   const activeName = useAppSelector(
@@ -134,7 +135,7 @@ const TimetableHeader: React.FC = () => {
         <Stack direction="row" spacing={1}>
           <Button
             variant="outlined"
-            onClick={() => triggerGetTimetable({ requiredModuleCodes, exemptedModuleCodes })}
+            onClick={() => triggerGetTimetable({ requiredModuleCodes, exemptedModuleCodes, useSpecialTerms })}
           >
             {isFetching ? "Loading timetable..." : "Test Import Timetable"}
           </Button>

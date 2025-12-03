@@ -21,7 +21,7 @@ import { useThemeMode } from "@/providers/ThemeProvider";
 const pages = [
   { name: "Home", href: "/" },
   { name: "Planner", href: "/planner" },
-  { name: "Explore", href: "/normalised-graph" },
+  { name: "Explore", href: "/explore" },
 ];
 
 const settings = ["Profile", "Account", "Logout"];
