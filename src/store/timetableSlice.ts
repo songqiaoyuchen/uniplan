@@ -245,9 +245,6 @@ const timetableSlice = createSlice({
     exemptedModuleRemoved: (state, action: PayloadAction<string>) => {
       state.exemptedModules = state.exemptedModules.filter(code => code !== action.payload);
     },
-    exemptedModulesCleared: (state) => {
-      state.exemptedModules = [];
-    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
@@ -284,7 +281,6 @@ export const {
   targetModulesCleared,
   exemptedModuleAdded,
   exemptedModuleRemoved,
-  exemptedModulesCleared
 } = timetableSlice.actions;
 
 export default timetableSlice.reducer;
@@ -306,6 +302,7 @@ export const updateModuleStates = createAsyncThunk<
     const args: CheckModuleStatesArgs = {
       semesterEntities: semesterEntities.entities,
       moduleEntities: moduleEntities.entities,
+      exemptedModules: state.timetable.exemptedModules,
     };
 
     const deltas = checkModuleStates(args);

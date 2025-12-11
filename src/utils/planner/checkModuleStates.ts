@@ -17,6 +17,7 @@ import { Semester } from '@/store/timetableSlice';
 export interface CheckModuleStatesArgs {
   semesterEntities: Record<number, Semester>;
   moduleEntities: Record<string, ModuleData>;
+  exemptedModules: string[];
 }
 export type ModuleUpdatePayload = {
   id: string;
@@ -26,7 +27,7 @@ export type ModuleUpdatePayload = {
 export function checkModuleStates(
   args: CheckModuleStatesArgs
 ): ModuleUpdatePayload[] {
-  const { semesterEntities, moduleEntities } = args;
+  const { semesterEntities, moduleEntities, exemptedModules } = args;
 
   // Map each planned module to its semester
   const moduleToSemester = new Map<string, number>();
@@ -42,6 +43,10 @@ export function checkModuleStates(
 
   // Track computed states for comparison later
   const newStates: Record<string, { status: ModuleStatus; issues: ModuleIssue[] }> = {};
+
+  for (const code of exemptedModules) {
+    modulesSeen[code] = ModuleStatus.Satisfied;
+  }
 
   // Process semesters in order
   const semesterIds = Object.keys(semesterEntities)
@@ -249,4 +254,3 @@ function evaluatePrereqTree(
       return false;
   }
 }
-
