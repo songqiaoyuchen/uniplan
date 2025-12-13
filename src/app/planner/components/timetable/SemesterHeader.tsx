@@ -37,11 +37,9 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
   const isMinimalView = useAppSelector(selectIsMinimalView);
   const selectSemesterHeaderInfo = useMemo(makeSelectSemesterHeaderInfo, []);
 
-  const { totalCredits } = useAppSelector((state) => {
-    const semester = state.timetable.semesters.entities[semesterId];
-    if (!semester) return { totalCredits: 0 };
-    return selectSemesterHeaderInfo(state, semesterId);
-  });
+  const { totalCredits, semesterGpa } = useAppSelector((state) => 
+    selectSemesterHeaderInfo(state, semesterId)
+  );
 
   const isSpecialTerm = semesterId % 2 === 1;
   const latestNormalSemester = useAppSelector(selectLatestNormalSemester);
@@ -95,17 +93,46 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
             <CloseIcon sx={{ fontSize: 12 }} />
           </IconButton>
         )
-        : <Typography
+        : (
+          <Typography
             variant={isMinimalView ? "caption" : "body2"}
             color="text.secondary"
             sx={{
               px: isMinimalView ? 0.5 : 0,
               textAlign: "right",
+              whiteSpace: "nowrap", 
               width: isMinimalView ? "100%" : "auto",
             }}
           >
-            {totalCredits} MC
-          </Typography>}
+            {totalCredits} {isMinimalView && "Units"}
+
+            {semesterGpa !== null && (
+              <>
+                {/* The Separator */}
+                <Box 
+                  component="span" 
+                  sx={{ 
+                    mx: 0.4, // Horizontal spacing around the slash
+                    color: 'text.disabled',
+                    userSelect: 'none' // User can copy text without copying the slash
+                  }}
+                >
+                  /
+                </Box>
+
+                {/* The GPA Value */}
+                <Box 
+                  component="span" 
+                  sx={{ 
+                    fontWeight: 600, // Slightly bolder than normal text
+                  }}
+                >
+                  {semesterGpa.toFixed(2)} {isMinimalView && "SGPA"}
+                </Box>
+              </>
+            )}
+          </Typography>
+        )}
       </Paper>
     </Box>
   );

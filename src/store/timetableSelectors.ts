@@ -2,6 +2,7 @@ import { createSelector } from "reselect";
 import { RootState } from ".";
 import { modulesAdapter, semestersAdapter } from "./timetableSlice";
 import { flattenPrereqTree } from "@/utils/planner/flattenPrereqTree";
+import { GRADE_VALUES } from "@/types/plannerTypes";
 
 // --- selectors ---
 export const {
@@ -55,18 +56,47 @@ export const makeSelectSemesterHeaderInfo = () =>
     ],
     (semesters, modules, semesterId) => {
       const semester = semesters[semesterId];
+      
+      // Handle missing semester gracefully
       if (!semester) {
-        console.error(`Semester ID=${semesterId} not found`);
-        return { moduleCount: 0, totalCredits: 0 };
+        return { moduleCount: 0, totalCredits: 0, semesterGpa: null };
       }
       
-      const moduleCount = semester.moduleCodes.length;
-      const totalCredits = semester.moduleCodes.reduce(
-        (acc, moduleCode) => acc + (modules[moduleCode]?.credits ?? 0),
-        0
-      );
+      let totalCredits = 0;
+      let totalPoints = 0;
+      let gradedCredits = 0;
+
+      // Single pass loop for efficiency
+      for (const code of semester.moduleCodes) {
+        const mod = modules[code];
+        if (!mod) continue;
+
+        // 1. Accumulate Total Credits (Workload)
+        // We default to 0 to be safe
+        totalCredits += (mod.credits ?? 0);
+
+        // 2. Accumulate GPA Points
+        // Only if grade exists and maps to a numeric value (not null like CS/IP)
+        if (mod.grade) {
+          const points = GRADE_VALUES[mod.grade];
+          
+          if (points !== null) {
+            totalPoints += points * (mod.credits ?? 0);
+            gradedCredits += (mod.credits ?? 0);
+          }
+        }
+      }
+
+      // Calculate GPA, avoiding division by zero
+      const semesterGpa = gradedCredits > 0 
+        ? (totalPoints / gradedCredits) 
+        : null;
       
-      return { moduleCount, totalCredits };
+      return { 
+        moduleCount: semester.moduleCodes.length, 
+        totalCredits, 
+        semesterGpa 
+      };
     }
   );
 
@@ -82,6 +112,38 @@ export const selectTotalCredits = createSelector(
         return sum + (mod ? mod.credits : 0);
       }, 0);
     }, 0);
+  }
+);
+
+export const selectCgpa = createSelector(
+  [
+    (state: RootState) => state.timetable.semesters.entities,
+    (state: RootState) => state.timetable.modules.entities
+  ],
+  (semesters, modules) => {
+    let totalPoints = 0;
+    let totalGradedCredits = 0;
+
+    Object.values(semesters).forEach((semester) => {
+      if (!semester) return;
+
+      semester.moduleCodes.forEach((code) => {
+        const mod = modules[code];
+        // Skip if module not found, has no grade, or grade is invalid
+        if (!mod || !mod.grade) return;
+
+        const points = GRADE_VALUES[mod.grade];
+
+        // Only calculate if points is not null (skips CS, CU, IP)
+        if (points !== null) {
+          totalPoints += points * mod.credits;
+          totalGradedCredits += mod.credits;
+        }
+      });
+    });
+
+    // Return 0.00 if no graded modules exist to prevent NaN
+    return totalGradedCredits === 0 ? 0 : totalPoints / totalGradedCredits;
   }
 );
 

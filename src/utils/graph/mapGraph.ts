@@ -8,6 +8,7 @@ import { Edge, LogicNode, FormattedGraph } from "@/types/graphTypes";
 import type { Node as NeoNode } from "neo4j-driver";
 import { Neo4jGraph } from "@/types/neo4jTypes";
 import {
+  AVAIL_GRADES,
   Exam,
   Grade,
   ModuleData,
@@ -92,7 +93,7 @@ export function mapModuleData(node: NeoNode): ModuleData {
   }
 
   // Ensure grade is a valid Grade enum
-  const validGrades = Object.values(Grade);
+  const validGrades = AVAIL_GRADES;
   const rawGrade = typeof props.grade === "string" ? props.grade : undefined;
   const grade = validGrades.includes(rawGrade as Grade)
     ? (rawGrade as Grade)

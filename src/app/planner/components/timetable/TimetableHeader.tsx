@@ -14,6 +14,7 @@ import { minimalViewToggled } from "@/store/timetableSlice";
 import { useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import {
+  selectCgpa,
   selectLatestNormalSemester,
   selectTotalCredits,
 } from "@/store/timetableSelectors";
@@ -31,24 +32,13 @@ const TimetableHeader: React.FC = () => {
     (state) => state.planner.activeTimetableName
   ) ?? "New Timetable";
 
-  const [triggerGetTimetable, { isFetching }] = useLazyGetTimetableQuery();
-
-  // TESTING DATA
-  const requiredModuleCodes = [
-    "MA1301", "MA5401", "CS5330", "MA5198", "HSA1000", "NGN2001A",
-    "CP4101", "CS1101S", "CS2030S", "CS2040S", "CS1231S", "CS2105", "CS2109S",
-    "CS2103T", "CS2100", "ST2334", "CS2107", "Cs3230", "DTK1234", "MA2002",
-    "MA2001", "ES2660", "MA2101", "MA2104", "MA2108", "IS1108", "MA2202",
-    "MA2213", "MA5206"
-  ];
-  const exemptedModuleCodes: string[] = [];
-
   // Title editing mirrors active timetable name
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState(activeName);
   useEffect(() => setTempName(activeName), [activeName]);
 
   const totalCredits = useAppSelector(selectTotalCredits);
+  const Cgpa = useAppSelector(selectCgpa);
   const latestNormalSemester = useAppSelector(selectLatestNormalSemester) ?? 0;
   const estimatedTrackDuration = latestNormalSemester / 4 + 0.5;
 
@@ -125,19 +115,24 @@ const TimetableHeader: React.FC = () => {
           <TimetableDropdown />
         </Stack>
 
-        {/* Total Credits */}
+        {/* Stats */}
         <Typography variant="body1" color="text.secondary" marginLeft="auto">
-          <b>{totalCredits}</b> units / <b>{estimatedTrackDuration}</b> years
+          <b>{totalCredits}</b> Units
+          
+          {/* Separator */}
+          <Box component="span" sx={{ mx: 1 }}>/</Box>
+          
+          {/* Overall GPA */}
+          CGPA: <b>{Cgpa.toFixed(2)}</b>
+          
+          {/* Separator */}
+          <Box component="span" sx={{ mx: 1 }}>/</Box>
+          
+          <b>{estimatedTrackDuration}</b> Years
         </Typography>
 
         {/* Buttons */}
         <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            onClick={() => triggerGetTimetable({ requiredModuleCodes, exemptedModuleCodes })}
-          >
-            {isFetching ? "Loading timetable..." : "Test Import Timetable"}
-          </Button>
           <Button
             variant="outlined"
             onClick={() => dispatch(minimalViewToggled())}

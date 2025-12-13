@@ -8,6 +8,7 @@ import { memo } from "react";
 import { useModuleCardColors } from "../../hooks";
 import Box from "@mui/material/Box";
 import Tag from "@/components/ui/Tag";
+import ModuleGradeDropdown from "./ModuleGradeDropdown";
 
 interface ModuleCardProps {
   module: Pick<ModuleData, "code" | "title" | "status" | "credits" | "grade">;
@@ -96,9 +97,10 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false, isR
             </Box>{" "}
             {module.title}
           </Typography>
-          <Typography variant="body2" sx={{ whiteSpace: "nowrap" }}>
-            {module.grade ?? "-"}
-          </Typography>
+          <ModuleGradeDropdown 
+            moduleCode={module.code} 
+            currentGrade={module.grade} 
+          />
         </Box>
 
         {/* unit and tags */}

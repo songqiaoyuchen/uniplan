@@ -1,5 +1,5 @@
 import { createAsyncThunk, createEntityAdapter, createSlice, EntityState, PayloadAction } from '@reduxjs/toolkit';
-import { ModuleData } from "@/types/plannerTypes";
+import { Grade, ModuleData, ModuleStatus } from "@/types/plannerTypes";
 import { RootState } from '.';
 import { apiSlice } from './apiSlice';
 import { arrayMove } from '@dnd-kit/sortable';
@@ -245,6 +245,27 @@ const timetableSlice = createSlice({
     exemptedModuleRemoved: (state, action: PayloadAction<string>) => {
       state.exemptedModules = state.exemptedModules.filter(code => code !== action.payload);
     },
+
+    // handles module grades
+    moduleGradeUpdated: (
+      state, 
+      action: PayloadAction<{ code: string; grade: Grade }>
+    ) => {
+      const { code, grade } = action.payload;
+      
+      // if completed grade, set status to Completed
+      const newStatus = grade !== 'IP'
+        ? ModuleStatus.Completed 
+        : undefined
+
+      modulesAdapter.updateOne(state.modules, {
+        id: code,
+        changes: {
+          grade: grade,
+          status: newStatus,
+        }
+      });
+    },
   },
   extraReducers: (builder) => {
     // update status when modules moved / added
@@ -281,6 +302,7 @@ export const {
   targetModulesCleared,
   exemptedModuleAdded,
   exemptedModuleRemoved,
+  moduleGradeUpdated,
 } = timetableSlice.actions;
 
 export default timetableSlice.reducer;

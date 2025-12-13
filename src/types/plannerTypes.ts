@@ -60,19 +60,35 @@ export type ModuleIssue =
   | { type: 'InvalidSemester' }
   | { type: 'ExamClash'; with: string[] }
 
+export type Grade = 
+  | "A+" | "A" | "A-" 
+  | "B+" | "B" | "B-" 
+  | "C+" | "C" 
+  | "D+" | "D" 
+  | "CS"
+  | "IP";
 
-// We are only allowing completed grades to be inputed,
-// such that no grade -> not completed
-export enum Grade {
-  APlus = 'A+',
-  A = 'A',
-  AMinus = 'A-',
-  BPlus = 'B+',
-  B = 'B',
-  BMinus = 'B-',
-  CPlus = 'C+',
-  C = 'C',
-  DPlus ='D+',
-  D = 'D',
-  CS = 'CS',
-}
+// The GPA Mapping
+// We use 'null' for grades that do not count towards GPA
+export const GRADE_VALUES: Record<Grade, number | null> = {
+  "A+": 5.0,
+  "A":  5.0,
+  "A-": 4.5,
+  "B+": 4.0,
+  "B":  3.5,
+  "B-": 3.0,
+  "C+": 2.5,
+  "C":  2.0,
+  "D+": 1.5,
+  "D":  1.0,
+  "CS": null, // Credits counted, GPA ignored
+  "IP": null  // In Progress: ignore everything
+};
+
+// helper to check if a module is "Completed" based on grade
+export const isCompletedGrade = (grade?: Grade | null): boolean => {
+  if (!grade || grade === "IP") return false;
+  return true;
+};
+
+export const AVAIL_GRADES = Object.keys(GRADE_VALUES) as Grade[];

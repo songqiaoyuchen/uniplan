@@ -17,7 +17,6 @@ function Timetable() {
   const isMinimalView = useAppSelector(selectIsMinimalView);
   const theme = useTheme();
   const isLargeScreen = useMediaQuery(theme.breakpoints.up("lg"));
-  const isXLargeScreen = useMediaQuery(theme.breakpoints.up("xl"));
   
   const responsiveSidebarWidth = isLargeScreen ? 336 : SIDEBAR_WIDTH;
   const sidebarWidth = isOpen ? responsiveSidebarWidth : SIDEBAR_COLLAPSED_WIDTH;
