@@ -12,13 +12,22 @@ import IconButton from '@mui/material/IconButton';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import Slider from '@mui/material/Slider';
 import { useMemo } from 'react';
 import miniModuleData from '@/data/miniModuleData.json';
 import { useLazyGetTimetableQuery } from '@/store/apiSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { useAppDispatch } from '@/store';
-import { targetModuleRemoved, exemptedModuleRemoved, specialTermsToggled, maxMcsUpdated } from '@/store/timetableSlice';
+import { 
+  targetModuleRemoved, 
+  exemptedModuleRemoved, 
+  specialTermsToggled, 
+  maxMcsUpdated,
+  preserveTimetableToggled,
+  preserveSemestersUpdated,
+  semestersAdapter
+} from '@/store/timetableSlice';
 import MiniModuleCard from '../timetable/MiniModuleCard';
 import { ModuleStatus } from '@/types/plannerTypes';
 
@@ -36,7 +45,15 @@ const Generate: React.FC = () => {
     return Array.isArray(exempted) ? exempted : [];
   });
 
-  const { useSpecialTerms, maxMcsPerSemester } = useSelector((state: RootState) => state.timetable);
+  const { 
+    useSpecialTerms, 
+    maxMcsPerSemester, 
+    preserveTimetable, 
+    preserveSemesters 
+  } = useSelector((state: RootState) => state.timetable);
+
+  const allSemesters = useSelector((state: RootState) => semestersAdapter.getSelectors().selectAll(state.timetable.semesters));
+  const totalSemesters = allSemesters.length;
 
   // Create module objects from codes
   const targetModules = useMemo(() => {
@@ -74,16 +91,38 @@ const Generate: React.FC = () => {
   };
 
   const handleGenerate = () => {
+    const preservedData: Record<number, string[]> = {};
+    
+    if (preserveTimetable && preserveSemesters > 0) {
+       const sortedSemesters = [...allSemesters].sort((a, b) => a.id - b.id);
+       const semestersToPreserve = sortedSemesters.slice(0, preserveSemesters);
+       
+       semestersToPreserve.forEach(s => {
+         preservedData[s.id] = s.moduleCodes;
+       });
+    }
+
     triggerGetTimetable({
       requiredModuleCodes: targetModuleCodes,
       exemptedModuleCodes: exemptedModuleCodes,
       useSpecialTerms: useSpecialTerms,
-      maxMcsPerSemester: maxMcsPerSemester
+      maxMcsPerSemester: maxMcsPerSemester,
+      preserveTimetable: preserveTimetable,
+      preserveSemesters: preserveSemesters,
+      preservedData: preservedData
     });
   };
 
   const handleSpecialTermsChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     dispatch(specialTermsToggled());
+  };
+
+  const handlePreserveTimetableChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(preserveTimetableToggled());
+  };
+
+  const handlePreserveSemestersChange = (event: Event, newValue: number | number[]) => {
+    dispatch(preserveSemestersUpdated(newValue as number));
   };
 
   const handleIncrementMcs = () => {
@@ -262,6 +301,44 @@ const Generate: React.FC = () => {
             <Typography variant="body2">Include Special Terms</Typography>
           }
         />
+
+        {/* Preserve Timetable Toggle */}
+        <Box>
+          <FormControlLabel
+            sx={{ ml: 0 }}
+            control={
+              <Switch
+                checked={preserveTimetable}
+                onChange={handlePreserveTimetableChange}
+                name="preserveTimetable"
+                color="primary"
+                size="small"
+              />
+            }
+            label={
+              <Typography variant="body2">Preserve Current Timetable</Typography>
+            }
+          />
+          
+          {preserveTimetable && (
+            <Box sx={{ px: 1, mt: 1 }}>
+              <Typography variant="caption" color="text.secondary" gutterBottom>
+                Preserve first {preserveSemesters} semesters
+              </Typography>
+              <Slider
+                value={preserveSemesters}
+                onChange={handlePreserveSemestersChange}
+                step={1}
+                marks
+                min={0}
+                max={totalSemesters > 0 ? totalSemesters : 8}
+                valueLabelDisplay="auto"
+                size="small"
+                sx={{ mt: 1 }}
+              />
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Generate Button */}

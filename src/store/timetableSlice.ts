@@ -19,6 +19,8 @@ export interface TimetableSliceState {
   isVerticalView: boolean // for Timetable
   useSpecialTerms: boolean; // for Scheduler
   maxMcsPerSemester: number; // for Scheduler
+  preserveTimetable: boolean; // for Scheduler
+  preserveSemesters: number; // for Scheduler
   targetModules: string[]; // list of target module codes for generation
   exemptedModules: string[]; // list of exempted module codes
 }
@@ -42,6 +44,8 @@ const timetableSlice = createSlice({
     isVerticalView: true,
     useSpecialTerms: true,
     maxMcsPerSemester: 20,
+    preserveTimetable: false,
+    preserveSemesters: 0,
     targetModules: [] as string[],
     exemptedModules: [],
   } as TimetableSliceState,
@@ -232,6 +236,12 @@ const timetableSlice = createSlice({
     maxMcsUpdated(state, action: PayloadAction<number>) {
       state.maxMcsPerSemester = action.payload;
     },
+    preserveTimetableToggled: (state) => {
+      state.preserveTimetable = !state.preserveTimetable;
+    },
+    preserveSemestersUpdated(state, action: PayloadAction<number>) {
+      state.preserveSemesters = action.payload;
+    },
     // handles target modules
     targetModuleAdded: (state, action: PayloadAction<string>) => {
       if (!state.targetModules.includes(action.payload)) {
@@ -308,6 +318,8 @@ export const {
   verticalViewToggled,
   specialTermsToggled,
   maxMcsUpdated,
+  preserveTimetableToggled,
+  preserveSemestersUpdated,
   targetModuleAdded,
   targetModuleRemoved,
   targetModulesCleared,

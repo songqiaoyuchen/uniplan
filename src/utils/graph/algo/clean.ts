@@ -67,6 +67,14 @@ export function cleanSemesters(
     for (const moduleCode of semester.moduleCodes) {
       const id = moduleCodeToId.get(moduleCode);
       
+      // Always keep if it's explicitly in the target set (which includes preserved modules)
+      // This ensures preserved modules are kept even if they aren't in the graph
+      if (targetModules.has(moduleCode)) {
+        keptModules.push(moduleCode);
+        if (id) addPrerequisites(id);
+        continue;
+      }
+
       if (id) {
         const isTarget = targetNodeIds.has(id);
         const isPrereq = prerequisiteSet.has(id);

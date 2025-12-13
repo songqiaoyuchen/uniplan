@@ -5,6 +5,7 @@
  */
 import { NormalisedGraph, LogicStatus, PlannerState, EdgeMap } from '@/types/graphTypes';
 import { isNofNode } from './constants';
+import { updateLogicSatisfaction } from './select';
 
 export function initialise(
   graph: NormalisedGraph,
@@ -12,23 +13,36 @@ export function initialise(
   exemptedIds: string[]
 ): PlannerState {
   const availableModules = new Set<string>();
-  const completedModules = new Set<string>();
+  // Exempted modules are effectively completed and satisfy prerequisites
+  const completedModules = new Set<string>(exemptedIds);
   const redundantModules = new Set<string>(exemptedIds);
 
   // Satisfaction status of logic nodes
   const logicStatus: Record<string, LogicStatus> = {};
   const satisfiedLogicNodes = new Set<string>();
 
-  // Initialize all logic nodes
+  // Initialize all logic nodes with 0 count first
   for (const [id, node] of Object.entries(graph.nodes)) {
     if (isNofNode(node)) {
       const satisfied = node.n === 0;
-      const prereqIds = edgeMap[id].out || [];
-      const count = prereqIds.filter(prereqId => completedModules.has(prereqId)).length;
-      logicStatus[id] = { satisfied, requires: node.n, satisfiedCount: count };
+      logicStatus[id] = { satisfied, requires: node.n, satisfiedCount: 0 };
       if (satisfied) satisfiedLogicNodes.add(id);
     }
   }
 
-  return { availableModules, completedModules, redundantModules, logicStatus, satisfiedLogicNodes };
+  const plannerState: PlannerState = { 
+    availableModules, 
+    completedModules, 
+    redundantModules, 
+    logicStatus, 
+    satisfiedLogicNodes 
+  };
+
+  // Now propagate the effect of all exempted/preserved modules
+  // This ensures that logic nodes (AND/OR) are correctly updated based on the history
+  for (const moduleId of exemptedIds) {
+    updateLogicSatisfaction(moduleId, plannerState, edgeMap, graph);
+  }
+
+  return plannerState;
 }

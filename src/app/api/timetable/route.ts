@@ -6,23 +6,16 @@ import { runScheduler } from '@/utils/graph/algo/schedule';
 import { ErrorResponse } from '@/types/errorTypes';
 import { TimetableData } from '@/types/graphTypes';
 
-export async function GET(request: NextRequest): Promise<NextResponse<TimetableData | ErrorResponse>> {
+export async function POST(request: NextRequest): Promise<NextResponse<TimetableData | ErrorResponse>> {
   try {
-    // Get query parameters
-    const searchParams = request.nextUrl.searchParams;
-    const requiredParam = searchParams.get('required');
-    const exemptedParam = searchParams.get('exempted');
-    const specialTermsParam = searchParams.get('specialTerms');
-    const maxMcsParam = searchParams.get('maxMcs');
-    
-    const requiredModuleCodes = requiredParam 
-      ? requiredParam.split(',').map(c => c.trim().toUpperCase()).filter(Boolean) 
-      : [];
-    const exemptedModuleCodes = exemptedParam 
-      ? exemptedParam.split(',').map(c => c.trim().toUpperCase()).filter(Boolean) 
-      : [];
-    const useSpecialTerms = specialTermsParam === 'true';
-    const maxMcsPerSemester = maxMcsParam ? parseInt(maxMcsParam, 10) : 20;
+    const body = await request.json();
+    const { 
+      required: requiredModuleCodes = [], 
+      exempted: exemptedModuleCodes = [], 
+      specialTerms: useSpecialTerms = false, 
+      maxMcs: maxMcsPerSemester = 20,
+      preservedTimetable = {} 
+    } = body;
 
     if (requiredModuleCodes.length === 0) {
       return NextResponse.json(
@@ -35,7 +28,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
     console.log('📚 Generating timetable for:', {
       required: requiredModuleCodes,
       exempted: exemptedModuleCodes,
-      maxMcs: maxMcsPerSemester
+      maxMcs: maxMcsPerSemester,
+      preservedSemestersCount: Object.keys(preservedTimetable).length
     });
 
     // Build the dependency graph for the required modules
@@ -49,7 +43,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<TimetableD
       requiredModuleCodes,
       exemptedModuleCodes,
       useSpecialTerms,
-      maxMcsPerSemester
+      maxMcsPerSemester,
+      preservedTimetable
     );
 
     console.log('✅ Timetable generated:', timetable);
