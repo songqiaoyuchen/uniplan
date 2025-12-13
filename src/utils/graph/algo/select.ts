@@ -201,7 +201,7 @@ function calculateUnlockValue(
 /**
  * Immediately update logic satisfaction when a module is selected.
  */
-function updateLogicSatisfaction(
+export function updateLogicSatisfaction(
   selectedModuleId: string,
   plannerState: PlannerState,
   edgeMap: EdgeMap,
