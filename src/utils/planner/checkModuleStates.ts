@@ -113,12 +113,16 @@ export function checkModuleStates(
   // Compare against current state and collect deltas
   const updates: ModuleUpdatePayload[] = [];
   for (const [code, current] of Object.entries(moduleEntities)) {
-    if (current.status === ModuleStatus.Completed) continue;
-
-    const { status, issues } = newStates[code] || {
+    let { status, issues } = newStates[code] || {
       status: ModuleStatus.Satisfied,
       issues: [],
     };
+
+    // clear issues for completed modules
+    if (current.status === ModuleStatus.Completed) {
+      status = ModuleStatus.Completed;
+      issues = [];
+    }
 
     if (status !== current.status || !isEqual(current.issues, issues)) {
       updates.push({ id: code, changes: { status, issues } });

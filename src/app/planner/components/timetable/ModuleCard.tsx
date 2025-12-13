@@ -117,7 +117,8 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false, isR
             {module.credits} Units
           </Typography>
 
-          <Box
+          {/* tags (future) */}
+          {/* <Box
             sx={{
               display: "flex",
               flexWrap: "wrap-reverse",
@@ -131,7 +132,7 @@ const ModuleCard: React.FC<ModuleCardProps> = ({ module, isSelected = false, isR
           >
             <Tag text="Sample" />
             <Tag text="Sample" />
-          </Box>
+          </Box> */}
         </Box>
       </Box>
     </Card>

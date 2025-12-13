@@ -1,14 +1,13 @@
-import { supabase } from "@/services/supabase";
+import { supabaseServer } from "@/services/supabase";
 import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const data = await req.json();
+  const id = nanoid(8);
 
-  const id = nanoid(8); 
-
-  const { error } = await supabase
-    .from("planner_snapshots")
+  const { error } = await supabaseServer
+    .from("timetable_snapshots")
     .insert({ id, data });
 
   if (error) {

@@ -1,14 +1,18 @@
-import { supabase } from "@/services/supabase";
+// src/app/api/snapshot/[id]/route.ts
+import { supabaseServer } from "@/services/supabase";
 import { NextResponse } from "next/server";
 
 export async function GET(
   _: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { data, error } = await supabase
-    .from("planner_snapshots")
+  const paramsResolved = await context.params;
+  const id = paramsResolved.id;
+
+  const { data, error } = await supabaseServer
+    .from("timetable_snapshots")
     .select("data")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (error || !data) {

@@ -1,9 +1,9 @@
-import { createListenerMiddleware, addListener } from '@reduxjs/toolkit'
+import { createListenerMiddleware, addListener, isAnyOf } from '@reduxjs/toolkit'
 import type { RootState, AppDispatch } from '.'
 import { exemptedModuleAdded, exemptedModuleRemoved, moduleAdded, moduleGradeUpdated, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar, setActiveTab } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
-import {  plannerInitialised, switchTimetable } from './plannerSlice';
+import {  plannerInitialised, switchTimetable, timetableImported, timetableUpdated } from './plannerSlice';
 export const listenerMiddleware = createListenerMiddleware()
 
 export const startAppListening = listenerMiddleware.startListening.withTypes<
@@ -33,45 +33,19 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
     },
   });
 
-  // module updates
+  // module status updates
   startAppListening({
-    actionCreator: moduleMoved,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateModuleStates());
-    },
-  });
-  startAppListening({
-    actionCreator: moduleAdded,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateModuleStates());
-    },
-  });
-  startAppListening({
-    actionCreator: moduleRemoved,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateModuleStates());
-    },
-  });
-  startAppListening({
-    actionCreator: exemptedModuleAdded,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateModuleStates());
-    },
-  });
-  startAppListening({
-    actionCreator: exemptedModuleRemoved,
-    effect: async (_, api) => {
-      api.cancelActiveListeners();
-      api.dispatch(updateModuleStates());
-    },
-  });
-  startAppListening({
-    actionCreator: moduleGradeUpdated,
-    effect: async (_, api) => {
+    matcher: isAnyOf(
+      moduleMoved,
+      moduleAdded,
+      moduleRemoved,
+      exemptedModuleAdded,
+      exemptedModuleRemoved,
+      moduleGradeUpdated,
+      timetableImported,
+      timetableUpdated
+    ),
+    effect: async (_action, api) => {
       api.cancelActiveListeners();
       api.dispatch(updateModuleStates());
     },

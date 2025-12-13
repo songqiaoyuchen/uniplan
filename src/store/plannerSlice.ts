@@ -105,14 +105,12 @@ export const plannerSlice = createSlice({
     ) => {
       const { name, snapshot, modules } = action.payload;
 
-      // Create modules EntityState if modules provided, otherwise empty
       const modulesState = modules
-        ? modulesAdapter.setAll(emptyModules, modules)
-        : emptyModules;
+        ? modulesAdapter.setAll(modulesAdapter.getInitialState(), modules)
+        : modulesAdapter.getInitialState();
 
-      // Build semesters from snapshot.semesters
       const semestersState = semestersAdapter.setAll(
-        emptySemesters,
+        semestersAdapter.getInitialState(),
         snapshot.semesters.map((moduleCodes, idx) => ({
           id: idx,
           moduleCodes,
@@ -127,9 +125,9 @@ export const plannerSlice = createSlice({
 
       timetableAdapter.addOne(state.timetables, newTimetable);
 
-      // Switch to new tab
       state.activeTimetableName = name;
-    },
+    }
+
   },
 });
 

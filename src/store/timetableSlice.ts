@@ -275,7 +275,19 @@ const timetableSlice = createSlice({
         }
       });
     },
+
+    moduleTagsUpdated: (
+      state,
+      action: PayloadAction<{ code: string; tags: string[] }>
+    ) => {
+      const { code, tags } = action.payload;
+      const mod = state.modules.entities[code];
+      if (mod) {
+        mod.tags = tags;
+      }
+    }
   },
+
   extraReducers: (builder) => {
     // update status when modules moved / added
     builder.addCase(updateModuleStates.fulfilled, (state, action) => {
@@ -314,6 +326,7 @@ export const {
   exemptedModuleAdded,
   exemptedModuleRemoved,
   moduleGradeUpdated,
+  moduleTagsUpdated,
 } = timetableSlice.actions;
 
 export default timetableSlice.reducer;
