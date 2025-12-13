@@ -92,3 +92,10 @@ export const isCompletedGrade = (grade?: Grade | null): boolean => {
 };
 
 export const AVAIL_GRADES = Object.keys(GRADE_VALUES) as Grade[];
+
+export type TimetableSnapshot = {
+  version: 1;
+  semesters: string[][];   // module codes
+  tags: Record<string, string[]>; // moduleCode → tag IDs
+  ordering?: string[];
+};

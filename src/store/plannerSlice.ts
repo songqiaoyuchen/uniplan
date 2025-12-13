@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, PayloadAction, EntityState, createAsyncThunk } from "@reduxjs/toolkit";
-import { timetableLoaded, type Semester } from "./timetableSlice";
-import { ModuleData } from "@/types/plannerTypes";
+import { modulesAdapter, semestersAdapter, timetableLoaded, type Semester } from "./timetableSlice";
+import { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import { RootState } from ".";
 
 export interface Timetable {
@@ -98,6 +98,38 @@ export const plannerSlice = createSlice({
         },
       });
     },
+
+    timetableImported: (
+      state,
+      action: PayloadAction<{ name: string; snapshot: TimetableSnapshot; modules?: ModuleData[] }>
+    ) => {
+      const { name, snapshot, modules } = action.payload;
+
+      // Create modules EntityState if modules provided, otherwise empty
+      const modulesState = modules
+        ? modulesAdapter.setAll(emptyModules, modules)
+        : emptyModules;
+
+      // Build semesters from snapshot.semesters
+      const semestersState = semestersAdapter.setAll(
+        emptySemesters,
+        snapshot.semesters.map((moduleCodes, idx) => ({
+          id: idx,
+          moduleCodes,
+        }))
+      );
+
+      const newTimetable: Timetable = {
+        name,
+        modules: modulesState,
+        semesters: semestersState,
+      };
+
+      timetableAdapter.addOne(state.timetables, newTimetable);
+
+      // Switch to new tab
+      state.activeTimetableName = name;
+    },
   },
 });
 
@@ -108,6 +140,7 @@ export const {
   timetableRenamed,
   currentTimetableSet,
   timetableUpdated,
+  timetableImported,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;
