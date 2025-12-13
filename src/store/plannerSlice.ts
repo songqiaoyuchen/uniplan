@@ -1,6 +1,6 @@
 import { createSlice, createEntityAdapter, PayloadAction, EntityState, createAsyncThunk } from "@reduxjs/toolkit";
-import { timetableLoaded, type Semester } from "./timetableSlice";
-import { ModuleData } from "@/types/plannerTypes";
+import { modulesAdapter, semestersAdapter, timetableLoaded, type Semester } from "./timetableSlice";
+import { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import { RootState } from ".";
 
 export interface Timetable {
@@ -98,6 +98,7 @@ export const plannerSlice = createSlice({
         },
       });
     },
+
   },
 });
 

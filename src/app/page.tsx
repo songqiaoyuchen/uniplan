@@ -1,7 +1,10 @@
 "use client";
 
 import React from "react";
-import { Box, Typography, Button, Container, Grid, Stack, alpha } from "@mui/material";
+import { Box, Typography, Button, Container, Stack, alpha } from "@mui/material";
+
+import Grid from "@mui/material/Grid";
+
 // import Link from "next/link"; // Uncomment for Next.js SPA navigation
 import { motion } from "framer-motion";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -29,7 +32,7 @@ export default function Home() {
       position: "relative",
     }}>
       
-      <Box sx={{ position: "relative", zIndex: 1 }}>
+      <Box sx={{ position: "relative", zIndex: 1, px: { xs: 2, md: 4 } }}>
 
         {/* --- HERO SECTION --- */}
         <Box sx={{ height: "90vh", display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center" }}>

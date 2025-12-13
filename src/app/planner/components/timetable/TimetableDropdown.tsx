@@ -1,5 +1,4 @@
 // components/TimetableDropdown.tsx
-import * as React from "react";
 import {
   IconButton,
   Menu,
@@ -9,10 +8,13 @@ import {
   Divider,
   Tooltip,
 } from "@mui/material";
+import { Snackbar, Alert } from "@mui/material";
+import FileUploadIcon from '@mui/icons-material/FileUpload';
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import AddIcon from "@mui/icons-material/Add";
+import ShareIcon from "@mui/icons-material/Share";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store";
 import { switchTimetable } from "@/store/plannerSlice"; // thunk
@@ -22,13 +24,19 @@ import {
   timetableUpdated,
 } from "@/store/plannerSlice";
 import type { Timetable } from "@/store/plannerSlice";
-import type { ModuleData } from "@/types/plannerTypes";
+import type { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import type { EntityState } from "@reduxjs/toolkit";
 import { cloneEntityState } from "@/utils/cloneEntityState";
+import { deserializeTimetable, serializeTimetable } from "@/utils/planner/shareTimetable";
+import { modulesAdapter, moduleTagsUpdated, semestersAdapter, updateModuleStates } from "@/store/timetableSlice";
+import { useMemo, useState } from "react";
+import ImportTimetableDialog from "./ImportTimetableDialog";
+import { apiSlice } from "@/store/apiSlice";
 
 const TimetableDropdown: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
+  // timetable tabs
   const activeName = useSelector(
     (state: RootState) => state.planner.activeTimetableName
   );
@@ -39,19 +47,17 @@ const TimetableDropdown: React.FC = () => {
     (state: RootState) => state.planner.timetables.entities
   ) as Record<string, Timetable | undefined>;
 
-  const timetables: Timetable[] = React.useMemo(
+  const timetables: Timetable[] = useMemo(
     () => allIds.map((id) => allEntities[id]).filter(Boolean) as Timetable[],
     [allIds, allEntities]
   );
 
-  // anchor
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleOpen = (e: React.MouseEvent<HTMLElement>) => setAnchorEl(e.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  // helpers
-  const existingNames = React.useMemo(() => new Set(allIds), [allIds]);
+  const existingNames = useMemo(() => new Set(allIds), [allIds]);
   const uniqueName = (base: string) => {
     if (!existingNames.has(base)) return base;
     let i = 2;
@@ -77,7 +83,7 @@ const TimetableDropdown: React.FC = () => {
     const src = allEntities[nameToCopy];
     if (!src) return;
     const dupName = uniqueName(`${nameToCopy} Copy`);
-    dispatch(timetableAdded({ name: dupName })); // empty record
+    dispatch(timetableAdded({ name: dupName }));
     dispatch(
       timetableUpdated({
         name: dupName,
@@ -95,6 +101,145 @@ const TimetableDropdown: React.FC = () => {
     handleClose();
   };
 
+  // export / share
+const onShare = async (name: string) => {
+  const tt = allEntities[name];
+  if (!tt) return;
+
+  try {
+    const snapshot = serializeTimetable(tt);
+
+    const res = await fetch("/api/snapshot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapshot),
+    });
+
+    if (!res.ok) throw new Error("Failed to create snapshot");
+
+    const { id } = await res.json();
+    const url = `${window.location.origin}/planner/import?id=${id}`;
+
+    await navigator.clipboard.writeText(url);
+    showSnackbar("Share link copied to clipboard", "success");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Failed to share timetable", "error");
+  }
+};
+
+
+  // import / load
+  const [importOpen, setImportOpen] = useState(false);
+
+  function extractSnapshotId(input: string): string | null {
+    const trimmed = input.trim();
+
+    // Case 1: looks like a raw ID
+    if (/^[a-zA-Z0-9_-]{6,}$/.test(trimmed)) {
+      return trimmed;
+    }
+
+    // Case 2: try parsing as URL
+    try {
+      const url = new URL(trimmed);
+      return url.searchParams.get("id");
+    } catch {
+      return null;
+    }
+  }
+
+const onImport = async (input: string) => {
+  const id = extractSnapshotId(input);
+  if (!id) {
+    showSnackbar("Invalid link or snapshot ID", "error");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/snapshot/${id}`);
+    if (!res.ok) throw new Error("Snapshot not found");
+
+    const snapshot: TimetableSnapshot = await res.json();
+    if (snapshot.version !== 1) throw new Error("Unsupported snapshot version");
+
+    const name = uniqueName("Imported Timetable");
+    dispatch(timetableAdded({ name }));
+
+    // 1️⃣ Fetch full ModuleData for all codes
+    const allModuleCodes = snapshot.modules.map((m) => m.code);
+    const modulesData: ModuleData[] = (
+      await Promise.all(
+        allModuleCodes.map(async (code) => {
+          try {
+            const res = await fetch(`/api/modules/${encodeURIComponent(code)}`);
+            if (!res.ok) return null;
+            return (await res.json()) as ModuleData;
+          } catch {
+            return null;
+          }
+        })
+      )
+    ).filter(Boolean) as ModuleData[];
+
+    // 2️⃣ Merge tags from snapshot
+    modulesData.forEach((mod) => {
+      const snapMod = snapshot.modules.find((m) => m.code === mod.code);
+      if (snapMod?.tags?.length) mod.tags = snapMod.tags;
+    });
+
+    // 3️⃣ Build entity states
+    const modules = modulesAdapter.setAll(modulesAdapter.getInitialState(), modulesData);
+
+    const semesters = semestersAdapter.setAll(
+      semestersAdapter.getInitialState(),
+      snapshot.semesters.map((codes, id) => ({ id, moduleCodes: codes }))
+    );
+
+    // 4️⃣ Update timetable in one call
+    dispatch(
+      timetableUpdated({
+        name,
+        modules,
+        semesters,
+      })
+    );
+
+    dispatch(switchTimetable(name));
+    dispatch(updateModuleStates());
+
+    showSnackbar("Timetable imported successfully", "success");
+  } catch (err) {
+    console.error(err);
+    showSnackbar("Failed to import timetable", "error");
+  } finally {
+    setImportOpen(false);
+    handleClose();
+  }
+};
+
+
+
+
+  type SnackbarState = {
+    open: boolean;
+    message: string;
+    severity: "success" | "error" | "info";
+  };
+
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    open: false,
+    message: "",
+    severity: "info",
+  });
+
+  const showSnackbar = (
+    message: string,
+    severity: SnackbarState["severity"]
+  ) => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   return (
     <>
       <Tooltip title="Switch / manage timetables">
@@ -109,7 +254,7 @@ const TimetableDropdown: React.FC = () => {
         onClose={handleClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        PaperProps={{ sx: { minWidth: 280 } }}
+        slotProps={{ paper: { sx: { minWidth: 320 } } }}
       >
         {timetables.map((tt) => {
           const name = tt.name;
@@ -124,11 +269,10 @@ const TimetableDropdown: React.FC = () => {
             >
               <ListItemText
                 primary={name}
-                primaryTypographyProps={{
+                slotProps={{ primary: {
                   noWrap: true,
                   fontWeight: isActive ? 600 : 400,
-                }}
-              />
+                }}} />
               <Tooltip title="Duplicate">
                 <IconButton
                   edge="end"
@@ -139,6 +283,18 @@ const TimetableDropdown: React.FC = () => {
                   }}
                 >
                   <ContentCopyIcon fontSize="inherit" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Share">
+                <IconButton
+                  edge="end"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShare(name);
+                  }}
+                >
+                  <ShareIcon fontSize="inherit" />
                 </IconButton>
               </Tooltip>
               <Tooltip title={isActive ? "Cannot delete active timetable" : "Delete"}>
@@ -168,7 +324,43 @@ const TimetableDropdown: React.FC = () => {
           </ListItemIcon>
           <ListItemText primary="Create new timetable" />
         </MenuItem>
+
+        <MenuItem
+          dense
+          onClick={() => {
+            setImportOpen(true);
+            handleClose();
+          }}
+          sx={{ gap: 1 }}
+        >
+          <ListItemIcon>
+            <FileUploadIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText primary="Import timetable" />
+        </MenuItem>
       </Menu>
+      <ImportTimetableDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onConfirm={onImport}
+      />
+
+      {/* notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={2000}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </>
   );
 };

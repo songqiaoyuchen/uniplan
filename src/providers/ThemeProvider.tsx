@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
+import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
 import { lightTheme, darkTheme } from "@/styles/themes";
 import { RootState } from "@/store";
 import { toggleTheme } from "@/store/themeSlice";
