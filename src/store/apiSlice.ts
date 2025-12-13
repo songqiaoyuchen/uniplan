@@ -12,11 +12,18 @@ export const apiSlice = createApi({
       keepUnusedDataFor: Number.MAX_VALUE,
     }),
 
-    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[]; useSpecialTerms?: boolean; maxMcsPerSemester?: number }> ({
-      query: (args) => {
-        const { requiredModuleCodes, exemptedModuleCodes, useSpecialTerms = false, maxMcsPerSemester = 20 } = args;
-        return `/timetable?required=${requiredModuleCodes.join(",")}&exempted=${exemptedModuleCodes.join(",")}&specialTerms=${useSpecialTerms}&maxMcs=${maxMcsPerSemester}`;
-      },
+    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[]; useSpecialTerms?: boolean; maxMcsPerSemester?: number; preserveTimetable?: boolean; preserveSemesters?: number; preservedData?: Record<number, string[]> }> ({
+      query: (args) => ({
+        url: '/timetable',
+        method: 'POST',
+        body: {
+          required: args.requiredModuleCodes,
+          exempted: args.exemptedModuleCodes,
+          specialTerms: args.useSpecialTerms,
+          maxMcs: args.maxMcsPerSemester,
+          preservedTimetable: args.preservedData
+        }
+      }),
     }),
   }),
 });

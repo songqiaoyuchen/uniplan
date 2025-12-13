@@ -20,7 +20,8 @@ export function runScheduler(
   targetModules: string[] = [], // module codes
   exemptedModules: string[] = [], // module codes
   useSpecialTerms: boolean = true,
-  maxMcsPerSemester: number = 20
+  maxMcsPerSemester: number = 20,
+  preservedTimetable: Record<number, string[]> = {}
 ): TimetableData {
   // Build a map from node id to its edges
   const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
@@ -47,19 +48,54 @@ export function runScheduler(
   const targetIds = targetModules.map(code => codeToIdMap.get(code)).filter(Boolean) as string[];
   const exemptedIds = exemptedModules.map(code => codeToIdMap.get(code)).filter(Boolean) as string[];
 
+  // Convert preserved modules to IDs
+  const preservedIds: string[] = [];
+  Object.values(preservedTimetable).flat().forEach(code => {
+    // Try exact match first, then uppercase
+    let id = codeToIdMap.get(code);
+    if (!id) {
+      id = codeToIdMap.get(code.toUpperCase());
+    }
+    if (id) preservedIds.push(id);
+  });
+
   const missingTargets = targetModules.filter(code => !codeToIdMap.has(code));
   if (missingTargets.length > 0) {
     throw new Error(`Target modules not found in graph: ${missingTargets.join(', ')}`);
   }
     
   // Initialize planner state
-  const plannerState = initialise(graph, edgeMap, exemptedIds);
+  // Treat preserved modules as exempted (already completed) for the purpose of state initialization
+  const plannerState = initialise(graph, edgeMap, [...exemptedIds, ...preservedIds]);
 
   const targetSet = new Set(targetIds);
   
+  // Pre-fill semesters with preserved data
   const semesters: Semester[] = [];
+  let maxPreservedSemester = -1;
 
-  for (let semester = 0; semester <= MAX_SEMESTERS; semester++) {
+  Object.entries(preservedTimetable).forEach(([semStr, codes]) => {
+    const semId = parseInt(semStr);
+    if (codes.length > 0) {
+      semesters.push({
+        id: semId,
+        moduleCodes: codes
+      });
+      if (semId > maxPreservedSemester) {
+        maxPreservedSemester = semId;
+      }
+    }
+  });
+
+  // Sort semesters to ensure order
+  semesters.sort((a, b) => a.id - b.id);
+
+  // Start scheduling from the next available semester
+  const startSemester = maxPreservedSemester + 1;
+
+  console.log(`Starting scheduling from semester ${startSemester}. Preserved semesters: 0 to ${maxPreservedSemester}`);
+
+  for (let semester = startSemester; semester <= MAX_SEMESTERS; semester++) {
     // Check if all targets completed
     const allTargetsPlanned = targetIds.every((id) =>
       plannerState.completedModules.has(id)
@@ -108,7 +144,9 @@ export function runScheduler(
     }
   }
 
-  const cleanedSemesters = cleanSemesters(semesters, graph, new Set(targetModules));
+  // Ensure preserved modules are kept during cleanup
+  const cleanupTargets = new Set([...targetModules, ...Object.values(preservedTimetable).flat()]);
+  const cleanedSemesters = cleanSemesters(semesters, graph, cleanupTargets);
 
   const timetableData: TimetableData = { semesters: cleanedSemesters };
 

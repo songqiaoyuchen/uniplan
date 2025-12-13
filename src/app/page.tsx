@@ -9,12 +9,14 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import EditCalendarIcon from '@mui/icons-material/EditCalendar';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import FlagIcon from '@mui/icons-material/Flag';
+import App from "next/app";
 
 // --- ASSETS ---
 // Make sure these files exist in your public/assets/ folder
-const VID_STEP_1 = "/assets/step1_search.mp4"; 
-const VID_STEP_2 = "/assets/step2_graph.mp4";
-const VID_STEP_3 = "/assets/step3_planner.mp4";
+const VID_SEARCHBAR = "/assets/searchbar.mp4"; 
+const VID_TARGET = "/assets/target.mp4";
+const VID_GENERATE = "/assets/generate.mp4";
+const VID_CUSTOMIZE = "/assets/customize.mp4";
 
 export default function Home() {
   return (
@@ -117,13 +119,26 @@ export default function Home() {
                 <InstructionPoint text="Or exempt them if you want to skip them" />
               </ScrollReveal>
             </Grid>
-            <Grid item xs={12} md={7}>
-              <ScrollReveal direction="right">
-                {/* Purple Glow for Step 1 */}
-                <AppWindowVideo src={VID_STEP_1} glowColor="#a78bfa" />
-              </ScrollReveal>
-            </Grid>
           </Grid>
+          <Grid container spacing={12} justifyContent="center" alignItems="center" sx={{ mb: 15 }}>
+            <ScrollReveal direction="right">
+              <Grid
+                container
+                spacing={16}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Grid item xs={12} md={6}>
+                  <AppWindowVideo src={VID_SEARCHBAR} glowColor="#a78bfa" />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <AppWindowVideo src={VID_TARGET} glowColor="#a78bfa" />
+                </Grid>
+              </Grid>
+            </ScrollReveal>
+          </Grid>
+          
 
           {/* STEP 2: GENERATION */}
           <Grid container spacing={8} alignItems="center" sx={{ mb: 15, flexDirection: { xs: "column-reverse", md: "row" } }}>
@@ -138,12 +153,20 @@ export default function Home() {
                 <InstructionPoint text="Creates a complete academic timeline" />
               </ScrollReveal>
             </Grid>
-            <Grid item xs={12} md={7}>
-               <ScrollReveal direction="left">
-                 {/* Green Glow for Step 2 */}
-                 <AppWindowVideo src={VID_STEP_2} glowColor="#34d399" />
-               </ScrollReveal>
-            </Grid>
+          </Grid>
+          <Grid container spacing={12} justifyContent="center" alignItems="center" sx={{ mb: 15 }}>
+            <ScrollReveal direction="right">
+              <Grid
+                container
+                spacing={16}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Grid item xs={12} md={6}>
+                  <AppWindowVideo src={VID_GENERATE} glowColor="#34d399" />
+                </Grid>
+              </Grid>
+            </ScrollReveal>
           </Grid>
 
           {/* STEP 3: CUSTOMIZATION */}
@@ -159,12 +182,20 @@ export default function Home() {
                 <InstructionPoint text="Instant error checking & validation" />
               </ScrollReveal>
             </Grid>
-            <Grid item xs={12} md={7}>
-              <ScrollReveal direction="right">
-                {/* Pink Glow for Step 3 */}
-                <AppWindowVideo src={VID_STEP_3} glowColor="#f472b6" />
-              </ScrollReveal>
-            </Grid>
+          </Grid>
+          <Grid container spacing={12} justifyContent="center" alignItems="center" sx={{ my: 15 }}>
+            <ScrollReveal direction="right">
+              <Grid
+                container
+                spacing={16}
+                justifyContent="center"
+                alignItems="center"
+              >
+                <Grid item xs={12} md={6}>
+                  <AppWindowVideo src={VID_CUSTOMIZE} glowColor="#f472b6" />
+                </Grid>
+              </Grid>
+            </ScrollReveal>
           </Grid>
 
         </Container>
@@ -221,44 +252,65 @@ function StatItem({ icon, number, label }: { icon: React.ReactNode, number: stri
 // - Adds a colored glow behind the window
 function AppWindowVideo({ src, poster, glowColor = "#a78bfa" }: { src: string, poster?: string, glowColor?: string }) {
   return (
-    <Box sx={{ 
-      position: 'relative',
-      borderRadius: 3, 
-      bgcolor: "#1e1e1e", // Window chrome color
-      border: "1px solid rgba(255,255,255,0.08)",
-      // Dynamic ambient glow based on the step color
-      boxShadow: `0 0 80px -20px ${alpha(glowColor, 0.2)}, 0 30px 60px -10px rgba(0,0,0,0.6)`,
-      overflow: "hidden" 
-    }}>
-      {/* Browser Window Controls (Traffic Lights) */}
-      <Box sx={{ 
-        px: 2, py: 1.5, 
-        borderBottom: "1px solid rgba(255,255,255,0.05)",
-        display: "flex", alignItems: "center", gap: 1
-      }}>
-        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ff5f56', opacity: 0.8 }} />
-        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ffbd2e', opacity: 0.8 }} />
-        <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#27c93f', opacity: 0.8 }} />
-      </Box>
-
-      {/* Edge-to-Edge Video */}
+    <Box sx={{ position: "relative" }}>
+      {/* Smooth Ambient Glow */}
       <Box 
-        component="video"
-        src={src}
-        poster={poster}
-        autoPlay 
-        loop 
-        muted 
-        playsInline 
-        sx={{ 
-          width: "100%", 
-          height: "auto",
-          display: "block",
-          objectFit: "cover",
-          // Subtle fade at the bottom to blend with background if needed
-          // maskImage: "linear-gradient(to bottom, black 90%, transparent 100%)" 
+        sx={{
+          position: "absolute",
+          // Smaller solid box centered behind the element
+          top: 40,
+          left: 40,
+          right: 40,
+          bottom: 40,
+          bgcolor: glowColor,
+          // Heavy blur creates the gradient naturally without banding
+          filter: "blur(80px)",
+          opacity: 0.35,
+          zIndex: 0,
+          pointerEvents: "none",
         }} 
       />
+
+      {/* Main Window Content */}
+      <Box sx={{ 
+        position: 'relative',
+        zIndex: 1,
+        borderRadius: 3, 
+        bgcolor: "#1e1e1e", // Window chrome color
+        border: "1px solid rgba(255,255,255,0.08)",
+        boxShadow: "0 20px 50px rgba(0,0,0,0.5)", // Standard dark shadow for depth
+        overflow: "hidden" 
+      }}>
+        {/* Browser Window Controls (Traffic Lights) */}
+        <Box sx={{ 
+          px: 2, py: 1.5, 
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+          display: "flex", alignItems: "center", gap: 1
+        }}>
+          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ff5f56', opacity: 0.8 }} />
+          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#ffbd2e', opacity: 0.8 }} />
+          <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#27c93f', opacity: 0.8 }} />
+        </Box>
+
+        {/* Edge-to-Edge Video */}
+        <Box 
+          component="video"
+          src={src}
+          poster={poster}
+          autoPlay 
+          loop 
+          muted 
+          playsInline 
+          sx={{ 
+            width: "100%", 
+            height: "auto",
+            display: "block",
+            objectFit: "cover",
+            // Subtle fade at the bottom to blend with background if needed
+            // maskImage: "linear-gradient(to bottom, black 90%, transparent 100%)" 
+          }} 
+        />
+      </Box>
     </Box>
   );
 }
@@ -271,7 +323,7 @@ function ScrollReveal({ children, delay = 0, direction = "up" }: ScrollRevealPro
   };
   return (
     <motion.div
-      initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }}
+      style={{ display:"contents" }} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay, ease: "easeOut" }} variants={variants}
     >
       {children}
