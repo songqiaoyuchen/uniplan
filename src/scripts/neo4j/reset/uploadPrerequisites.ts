@@ -6,11 +6,11 @@
 
 import fs from "fs";
 import path from "path";
-import { connectToNeo4j, closeNeo4jConnection } from "../../../db/neo4j";
+import { Session } from "neo4j-driver";
 import { Prerequisite } from "@/types/neo4jTypes";
 import { attachPrereqTree } from "./buildTree/attachTree";
 
-export async function uploadAllPrereqTrees(): Promise<void> {
+export async function uploadAllPrereqTrees(session: Session): Promise<void> {
   const filePath = path.join(
     process.cwd(),
     "src",
@@ -19,8 +19,6 @@ export async function uploadAllPrereqTrees(): Promise<void> {
   );
 
   const prereqMap: Prerequisite = JSON.parse(fs.readFileSync(filePath, "utf8"));
-
-  const { driver, session } = await connectToNeo4j();
 
   try {
     for (const [moduleCode, tree] of Object.entries(prereqMap)) {
@@ -40,22 +38,7 @@ export async function uploadAllPrereqTrees(): Promise<void> {
     }
 
     console.log("🎉 Finished uploading all prerequisite trees.");
-  } finally {
-    await closeNeo4jConnection(driver, session);
-  }
-}
-
-if (require.main === module) {
-  uploadAllPrereqTrees().catch((err) => {
-    console.error("❌ Failed to upload prerequisite trees:", err);
-    process.exit(1);
-  });
-}
-
-if (require.main === module) {
-  uploadAllPrereqTrees()
-    .then(() => console.log("✅ Prerequisite trees uploaded successfully."))
-    .catch((err) =>
-      console.error("❌ Failed to upload prerequisite trees:", err),
-    );
+  } catch (err) {
+    console.error("❌ Error uploading prerequisite trees:", err);
+  } 
 }

@@ -17,6 +17,8 @@ export interface TimetableSliceState {
   draggedOverSemesterId: number | null; // for TimetableSemester
   isMinimalView: boolean // for Timetable
   isVerticalView: boolean // for Timetable
+  useSpecialTerms: boolean; // for Scheduler
+  maxMcsPerSemester: number; // for Scheduler
   targetModules: string[]; // list of target module codes for generation
   exemptedModules: string[]; // list of exempted module codes
 }
@@ -38,6 +40,8 @@ const timetableSlice = createSlice({
     draggedOverSemesterId: null,
     isMinimalView: false,
     isVerticalView: true,
+    useSpecialTerms: true,
+    maxMcsPerSemester: 20,
     targetModules: [] as string[],
     exemptedModules: [],
   } as TimetableSliceState,
@@ -222,7 +226,12 @@ const timetableSlice = createSlice({
     verticalViewToggled: (state) => {
       state.isVerticalView = !state.isVerticalView;
     },
-
+    specialTermsToggled: (state) => {
+      state.useSpecialTerms = !state.useSpecialTerms;
+    },
+    maxMcsUpdated(state, action: PayloadAction<number>) {
+      state.maxMcsPerSemester = action.payload;
+    },
     // handles target modules
     targetModuleAdded: (state, action: PayloadAction<string>) => {
       if (!state.targetModules.includes(action.payload)) {
@@ -276,6 +285,8 @@ export const {
   semesterDraggedOverCleared,
   minimalViewToggled,
   verticalViewToggled,
+  specialTermsToggled,
+  maxMcsUpdated,
   targetModuleAdded,
   targetModuleRemoved,
   targetModulesCleared,
