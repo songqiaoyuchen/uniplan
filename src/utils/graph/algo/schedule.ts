@@ -10,6 +10,7 @@ import { calculateAvailableModules } from './update';
 import { MAX_SEMESTERS } from './constants';
 import { validateSchedule, generateValidationReport } from './check';
 import { isModuleData, isNofNode } from './constants';
+import { cleanSemesters } from './clean';
 
 /**
  * Runs the complete scheduling algorithm.
@@ -17,7 +18,9 @@ import { isModuleData, isNofNode } from './constants';
 export function runScheduler(
   graph: NormalisedGraph,
   targetModules: string[] = [], // module codes
-  exemptedModules: string[] = [] // module codes
+  exemptedModules: string[] = [], // module codes
+  useSpecialTerms: boolean = true,
+  maxMcsPerSemester: number = 20
 ): TimetableData {
   // Build a map from node id to its edges
   const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
@@ -68,7 +71,7 @@ export function runScheduler(
     }
       
     // Calculate available modules snapshot for this semester
-    const availableThisSemester = calculateAvailableModules(semester, plannerState, edgeMap, graph);
+    const availableThisSemester = calculateAvailableModules(semester, plannerState, edgeMap, graph, useSpecialTerms);
     
     if (availableThisSemester.size === 0) {
       console.log(`No available modules for semester ${semester}. Skipping to next.`);
@@ -82,7 +85,8 @@ export function runScheduler(
       edgeMap,
       codeToIdMap,
       graph,
-      targetSet
+      targetSet,
+      maxMcsPerSemester
     );
 
     // Build semester data - collect all codes for this semester
@@ -104,10 +108,12 @@ export function runScheduler(
     }
   }
 
-  const timetableData: TimetableData = { semesters };
+  const cleanedSemesters = cleanSemesters(semesters, graph, new Set(targetModules));
 
-  const validation = validateSchedule(timetableData, graph, targetModules);
-  const report = generateValidationReport(validation);
+  const timetableData: TimetableData = { semesters: cleanedSemesters };
+
+  const validation = validateSchedule(timetableData, graph, targetModules, maxMcsPerSemester);
+  const report = generateValidationReport(validation, maxMcsPerSemester);
   console.log('Validation Report:', report);
 
   return timetableData;

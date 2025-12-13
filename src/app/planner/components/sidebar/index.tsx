@@ -17,16 +17,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import CircularProgress from "@mui/material/CircularProgress";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import EditCalendarIcon from "@mui/icons-material/EditCalendar";
-import SettingsIcon from "@mui/icons-material/Settings";
 import Generate from "./Generate";
-// import Settings from "./Settings";
 import { motion } from "framer-motion";
 
 // Define tab configuration
 const tabs = [
   { icon: <InfoOutlineIcon />, label: "Details" },
   { icon: <EditCalendarIcon />, label: "Generate" },
-  // { icon: <SettingsIcon />, label: "Settings" },
 ];
 
 const Sidebar: React.FC = () => {
