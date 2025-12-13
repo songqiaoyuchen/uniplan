@@ -18,7 +18,6 @@ import {
   selectLatestNormalSemester,
   selectTotalCredits,
 } from "@/store/timetableSelectors";
-import { useLazyGetTimetableQuery } from "@/store/apiSlice";
 import { timetableRenamed } from "@/store/plannerSlice";
 import TimetableDropdown from "./TimetableDropdown"; 
 
@@ -60,11 +59,12 @@ const TimetableHeader: React.FC = () => {
         direction="row"
         spacing={3}
         alignItems="center"
-        flexWrap="wrap"
+        flexWrap="nowrap"
         useFlexGap
+        sx={{ width: '100%', overflow: 'hidden' }}
       >
         {/* Editable title + dropdown */}
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
           {isEditingName ? (
             <TextField
               variant="standard"
@@ -82,9 +82,9 @@ const TimetableHeader: React.FC = () => {
                 }
               }}
               slotProps={{
-                input: { style: { fontSize: 24, fontWeight: 500 } }
+                input: { style: { fontSize: 24, fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } }
               }}
-              sx={{ minWidth: 200 }}
+              sx={{ minWidth: 0, maxWidth: 300 }}
             />
           ) : (
             <Typography
