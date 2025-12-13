@@ -3,8 +3,9 @@
 "use client";
 
 import { useState } from "react";
-import { fetchFinalGraph } from "@/services/planner/fetchGraph";
-import FinalGraphViewer from "./FinalGraphViewer";
+import { fetchNormalisedGraph } from "@/services/planner/fetchGraph";
+import NormalisedGraphViewer from "./NormalisedGraphViewer";
+import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
@@ -18,6 +19,7 @@ export default function GraphPage() {
     // Redirect anyone trying to access it in prod
     redirect("/");
   }
+  
   const [neo4jData, setNeo4jData] = useState<any>(null);
   const [inputCodes, setInputCodes] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -30,7 +32,7 @@ export default function GraphPage() {
     if (codes.length === 0) return;
 
     try {
-      const data = await fetchFinalGraph(codes);
+      const data = await fetchNormalisedGraph(codes);
       setNeo4jData(data);
       setDialogOpen(false);
     } catch (err) {
@@ -39,7 +41,8 @@ export default function GraphPage() {
   }
 
   return (
-    <div>
+    <Box sx={{ px: { xs: 2, md: 4 } }}>
+      <h1>Uni Planner</h1>
       <Button variant="contained" onClick={() => setDialogOpen(true)}>
         Export Graph
       </Button>
@@ -63,7 +66,7 @@ export default function GraphPage() {
         </DialogActions>
       </Dialog>
 
-      {neo4jData && <FinalGraphViewer graph={neo4jData} />}
-    </div>
+      {neo4jData && <NormalisedGraphViewer graph={neo4jData} />}
+    </Box>
   );
 }

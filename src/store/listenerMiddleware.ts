@@ -3,7 +3,7 @@ import type { RootState, AppDispatch } from '.'
 import { exemptedModuleAdded, exemptedModuleRemoved, moduleAdded, moduleGradeUpdated, moduleMoved, moduleRemoved, moduleSelected, moduleUnselected, timetableActions, updateModuleStates } from './timetableSlice'
 import { closeSidebar, openSidebar, setActiveTab } from './sidebarSlice'
 import { apiSlice } from './apiSlice'
-import {  plannerInitialised, switchTimetable, timetableImported, timetableUpdated } from './plannerSlice';
+import {  plannerInitialised, switchTimetable, timetableUpdated } from './plannerSlice';
 export const listenerMiddleware = createListenerMiddleware()
 
 export const startAppListening = listenerMiddleware.startListening.withTypes<
@@ -42,7 +42,6 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       exemptedModuleAdded,
       exemptedModuleRemoved,
       moduleGradeUpdated,
-      timetableImported,
       timetableUpdated
     ),
     effect: async (_action, api) => {

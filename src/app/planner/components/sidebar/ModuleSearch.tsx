@@ -2,11 +2,13 @@
 
 import { useMemo, useRef, useState } from "react";
 import Fuse from "fuse.js";
-import { Autocomplete, Box, TextField } from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 import moduleData from "@/data/miniModuleData.json";
 import { MiniModuleData } from "@/types/plannerTypes";
 import SearchIcon from "@mui/icons-material/Search";
-import { InputAdornment } from "@mui/material";
+import InputAdornment from "@mui/material/InputAdornment";
 import { useAppDispatch } from "@/store";
 import { useRouter } from "next/navigation";
 import { moduleSelected } from "@/store/timetableSlice";

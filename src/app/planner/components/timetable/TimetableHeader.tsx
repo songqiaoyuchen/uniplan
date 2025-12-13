@@ -1,12 +1,10 @@
 import * as React from "react";
-import {
-  Box,
-  Button,
-  Typography,
-  Stack,
-  TextField,
-  IconButton,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import IconButton from "@mui/material/IconButton";
 import EditIcon from "@mui/icons-material/Edit";
 import CheckIcon from "@mui/icons-material/Check";
 import { useAppSelector } from "@/store";

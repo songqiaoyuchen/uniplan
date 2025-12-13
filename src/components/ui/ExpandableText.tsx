@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Typography, Link } from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
 
 const ExpandableText = ({ text }: { text: string }) => {
   const [expanded, setExpanded] = useState(false);

@@ -5,16 +5,19 @@
 import { useState } from "react";
 import { fetchFormattedGraph } from "@/services/planner/fetchGraph";
 import GraphViewer from "./GraphViewer";
-import {
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-} from "@mui/material";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
+import { redirect } from "next/navigation";
 
 export default function GraphPage() {
+  if (process.env.NODE_ENV !== "development") {
+    // Redirect anyone trying to access it in prod
+    redirect("/");
+  }
   const [neo4jData, setNeo4jData] = useState<any>(null);
   const [inputCodes, setInputCodes] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);

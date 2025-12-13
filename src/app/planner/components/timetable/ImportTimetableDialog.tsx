@@ -1,25 +1,21 @@
 import * as React from "react";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  TextField,
-  Stack,
-  Typography,
-  InputAdornment,
-  IconButton,
-  Box,
-  useTheme,
-  alpha
-} from "@mui/material";
-import {
-  Link as LinkIcon,
-  CloudDownload as CloudDownloadIcon,
-  ContentPaste as ContentPasteIcon,
-  Close as CloseIcon
-} from "@mui/icons-material";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import Typography from "@mui/material/Typography";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Box from "@mui/material/Box";
+import { useTheme } from "@mui/material/styles";
+import { alpha } from "@mui/material/styles";
+import LinkIcon from "@mui/icons-material/Link";
+import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface ImportTimetableDialogProps {
   open: boolean;

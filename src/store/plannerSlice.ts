@@ -99,35 +99,6 @@ export const plannerSlice = createSlice({
       });
     },
 
-    timetableImported: (
-      state,
-      action: PayloadAction<{ name: string; snapshot: TimetableSnapshot; modules?: ModuleData[] }>
-    ) => {
-      const { name, snapshot, modules } = action.payload;
-
-      const modulesState = modules
-        ? modulesAdapter.setAll(modulesAdapter.getInitialState(), modules)
-        : modulesAdapter.getInitialState();
-
-      const semestersState = semestersAdapter.setAll(
-        semestersAdapter.getInitialState(),
-        snapshot.semesters.map((moduleCodes, idx) => ({
-          id: idx,
-          moduleCodes,
-        }))
-      );
-
-      const newTimetable: Timetable = {
-        name,
-        modules: modulesState,
-        semesters: semestersState,
-      };
-
-      timetableAdapter.addOne(state.timetables, newTimetable);
-
-      state.activeTimetableName = name;
-    }
-
   },
 });
 
@@ -138,7 +109,6 @@ export const {
   timetableRenamed,
   currentTimetableSet,
   timetableUpdated,
-  timetableImported,
 } = plannerSlice.actions;
 
 export default plannerSlice.reducer;
