@@ -29,11 +29,11 @@ export async function GET(
 
   try {
     const graph = await getMergedTree(codes);
-    const pruned = pruneGraph(normaliseNodes(graph), codes);
-    if (!checkGraph(pruned, codes)) {
+    const normalised = normaliseNodes(graph);
+    if (!checkGraph(normalised, codes)) {
       console.log("invalid graph")
     }
-    return NextResponse.json(pruned);
+    return NextResponse.json(normalised);
   } catch (err) {
     console.error("exportGraph error:", err);
     return NextResponse.json(

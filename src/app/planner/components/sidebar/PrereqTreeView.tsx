@@ -43,6 +43,54 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
 
   const renderTree = (node: PrereqTree, idPath = "0"): React.ReactNode => {
     if (node.type === "module") {
+      // Check if this is a pattern-based module code (contains % or other wildcards)
+      const isPattern = node.moduleCode.includes('%') || node.moduleCode.includes('*');
+      
+      if (isPattern) {
+        // Render pattern modules as descriptive text
+        const code = node.moduleCode;
+        const normalized = code.replace(/\s+/g, '');
+        const firstWildcardIdx = Math.min(
+          ...['%', '*']
+            .map(w => normalized.indexOf(w))
+            .filter(idx => idx >= 0)
+        );
+
+        let labelText = '';
+        if (firstWildcardIdx >= 0) {
+          const prefix = normalized.slice(0, firstWildcardIdx);
+          // If wildcard is at end (common pattern like CS1010%), say "Starts with"
+          const wildcardAtEnd = /[%*]+$/.test(normalized);
+          if (wildcardAtEnd) {
+            labelText = `Course starting with ${prefix}`;
+          } else {
+            // Fallback for complex patterns
+            labelText = `Matches pattern ${normalized.replace(/[%*]/g, '…')}`;
+          }
+        } else {
+          labelText = code;
+        }
+
+        return (
+          <StyledTreeItem
+            key={idPath}
+            itemId={idPath}
+            label={
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  padding: '4px 8px',
+                  color: 'text.secondary',
+                  fontStyle: 'italic'
+                }}
+              >
+                {labelText}
+              </Typography>
+            }
+          />
+        );
+      }
+      
       return (
         <StyledTreeItem
           key={idPath}

@@ -35,7 +35,16 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
     return <ModuleTooltipPlaceholder />
   }
   if (isError || !module) {
-    return 
+    return (
+      <div style={{ 
+        padding: '4px 8px',
+        fontSize: '0.875rem',
+        color: '#888',
+        fontStyle: 'italic'
+      }}>
+        {moduleCode}
+      </div>
+    )
   }
   
   return (

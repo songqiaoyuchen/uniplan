@@ -150,13 +150,13 @@ export function pruneGraph(
         outgoingEdges[rel.from] &&
         outgoingEdges[rel.from].length > parentNode.n
       ) {
-        const childrenEdges = outgoingEdges[parentNode.id] || [];
-        const requiredChildrenCount = childrenEdges.filter((e) =>
-          requiredModuleIds.has(e.to),
-        ).length;
-        if (requiredChildrenCount < parentNode.n) {
-          return true; // NOF not satisfied yet
-        }
+        // const childrenEdges = outgoingEdges[parentNode.id] || [];
+        // const requiredChildrenCount = childrenEdges.filter((e) =>
+        //   requiredModuleIds.has(e.to),
+        // ).length;
+        // if (requiredChildrenCount < parentNode.n) {
+        //   return true; // NOF not satisfied yet
+        // }
       }
     }
     return false;
