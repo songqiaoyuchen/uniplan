@@ -38,6 +38,31 @@ const ModuleGradeDropdown: React.FC<ModuleGradeDropdownProps> = ({ moduleCode, c
 
   const displayGrade = currentGrade ?? "-";
 
+  const renderGrade = (g: string) => {
+    if (g === "-") return "-";
+    // show + or - as superscript, e.g. A+ -> A<sup>+</sup>
+    if (g.length === 2 && (g[1] === "+" || g[1] === "-")) {
+      return (
+        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'baseline' }}>
+          <Box component="span">{g[0]}</Box>
+          <Typography
+            component="sup"
+            sx={{
+              fontSize: '0.62em',
+              lineHeight: 1,
+              ml: 0.15,
+              transform: 'translateY(-0.45em)',
+              display: 'inline-block',
+            }}
+          >
+            {g[1]}
+          </Typography>
+        </Box>
+      );
+    }
+    return g;
+  };
+
   return (
     <>
       <Box
@@ -78,10 +103,13 @@ const ModuleGradeDropdown: React.FC<ModuleGradeDropdownProps> = ({ moduleCode, c
             // Ensure text is legible. 'inherit' usually works best if 
             // the card text color changes based on background.
             color: 'text.primary',
-            opacity: displayGrade === 'IP' ? 0.7 : 1
+            opacity: displayGrade === 'IP' ? 0.7 : 1,
+            lineHeight: 1,
+            display: 'inline-flex',
+            alignItems: 'baseline'
           }}
         >
-          {displayGrade}
+          {renderGrade(displayGrade)}
         </Typography>
       </Box>
 
@@ -103,7 +131,7 @@ const ModuleGradeDropdown: React.FC<ModuleGradeDropdownProps> = ({ moduleCode, c
             selected={grade === currentGrade}
             sx={{ justifyContent: 'center' }}
           >
-            {grade}
+            <Box sx={{ display: 'inline-flex', alignItems: 'baseline' }}>{renderGrade(grade)}</Box>
           </MenuItem>
         ))}
       </Menu>
