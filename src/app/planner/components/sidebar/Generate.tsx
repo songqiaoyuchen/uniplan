@@ -53,7 +53,13 @@ const Generate: React.FC = () => {
   } = useSelector((state: RootState) => state.timetable);
 
   const allSemesters = useSelector((state: RootState) => semestersAdapter.getSelectors().selectAll(state.timetable.semesters));
-  const totalSemesters = Math.floor(allSemesters.length / 2);
+  const maxSemesterId = useMemo(() => {
+    if (!Array.isArray(allSemesters) || allSemesters.length === 0) return -1;
+    return Math.max(...allSemesters.map(s => (s && typeof s.id === 'number') ? s.id : -1));
+  }, [allSemesters]);
+
+  // If maxSemesterId is -1 (no semesters), totalSemesters will be 0.
+  const totalSemesters = maxSemesterId >= 0 ? Math.ceil((maxSemesterId + 1) / 2) : 0;
 
   // Create module objects from codes
   const targetModules = useMemo(() => {
@@ -95,14 +101,12 @@ const Generate: React.FC = () => {
     
     if (preserveTimetable && preserveSemesters > 0) {
        const sortedSemesters = [...allSemesters].sort((a, b) => a.id - b.id);
-       const semestersToPreserve = sortedSemesters.slice(0, preserveSemesters);
+       const semestersToPreserve = sortedSemesters.slice(0, preserveSemesters * 2);
        
        semestersToPreserve.forEach(s => {
          preservedData[s.id] = s.moduleCodes;
        });
     }
-
-    console.log('Preserved Data:', preservedData);
 
     triggerGetTimetable({
       requiredModuleCodes: targetModuleCodes,
@@ -110,7 +114,6 @@ const Generate: React.FC = () => {
       useSpecialTerms: useSpecialTerms,
       maxMcsPerSemester: maxMcsPerSemester,
       preserveTimetable: preserveTimetable,
-      preserveSemesters: preserveSemesters,
       preservedData: preservedData
     });
   };
