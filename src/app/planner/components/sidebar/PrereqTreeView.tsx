@@ -43,6 +43,31 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
 
   const renderTree = (node: PrereqTree, idPath = "0"): React.ReactNode => {
     if (node.type === "module") {
+      // Check if this is a pattern-based module code (contains % or other wildcards)
+      const isPattern = node.moduleCode.includes('%') || node.moduleCode.includes('*');
+      
+      if (isPattern) {
+        // Render pattern modules as plain text
+        return (
+          <StyledTreeItem
+            key={idPath}
+            itemId={idPath}
+            label={
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  padding: '4px 8px',
+                  color: 'text.secondary',
+                  fontStyle: 'italic'
+                }}
+              >
+                {node.moduleCode.replace('%', 'xxxx')}
+              </Typography>
+            }
+          />
+        );
+      }
+      
       return (
         <StyledTreeItem
           key={idPath}
