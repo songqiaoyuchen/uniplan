@@ -16,8 +16,9 @@ export function calculateAvailableModules(
   const available = new Set<string>();
 
   // Map semester ID to actual semester type
-  // 0 = Y1S1, 1 = Y1Winter, 2 = Y1S2, 3 = Y1Summer, 4 = Y2S1, etc.
-  const semesterType = currentSemester % 4;
+  // Use 1-based academic counting: 1..4 => Y1S1, Y1Winter, Y1S2, Y1Summer
+  // Then repeats. Convert to 0-based modulo for mapping.
+  const semesterType = (currentSemester - 1) % 4;
   const isSpecialTerm = semesterType === 1 || semesterType === 3;
 
   // If special terms are disabled and this is a special term, return empty set
@@ -45,9 +46,9 @@ export function calculateAvailableModules(
     });
     
     const actualSem = semesterType === 0 ? SemesterLabel.First 
-                    : semesterType === 1 ? SemesterLabel.SpecialTerm1
-                    : semesterType === 2 ? SemesterLabel.Second
-                    : SemesterLabel.SpecialTerm2;
+            : semesterType === 1 ? SemesterLabel.SpecialTerm1
+            : semesterType === 2 ? SemesterLabel.Second
+            : SemesterLabel.SpecialTerm2;
     const isOffered = node.semestersOffered.some((sem) => sem === actualSem);
 
     if (allPrereqsSatisfied && isOffered) {

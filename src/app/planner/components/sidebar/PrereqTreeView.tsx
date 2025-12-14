@@ -47,7 +47,30 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
       const isPattern = node.moduleCode.includes('%') || node.moduleCode.includes('*');
       
       if (isPattern) {
-        // Render pattern modules as plain text
+        // Render pattern modules as descriptive text
+        const code = node.moduleCode;
+        const normalized = code.replace(/\s+/g, '');
+        const firstWildcardIdx = Math.min(
+          ...['%', '*']
+            .map(w => normalized.indexOf(w))
+            .filter(idx => idx >= 0)
+        );
+
+        let labelText = '';
+        if (firstWildcardIdx >= 0) {
+          const prefix = normalized.slice(0, firstWildcardIdx);
+          // If wildcard is at end (common pattern like CS1010%), say "Starts with"
+          const wildcardAtEnd = /[%*]+$/.test(normalized);
+          if (wildcardAtEnd) {
+            labelText = `Course starting with ${prefix}`;
+          } else {
+            // Fallback for complex patterns
+            labelText = `Matches pattern ${normalized.replace(/[%*]/g, '…')}`;
+          }
+        } else {
+          labelText = code;
+        }
+
         return (
           <StyledTreeItem
             key={idPath}
@@ -61,7 +84,7 @@ const PrereqTreeView: React.FC<PrereqTreeViewProps> = ({ prereqTree }) => {
                   fontStyle: 'italic'
                 }}
               >
-                {node.moduleCode.replace('%', 'xxxx')}
+                {labelText}
               </Typography>
             }
           />
