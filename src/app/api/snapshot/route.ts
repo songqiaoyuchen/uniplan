@@ -6,7 +6,7 @@ function hashSnapshot(snapshot: unknown) {
   const json = JSON.stringify(snapshot);
   return crypto
     .createHash("sha256")
-    .update("uniplan:v1:" + json)
+    .update("uniplans:v1:" + json)
     .digest("base64url")
     .slice(0, 16);
 }

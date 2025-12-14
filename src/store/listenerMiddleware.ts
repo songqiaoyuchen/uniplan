@@ -34,6 +34,10 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
   });
 
   // module status updates
+  // - listen to module/semester change actions and debounce an autosave
+  // - also keep a separate listener for explicit timetableUpdated to trigger state checks
+  const AUTOSAVE_DELAY_MS = 500;
+
   startAppListening({
     matcher: isAnyOf(
       moduleMoved,
@@ -41,9 +45,37 @@ const addTimetableListeners = (startAppListening: AppStartListening) => {
       moduleRemoved,
       exemptedModuleAdded,
       exemptedModuleRemoved,
-      moduleGradeUpdated,
-      timetableUpdated
+      moduleGradeUpdated
     ),
+    effect: async (_action, api) => {
+      // Debounce: cancel any pending autosave and state checks
+      api.cancelActiveListeners();
+
+      // Recompute module states immediately for UI responsiveness
+      api.dispatch(updateModuleStates());
+
+      // Wait for a short idle period before persisting the working timetable
+      await api.delay(AUTOSAVE_DELAY_MS);
+
+      const state = api.getState() as RootState;
+      const active = state.planner.activeTimetableName;
+      if (active) {
+        api.dispatch(
+          // Persist the working timetable into the saved timetables
+          // so duplicating or switching will use latest changes
+          ({ type: 'planner/timetableUpdated', payload: {
+            name: active,
+            modules: state.timetable.modules,
+            semesters: state.timetable.semesters,
+          } } as any)
+        );
+      }
+    },
+  });
+
+  // If something explicitly updates a saved timetable, ensure module states are recomputed
+  startAppListening({
+    actionCreator: timetableUpdated,
     effect: async (_action, api) => {
       api.cancelActiveListeners();
       api.dispatch(updateModuleStates());

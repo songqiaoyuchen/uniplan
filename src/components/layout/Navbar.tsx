@@ -79,7 +79,7 @@ function Navbar() {
               },
             }}
           >
-            UNIPLAN
+            UNIPLANS
           </Typography>
 
           {/* Laptop Navlinks */}
@@ -164,7 +164,7 @@ function Navbar() {
               },
             }}
           >
-            UNIPLAN
+            UNIPLANS
           </Typography>
         </Box>
 
