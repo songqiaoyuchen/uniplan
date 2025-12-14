@@ -220,7 +220,7 @@ const Sidebar: React.FC = () => {
                   borderRadius: "8px",
                   zIndex: -1,
                 }}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                transition={isDragging ? { duration: 0 } : { type: "spring", stiffness: 500, damping: 30 }}
               />
             )}
             <Box sx={{ display: "flex", alignItems: "center" }}>
