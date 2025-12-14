@@ -248,7 +248,7 @@ const Generate: React.FC = () => {
       {/* Max MCs Stepper */}
       <Box>
         <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, pb: 1 }}>
-          Max MCs per Semester
+          Max units per semester
         </Typography>
         <Box sx={{ 
           display: 'flex', 
@@ -282,7 +282,7 @@ const Generate: React.FC = () => {
           </IconButton>
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
-          Recommended: 20-24 MCs
+          Recommended: 20-24 Units
         </Typography>
       </Box>
       
