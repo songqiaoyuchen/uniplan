@@ -23,6 +23,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<Timetable
         { status: 400 }
       );
     }
+    console.log(preservedTimetable);
 
     console.log('=== START OF REPORT ===')
     console.log('📚 Generating timetable for:', {

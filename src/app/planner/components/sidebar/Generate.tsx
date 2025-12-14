@@ -53,7 +53,7 @@ const Generate: React.FC = () => {
   } = useSelector((state: RootState) => state.timetable);
 
   const allSemesters = useSelector((state: RootState) => semestersAdapter.getSelectors().selectAll(state.timetable.semesters));
-  const totalSemesters = allSemesters.length;
+  const totalSemesters = Math.floor(allSemesters.length / 2);
 
   // Create module objects from codes
   const targetModules = useMemo(() => {
@@ -101,6 +101,8 @@ const Generate: React.FC = () => {
          preservedData[s.id] = s.moduleCodes;
        });
     }
+
+    console.log('Preserved Data:', preservedData);
 
     triggerGetTimetable({
       requiredModuleCodes: targetModuleCodes,
