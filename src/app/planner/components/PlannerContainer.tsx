@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
 import {
@@ -24,6 +24,10 @@ import { moduleAdded, moduleMoved, moduleRemoved, moduleReordered, semesterDragg
 import { useModuleState } from "../hooks";
 import DeleteZone from "./DeleteZone";
 import MiniModuleCard from "./timetable/MiniModuleCard";
+import { useSearchParams } from "next/navigation";
+import { importTimetableFromSnapshot } from "@/store/plannerSlice";
+import { TimetableSnapshot } from "@/types/plannerTypes";
+import router from "next/router";
 
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
@@ -37,6 +41,30 @@ const PlannerContainer: React.FC = () => {
 
   const dispatch = useAppDispatch();
 
+  useEffect(() => {
+      const query = new URLSearchParams(window.location.search);
+      const snapshotId = query.get("id");
+      if (!snapshotId) return;
+
+      (async () => {
+        try {
+          const res = await fetch(`/api/snapshot/${snapshotId}`);
+          if (!res.ok) throw new Error("Snapshot not found");
+
+          const snapshot: TimetableSnapshot = await res.json();
+          const name = `Imported Timetable`; // optionally make unique
+          dispatch(importTimetableFromSnapshot(snapshot, name));
+
+          // remove ?id= from URL without navigation
+          const url = new URL(window.location.href);
+          url.searchParams.delete("id");
+          window.history.replaceState({}, "", url.toString());
+        } catch (err) {
+          console.error(err);
+        }
+      })();
+    }, [dispatch]);
+  
   const handleDragStart = (event: DragStartEvent) => {
     setDraggingModuleCode(event.active.id.toString().split('-')[0]);
   };

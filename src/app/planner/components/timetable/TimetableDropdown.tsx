@@ -17,7 +17,7 @@ import AddIcon from "@mui/icons-material/Add";
 import ShareIcon from "@mui/icons-material/Share";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState, AppDispatch } from "@/store";
-import { switchTimetable } from "@/store/plannerSlice"; // thunk
+import { importTimetableFromSnapshot, switchTimetable } from "@/store/plannerSlice"; // thunk
 import {
   timetableAdded,
   timetableRemoved,
@@ -27,11 +27,10 @@ import type { Timetable } from "@/store/plannerSlice";
 import type { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import type { EntityState } from "@reduxjs/toolkit";
 import { cloneEntityState } from "@/utils/cloneEntityState";
-import { deserializeTimetable, serializeTimetable } from "@/utils/planner/shareTimetable";
-import { modulesAdapter, moduleTagsUpdated, semestersAdapter, updateModuleStates } from "@/store/timetableSlice";
+import { serializeTimetable } from "@/utils/planner/shareTimetable";
+import { modulesAdapter, semestersAdapter, updateModuleStates } from "@/store/timetableSlice";
 import { useMemo, useState } from "react";
 import ImportTimetableDialog from "./ImportTimetableDialog";
-import { apiSlice } from "@/store/apiSlice";
 
 const TimetableDropdown: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -102,31 +101,31 @@ const TimetableDropdown: React.FC = () => {
   };
 
   // export / share
-const onShare = async (name: string) => {
-  const tt = allEntities[name];
-  if (!tt) return;
+  const onShare = async (name: string) => {
+    const tt = allEntities[name];
+    if (!tt) return;
 
-  try {
-    const snapshot = serializeTimetable(tt);
+    try {
+      const snapshot = serializeTimetable(tt);
 
-    const res = await fetch("/api/snapshot", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(snapshot),
-    });
+      const res = await fetch("/api/snapshot", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snapshot),
+      });
 
-    if (!res.ok) throw new Error("Failed to create snapshot");
+      if (!res.ok) throw new Error("Failed to create snapshot");
 
-    const { id } = await res.json();
-    const url = `${window.location.origin}/planner/import?id=${id}`;
+      const { id } = await res.json();
+      const url = `${window.location.origin}/planner?id=${id}`;
 
-    await navigator.clipboard.writeText(url);
-    showSnackbar("Share link copied to clipboard", "success");
-  } catch (err) {
-    console.error(err);
-    showSnackbar("Failed to share timetable", "error");
-  }
-};
+      await navigator.clipboard.writeText(url);
+      showSnackbar("Share link copied to clipboard", "success");
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to share timetable", "error");
+    }
+  };
 
 
   // import / load
@@ -149,76 +148,33 @@ const onShare = async (name: string) => {
     }
   }
 
-const onImport = async (input: string) => {
-  const id = extractSnapshotId(input);
-  if (!id) {
-    showSnackbar("Invalid link or snapshot ID", "error");
-    return;
-  }
+  const onImport = async (input: string) => {
+    const id = extractSnapshotId(input);
+    if (!id) {
+      showSnackbar("Invalid link or snapshot ID", "error");
+      return;
+    }
 
-  try {
-    const res = await fetch(`/api/snapshot/${id}`);
-    if (!res.ok) throw new Error("Snapshot not found");
+    try {
+      const res = await fetch(`/api/snapshot/${id}`);
+      if (!res.ok) throw new Error("Snapshot not found");
 
-    const snapshot: TimetableSnapshot = await res.json();
-    if (snapshot.version !== 1) throw new Error("Unsupported snapshot version");
+      const snapshot: TimetableSnapshot = await res.json();
+      if (snapshot.version !== 1) throw new Error("Unsupported snapshot version");
 
-    const name = uniqueName("Imported Timetable");
-    dispatch(timetableAdded({ name }));
+      const name = uniqueName("Imported Timetable");
 
-    // 1️⃣ Fetch full ModuleData for all codes
-    const allModuleCodes = snapshot.modules.map((m) => m.code);
-    const modulesData: ModuleData[] = (
-      await Promise.all(
-        allModuleCodes.map(async (code) => {
-          try {
-            const res = await fetch(`/api/modules/${encodeURIComponent(code)}`);
-            if (!res.ok) return null;
-            return (await res.json()) as ModuleData;
-          } catch {
-            return null;
-          }
-        })
-      )
-    ).filter(Boolean) as ModuleData[];
+      await dispatch(importTimetableFromSnapshot(snapshot, name));
 
-    // 2️⃣ Merge tags from snapshot
-    modulesData.forEach((mod) => {
-      const snapMod = snapshot.modules.find((m) => m.code === mod.code);
-      if (snapMod?.tags?.length) mod.tags = snapMod.tags;
-    });
-
-    // 3️⃣ Build entity states
-    const modules = modulesAdapter.setAll(modulesAdapter.getInitialState(), modulesData);
-
-    const semesters = semestersAdapter.setAll(
-      semestersAdapter.getInitialState(),
-      snapshot.semesters.map((codes, id) => ({ id, moduleCodes: codes }))
-    );
-
-    // 4️⃣ Update timetable in one call
-    dispatch(
-      timetableUpdated({
-        name,
-        modules,
-        semesters,
-      })
-    );
-
-    dispatch(switchTimetable(name));
-    dispatch(updateModuleStates());
-
-    showSnackbar("Timetable imported successfully", "success");
-  } catch (err) {
-    console.error(err);
-    showSnackbar("Failed to import timetable", "error");
-  } finally {
-    setImportOpen(false);
-    handleClose();
-  }
-};
-
-
+      showSnackbar("Timetable imported successfully", "success");
+    } catch (err) {
+      console.error(err);
+      showSnackbar("Failed to import timetable", "error");
+    } finally {
+      setImportOpen(false);
+      handleClose();
+    }
+  };
 
 
   type SnackbarState = {
