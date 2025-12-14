@@ -24,6 +24,7 @@ export function runScheduler(
   maxMcsPerSemester: number = 20,
   preservedTimetable: Record<number, string[]> = {}
 ): TimetableData {
+  
   // Build a map from node id to its edges
   const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
 
@@ -87,8 +88,6 @@ export function runScheduler(
 
   // Start scheduling from the next available semester
   const startSemester = maxPreservedSemester + 1;
-
-  console.log(`Starting scheduling from semester ${startSemester}. Preserved semesters: 0 to ${maxPreservedSemester}`);
 
   for (let semester = startSemester; semester <= MAX_SEMESTERS; semester++) {
     // Check if all targets completed

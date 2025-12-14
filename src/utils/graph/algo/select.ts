@@ -139,9 +139,9 @@ function calculateImpact(
   targetModules: Set<string> // Now contains IDs
 ): number {
   // Target modules get maximum impact
-  // if (targetModules.has(moduleId)) {
-  //   return 100.0;
-  // }
+  if (targetModules.has(moduleId)) {
+    return 100.0;
+  }
 
   let totalImpact = 0;
 

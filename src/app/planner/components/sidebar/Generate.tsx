@@ -101,7 +101,7 @@ const Generate: React.FC = () => {
     
     if (preserveTimetable && preserveSemesters > 0) {
        const sortedSemesters = [...allSemesters].sort((a, b) => a.id - b.id);
-       const semestersToPreserve = sortedSemesters.slice(0, preserveSemesters * 2);
+       const semestersToPreserve = sortedSemesters.filter(s => s.id < preserveSemesters * 2);
        
        semestersToPreserve.forEach(s => {
          preservedData[s.id] = s.moduleCodes;
