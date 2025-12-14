@@ -5,8 +5,8 @@ import { getModuleRequires } from '@/db/getModuleRequires';
 import { ModuleData } from '@/types/plannerTypes';
 import { ErrorResponse } from '@/types/errorTypes';
 
-const MODULE_CACHE_SECONDS = 60 * 60 * 24 * 30; // 30 days
-export const revalidate = MODULE_CACHE_SECONDS;
+export const revalidate = 2592000; // 30 days
+const MODULE_CACHE_SECONDS = revalidate;
 
 export async function GET(
   _req: NextRequest,
