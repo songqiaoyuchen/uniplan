@@ -28,7 +28,6 @@ import type { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import type { EntityState } from "@reduxjs/toolkit";
 import { cloneEntityState } from "@/utils/cloneEntityState";
 import { serializeTimetable } from "@/utils/planner/shareTimetable";
-import { modulesAdapter, semestersAdapter, updateModuleStates } from "@/store/timetableSlice";
 import { useMemo, useState } from "react";
 import ImportTimetableDialog from "./ImportTimetableDialog";
 
@@ -50,6 +49,9 @@ const TimetableDropdown: React.FC = () => {
     () => allIds.map((id) => allEntities[id]).filter(Boolean) as Timetable[],
     [allIds, allEntities]
   );
+
+  const workingModules = useSelector((state: RootState) => state.timetable.modules);
+  const workingSemesters = useSelector((state: RootState) => state.timetable.semesters);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -102,8 +104,13 @@ const TimetableDropdown: React.FC = () => {
 
   // export / share
   const onShare = async (name: string) => {
-    const tt = allEntities[name];
-    if (!tt) return;
+    const stored = allEntities[name];
+    if (!stored) return;
+
+    const tt: Timetable =
+      name === activeName
+        ? { ...stored, modules: workingModules, semesters: workingSemesters }
+        : stored;
 
     try {
       const snapshot = serializeTimetable(tt);
