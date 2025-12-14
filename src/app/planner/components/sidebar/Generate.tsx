@@ -13,7 +13,9 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Slider from '@mui/material/Slider';
-import { useMemo } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { useMemo, useState, useEffect } from 'react';
 import miniModuleData from '@/data/miniModuleData.json';
 import { useLazyGetTimetableQuery } from '@/store/apiSlice';
 import { useSelector } from 'react-redux';
@@ -33,7 +35,20 @@ import { ModuleStatus } from '@/types/plannerTypes';
 
 const Generate: React.FC = () => {
   const dispatch = useAppDispatch();
-  const [triggerGetTimetable, { isFetching, error }] = useLazyGetTimetableQuery();
+  const [triggerGetTimetable, { isFetching, error, data, isSuccess }] = useLazyGetTimetableQuery();
+  
+  type SnackbarState = {
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  };
+
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+  const [requestKey, setRequestKey] = useState(0);
 
   const targetModuleCodes = useSelector((state: RootState) => {
     const targeted = state.timetable.targetModules;
@@ -96,7 +111,41 @@ const Generate: React.FC = () => {
     dispatch(exemptedModuleRemoved(moduleCode));
   };
 
+  // Handle generation result feedback
+  useEffect(() => {
+    if (isFetching || requestKey === 0) {
+      return; // Don't show result while still fetching or before first request
+    }
+    
+    if (isSuccess && data) {
+      const semesterCount = data.semesters?.length || 0;
+      if (semesterCount === 0) {
+        setSnackbar({
+          open: true,
+          message: 'No valid timetable could be generated.',
+          severity: 'warning'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: `Successfully generated timetable.`,
+          severity: 'success'
+        });
+      }
+    } else if (error) {
+      setSnackbar({
+        open: true,
+        message: 'Error generating timetable. Please try again.',
+        severity: 'error'
+      });
+    }
+  }, [isSuccess, data, error, isFetching, requestKey]);
+
   const handleGenerate = () => {
+    // Close any existing snackbar and increment request key
+    setSnackbar((s) => ({ ...s, open: false }));
+    setRequestKey(prev => prev + 1);
+    
     const preservedData: Record<number, string[]> = {};
     
     if (preserveTimetable && preserveSemesters > 0) {
@@ -108,6 +157,7 @@ const Generate: React.FC = () => {
        });
     }
 
+    // Trigger the timetable generation
     triggerGetTimetable({
       requiredModuleCodes: targetModuleCodes,
       exemptedModuleCodes: exemptedModuleCodes,
@@ -344,6 +394,23 @@ const Generate: React.FC = () => {
             </Box>
           )}
         </Box>
+
+      {/* Snackbar for generation feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={1500}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       </Box>
 
       {/* Generate Button */}
