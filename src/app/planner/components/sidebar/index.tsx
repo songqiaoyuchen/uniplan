@@ -19,6 +19,7 @@ import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import EditCalendarIcon from "@mui/icons-material/EditCalendar";
 import Generate from "./Generate";
 import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
 
 // Define tab configuration
 const tabs = [
@@ -38,10 +39,55 @@ const Sidebar: React.FC = () => {
 
   const sidebarWidth = isLargeScreen ? 336 : SIDEBAR_WIDTH;
 
+  const [drawerHeight, setDrawerHeight] = useState(40); // percentage
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartY = useRef(0);
+  const startHeight = useRef(0);
+
   const handleToggle = () => dispatch(toggleSidebar());
   const handleTabChange = (newValue: number) => {
     dispatch(setActiveTab(newValue));
   };
+
+  const [lastTouchY, setLastTouchY] = useState(0);
+
+  const handleDragStart = (e: React.TouchEvent) => {
+    if (!isOpen) return;
+    setIsDragging(true);
+    dragStartY.current = e.touches[0].clientY;
+    setLastTouchY(e.touches[0].clientY);
+    startHeight.current = drawerHeight;
+  };
+
+  const handleDragMove = (e: React.TouchEvent) => {
+    if (!isDragging) return;
+    const currentY = e.touches[0].clientY;
+    setLastTouchY(currentY);
+    const deltaY = dragStartY.current - currentY;
+    const newHeight = startHeight.current + (deltaY / window.innerHeight) * 100;
+    const clampedHeight = Math.min(Math.max(newHeight, 20), 95);
+    setDrawerHeight(clampedHeight);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+    // Auto-close if dragged below 35% of screen height
+    if (drawerHeight < 35) {
+      dispatch(toggleSidebar());
+      setDrawerHeight(40); // Reset to default height
+    }
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      window.addEventListener("touchmove", handleDragMove as any);
+      window.addEventListener("touchend", handleDragEnd);
+      return () => {
+        window.removeEventListener("touchmove", handleDragMove as any);
+        window.removeEventListener("touchend", handleDragEnd);
+      };
+    }
+  }, [isDragging]);
 
   const selectedModuleCode = searchParams.get("module");
   const { module, isPlanned, isLoading, isFetching }  = useModuleState(selectedModuleCode);
@@ -50,17 +96,60 @@ const Sidebar: React.FC = () => {
     <Box
       sx={{
         position: "fixed",
-        bottom: isOpen ? 0 : -MOBILE_DRAWER_HEIGHT,
+        bottom: isOpen ? 0 : `calc(-${drawerHeight}vh)`,
         left: 0,
         right: 0,
-        height: MOBILE_DRAWER_HEIGHT,
+        height: `${drawerHeight}vh`,
+        maxHeight: `${drawerHeight}vh`,
         backgroundColor: "background.default",
+        borderTop: "2px solid",
+        borderColor: "divider",
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
         boxShadow: 4,
         overflowY: "auto",
-        transition: "bottom 0.3s",
+        transition: isDragging ? "none" : "bottom 0.3s, height 0.3s",
         zIndex: 1200,
+        display: "flex",
+        flexDirection: "column",
       }}
+      onTouchStart={handleDragStart}
+      onTouchMove={handleDragMove}
+      onTouchEnd={handleDragEnd}
     >
+      {/* Rounded top bar handle */}
+      <Box
+        sx={{
+          position: "sticky",
+          top: 0,
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: 24,
+          backgroundColor: "background.default",
+          borderTopLeftRadius: 16,
+          borderTopRightRadius: 16,
+          cursor: "grab",
+          touchAction: "none",
+          "&:active": {
+            cursor: "grabbing",
+          },
+        }}
+        onTouchStart={handleDragStart}
+      >
+        <Box
+          sx={{
+            width: 40,
+            height: 4,
+            backgroundColor: "divider",
+            borderRadius: "2px",
+            transition: "background-color 0.2s",
+          }}
+        />
+      </Box>
+
       {/* Grab handle when closed */}
       {!isOpen && (
         <Box
