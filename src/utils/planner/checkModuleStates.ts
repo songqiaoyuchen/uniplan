@@ -79,6 +79,19 @@ export function checkModuleStates(
         const prereqSatisfied = !module?.requires || evaluatePrereqTree(
           module.requires,
           prereq => {
+            // Support wildcard prerequisites like "EC%", "MA2*" etc.
+            if (hasWildcard(prereq)) {
+              for (const [seenCode, seenStatus] of Object.entries(modulesSeen)) {
+                if (
+                  matchesWildcard(prereq, seenCode) &&
+                  (seenStatus === ModuleStatus.Completed || seenStatus === ModuleStatus.Satisfied)
+                ) {
+                  return true;
+                }
+              }
+              return false;
+            }
+
             const seen = modulesSeen[prereq];
             return seen === ModuleStatus.Completed || seen === ModuleStatus.Satisfied;
           }
@@ -257,4 +270,21 @@ function evaluatePrereqTree(
     default:
       return false;
   }
+}
+
+/**
+ * Wildcard helpers: support '%' (SQL-like) and '*' as multi-char wildcards.
+ * Examples: 'EC%' matches 'EC3303', 'MA2*' matches 'MA2101'.
+ */
+function hasWildcard(pattern: string): boolean {
+  return pattern.includes('%') || pattern.includes('*');
+}
+
+function matchesWildcard(pattern: string, candidate: string): boolean {
+  // Escape regex special chars except our wildcards
+  const escaped = pattern
+    .replace(/[.+^${}()|\[\]\\]/g, '\\$&')
+    .replace(/[%\*]/g, '.*');
+  const re = new RegExp(`^${escaped}$`, 'i');
+  return re.test(candidate);
 }
