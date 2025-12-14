@@ -22,6 +22,9 @@ const DraggableAddButton: React.FC<DraggableAddButtonProps> = ({ moduleCode }) =
       ref={setNodeRef}
       {...listeners}
       {...attributes}
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
+      onTouchEnd={(e) => e.stopPropagation()}
       sx={{
         ml: 1,
         display: "inline-flex",
