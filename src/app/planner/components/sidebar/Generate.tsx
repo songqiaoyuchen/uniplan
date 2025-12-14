@@ -364,11 +364,11 @@ const Generate: React.FC = () => {
           {isFetching ? 'Generating...' : 'Generate Timetable'}
         </Button>
         
-        {error && (
+        {error ? (
           <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
             Error generating timetable. Please try again.
           </Typography>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

@@ -1,30 +1,36 @@
-import { ModuleData } from "@/types/plannerTypes";
-import { getNeo4jDriver } from "./neo4j";
-import { mapModuleData } from "@/utils/graph/mapGraph";
+import { ModuleData, SemesterLabel } from "@/types/plannerTypes";
+import moduleDataArray from "@/data/moduleData.json";
+import { getModuleRequires } from "./getModuleRequires";
 
 export async function getModuleByCode(
   moduleCode: string,
 ): Promise<ModuleData | null> {
-  const driver = getNeo4jDriver();
-  const session = driver.session(); 
-
-  try {
-    const result = await session.run(
-      `MATCH (m:Module {moduleCode: $code}) RETURN m`,
-      { code: moduleCode },
-    );
-
-    if (result.records.length === 0) {
-      return null;
-    }
-
-    const node = result.records[0].get("m");
-    const module = mapModuleData(node);
-    return { ...module };
-  } catch (err) {
-    console.error(`❌ Failed to fetch module ${moduleCode}:`, err);
-    throw err;
-  } finally {
-    await session.close(); 
+  // Use static data instead of database query
+  const rawModule = (moduleDataArray as any[]).find((m: any) => m.moduleCode === moduleCode);
+  
+  if (!rawModule) {
+    return null;
   }
+
+  // Transform raw module data to match ModuleData type
+  const module: ModuleData = {
+    id: "", // neo4j node id not available in static data
+    code: rawModule.moduleCode,
+    title: rawModule.title,
+    credits: parseInt(rawModule.moduleCredit || "0", 10),
+    semestersOffered: rawModule.semesterData?.map((s: any) => s.semester as SemesterLabel) || [],
+    exam: null, // Not in static data
+    preclusions: [],
+    description: rawModule.description,
+    faculty: rawModule.faculty,
+    department: rawModule.department,
+  };
+
+  // Fetch and attach prerequisites
+  const requires = await getModuleRequires(moduleCode);
+  if (requires) {
+    module.requires = requires;
+  }
+
+  return module;
 }
