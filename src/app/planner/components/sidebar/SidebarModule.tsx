@@ -39,17 +39,18 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
   }
   
   return (
-    <>
-      { isDragging && <div
-          ref={setNodeRef}
-        />}
-      <div {...listeners} {...attributes} onClick={handleClick}>
-        <ModuleTooltip 
-          module={module}
-          isPlanned={isPlanned}
-        />
-      </div>
-    </>
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={handleClick}
+      style={{ touchAction: "none" }}
+    >
+      <ModuleTooltip 
+        module={module}
+        isPlanned={isPlanned}
+      />
+    </div>
   )
 }
 

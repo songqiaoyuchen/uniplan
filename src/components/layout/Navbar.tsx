@@ -96,7 +96,11 @@ function Navbar() {
             size="large"
             onClick={toggleMobileNav(true)}
             color="inherit"
-            sx={{ display: { xs: "flex", md: "none" } }}
+            sx={{ 
+              display: { xs: "flex", md: "none" },
+              borderRadius: 1.5,
+              "&:hover": { bgcolor: "action.hover" }
+            }}
           >
             <MenuIcon />
           </IconButton>

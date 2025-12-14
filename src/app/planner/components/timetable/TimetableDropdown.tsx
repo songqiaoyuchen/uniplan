@@ -218,8 +218,16 @@ const TimetableDropdown: React.FC = () => {
   return (
     <>
       <Tooltip title="Switch / manage timetables">
-        <IconButton size="small" onClick={handleOpen}>
-          <ArrowDropDownIcon />
+        <IconButton 
+          size="small" 
+          onClick={handleOpen}
+          sx={{
+            color: "text.secondary",
+            borderRadius: 1.5,
+            "&:hover": { bgcolor: "action.hover" }
+          }}
+        >
+          <ArrowDropDownIcon fontSize="small" />
         </IconButton>
       </Tooltip>
 
@@ -229,7 +237,7 @@ const TimetableDropdown: React.FC = () => {
         onClose={handleClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ paper: { sx: { minWidth: 320 } } }}
+        slotProps={{ paper: { sx: { minWidth: 320, borderRadius: 2 } } }}
       >
         {timetables.map((tt) => {
           const name = tt.name;

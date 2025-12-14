@@ -13,7 +13,14 @@ export default function ThemeToggle() {
     <Tooltip
       title={mode === "light" ? "Switch to dark mode" : "Switch to light mode"}
     >
-      <IconButton onClick={toggleTheme}>
+      <IconButton 
+        size="large"
+        onClick={toggleTheme}
+        sx={{
+          borderRadius: { xs: 1.5, md: "50%" },
+          "&:hover": { bgcolor: "action.hover" }
+        }}
+      >
         {mode === "light" ? <DarkModeIcon /> : <Brightness7Icon />}
       </IconButton>
     </Tooltip>

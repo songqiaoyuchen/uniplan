@@ -61,13 +61,39 @@ const Sidebar: React.FC = () => {
         zIndex: 1200,
       }}
     >
+      {/* Grab handle when closed */}
+      {!isOpen && (
+        <Box
+          onClick={handleToggle}
+          sx={{
+            position: "absolute",
+            bottom: -20,
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: 40,
+            height: 4,
+            backgroundColor: "divider",
+            borderRadius: "2px",
+            cursor: "pointer",
+            transition: "background-color 0.2s",
+            "&:hover": {
+              backgroundColor: "primary.main",
+            },
+          }}
+          role="button"
+          aria-label="Swipe up to open sidebar"
+          tabIndex={0}
+        />
+      )}
+
       {/* Smooth Animated Tabs - Pill Style */}
       <Box
         sx={{
           display: "flex",
           gap: 1,
-          padding: "16px",
-          backgroundColor: "background.paper",
+          padding: "12px 16px",
+          backgroundColor: "transparent",
+          paddingBottom: 0
         }}
       >
         {tabs.map((tab, index) => (
@@ -80,13 +106,20 @@ const Sidebar: React.FC = () => {
               alignItems: "center",
               justifyContent: "center",
               gap: 1,
-              padding: "8px 16px",
+              padding: "12px 16px",
               cursor: "pointer",
               position: "relative",
               color: tabValue === index ? "primary.contrastText" : "text.secondary",
               transition: "color 0.2s",
               zIndex: 1,
+              minHeight: "48px",
+              borderRadius: "8px",
+              userSelect: "none",
             }}
+            role="button"
+            tabIndex={0}
+            aria-pressed={tabValue === index}
+            aria-label={`${tab.label} tab`}
           >
             {tabValue === index && (
               <motion.div
@@ -95,7 +128,7 @@ const Sidebar: React.FC = () => {
                   position: "absolute",
                   inset: 0,
                   backgroundColor: theme.palette.primary.main,
-                  borderRadius: "5px",
+                  borderRadius: "8px",
                   zIndex: -1,
                 }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
@@ -108,14 +141,7 @@ const Sidebar: React.FC = () => {
         ))}
       </Box>
 
-      <IconButton
-        onClick={handleToggle}
-        size="small"
-        sx={{ position: "absolute", top: 8, right: 8 }}
-      >
-        <CloseIcon />
-      </IconButton>
-      <Box sx={{ p: 2, gap: 2 }}>
+      <Box sx={{ p: 2, gap: 2, display: "flex", flexDirection: "column" }}>
         {tabValue === 0 && (
           <>
             {isOpen && <ModuleSearch />}

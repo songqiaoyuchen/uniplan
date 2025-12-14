@@ -6,6 +6,8 @@ import { createPortal } from "react-dom";
 import {
   DndContext,
   PointerSensor,
+  TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -32,6 +34,8 @@ import router from "next/router";
 const PlannerContainer: React.FC = () => {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor),
   );
 
   // drag overlay states

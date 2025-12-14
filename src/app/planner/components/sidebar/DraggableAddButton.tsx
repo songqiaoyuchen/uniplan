@@ -27,6 +27,7 @@ const DraggableAddButton: React.FC<DraggableAddButtonProps> = ({ moduleCode }) =
         display: "inline-flex",
         alignItems: "center",
         opacity: isDragging ? 0 : 1,
+        touchAction: "none",
         transition: "opacity 0.2s ease",
       }}
     >
