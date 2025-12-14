@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { Box, Typography, Button, Container, Stack, alpha } from "@mui/material";
 
 import Grid from "@mui/material/Grid";
@@ -254,19 +254,44 @@ function StatItem({ icon, number, label }: { icon: React.ReactNode, number: stri
 // - Removes padding/border for a seamless look
 // - Adds a colored glow behind the window
 function AppWindowVideo({ src, poster, glowColor = "#a78bfa" }: { src: string, poster?: string, glowColor?: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = videoRef.current;
+    if (!node) return;
+    let observer: IntersectionObserver | null = null;
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer && observer.disconnect();
+          }
+        },
+        { threshold: 0.15 }
+      );
+      observer.observe(node);
+    } else {
+      // Fallback: always load if no IntersectionObserver
+      setIsVisible(true);
+    }
+    return () => {
+      observer && observer.disconnect();
+    };
+  }, []);
+
   return (
     <Box sx={{ position: "relative" }}>
       {/* Smooth Ambient Glow */}
       <Box 
         sx={{
           position: "absolute",
-          // Smaller solid box centered behind the element
           top: 40,
           left: 40,
           right: 40,
           bottom: 40,
           bgcolor: glowColor,
-          // Heavy blur creates the gradient naturally without banding
           filter: "blur(80px)",
           opacity: 0.35,
           zIndex: 0,
@@ -279,9 +304,9 @@ function AppWindowVideo({ src, poster, glowColor = "#a78bfa" }: { src: string, p
         position: 'relative',
         zIndex: 1,
         borderRadius: 3, 
-        bgcolor: "#1e1e1e", // Window chrome color
+        bgcolor: "#1e1e1e",
         border: "1px solid rgba(255,255,255,0.08)",
-        boxShadow: "0 20px 50px rgba(0,0,0,0.5)", // Standard dark shadow for depth
+        boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
         overflow: "hidden" 
       }}>
         {/* Browser Window Controls (Traffic Lights) */}
@@ -298,7 +323,7 @@ function AppWindowVideo({ src, poster, glowColor = "#a78bfa" }: { src: string, p
         {/* Edge-to-Edge Video */}
         <Box 
           component="video"
-          src={src}
+          ref={videoRef}
           poster={poster}
           autoPlay 
           loop 
@@ -309,9 +334,8 @@ function AppWindowVideo({ src, poster, glowColor = "#a78bfa" }: { src: string, p
             height: "auto",
             display: "block",
             objectFit: "cover",
-            // Subtle fade at the bottom to blend with background if needed
-            // maskImage: "linear-gradient(to bottom, black 90%, transparent 100%)" 
-          }} 
+          }}
+          {...(isVisible ? { src } : {})}
         />
       </Box>
     </Box>
