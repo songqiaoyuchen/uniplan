@@ -1,7 +1,7 @@
 import { createSlice, createEntityAdapter, PayloadAction, EntityState, createAsyncThunk } from "@reduxjs/toolkit";
-import { modulesAdapter, semestersAdapter, timetableLoaded, type Semester } from "./timetableSlice";
+import { modulesAdapter, semestersAdapter, timetableLoaded, updateModuleStates, type Semester } from "./timetableSlice";
 import { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
-import { RootState } from ".";
+import { AppDispatch, RootState } from ".";
 
 export interface Timetable {
   name: string;
@@ -149,3 +149,45 @@ export const switchTimetable = createAsyncThunk<void, string, { state: RootState
     }
   }
 )
+
+export const importTimetableFromSnapshot =
+  (snapshot: TimetableSnapshot, name: string) =>
+  async (dispatch: AppDispatch) => {
+
+    // fetch full module data
+    const modulesData: ModuleData[] = (
+      await Promise.all(
+        snapshot.modules.map(async ({ code, tags }) => {
+          try {
+            const res = await fetch(`/api/modules/${encodeURIComponent(code)}`);
+            if (!res.ok) return null;
+            const mod = (await res.json()) as ModuleData;
+            if (tags?.length) mod.tags = tags;
+            return mod;
+          } catch {
+            return null;
+          }
+        })
+      )
+    ).filter(Boolean) as ModuleData[];
+
+    // nuild entity states
+    const modules = modulesAdapter.setAll(
+      modulesAdapter.getInitialState(),
+      modulesData
+    );
+
+    const semesters = semestersAdapter.setAll(
+      semestersAdapter.getInitialState(),
+      snapshot.semesters.map((codes, id) => ({
+        id,
+        moduleCodes: codes,
+      }))
+    );
+
+    // update store
+    dispatch(timetableAdded({ name }));
+    dispatch(timetableUpdated({ name, modules, semesters }));
+    dispatch(switchTimetable(name));
+    dispatch(updateModuleStates());
+  };
