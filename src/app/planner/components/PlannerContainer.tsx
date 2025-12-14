@@ -40,10 +40,19 @@ const PlannerContainer: React.FC = () => {
   const isMinimalView = useAppSelector((state) => state.timetable.isMinimalView);
 
   const dispatch = useAppDispatch();
+  const searchParams = useSearchParams();
+  const snapshotId = searchParams.get("id");
+
+  // helper to ensure an import name doesn't collide with existing ones
+  const existingTimetableNames = useAppSelector((s) => s.planner.timetables.ids);
+  const uniqueImportName = (base: string) => {
+    if (!existingTimetableNames.includes(base)) return base;
+    let i = 2;
+    while (existingTimetableNames.includes(`${base} ${i}`)) i++;
+    return `${base} ${i}`;
+  };
 
   useEffect(() => {
-      const query = new URLSearchParams(window.location.search);
-      const snapshotId = query.get("id");
       if (!snapshotId) return;
 
       (async () => {
@@ -52,8 +61,9 @@ const PlannerContainer: React.FC = () => {
           if (!res.ok) throw new Error("Snapshot not found");
 
           const snapshot: TimetableSnapshot = await res.json();
-          const name = `Imported Timetable`; // optionally make unique
-          dispatch(importTimetableFromSnapshot(snapshot, name));
+          const name = uniqueImportName(`Imported Timetable`);
+          // await so we only remove the id parameter after import completes
+          await dispatch(importTimetableFromSnapshot(snapshot, name));
 
           // remove ?id= from URL without navigation
           const url = new URL(window.location.href);
@@ -63,7 +73,7 @@ const PlannerContainer: React.FC = () => {
           console.error(err);
         }
       })();
-    }, [dispatch]);
+    }, [dispatch, snapshotId]);
   
   const handleDragStart = (event: DragStartEvent) => {
     setDraggingModuleCode(event.active.id.toString().split('-')[0]);
