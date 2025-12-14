@@ -82,14 +82,26 @@ const TimetableDropdown: React.FC = () => {
 
   const onDuplicate = (nameToCopy: string) => {
     const src = allEntities[nameToCopy];
-    if (!src) return;
+    if (!src && nameToCopy !== activeName) return;
     const dupName = uniqueName(`${nameToCopy} Copy`);
+
+    // If duplicating the currently active timetable, use the working slice
+    // (this contains any unsaved changes). Otherwise clone from stored src.
+    const modulesSource = nameToCopy === activeName ? workingModules : src!.modules;
+    const semestersSource = nameToCopy === activeName ? workingSemesters : src!.semesters;
+
+    // clone modules and semesters from the chosen source
+    const modulesClone = cloneEntityState<ModuleData>(
+      modulesSource as EntityState<ModuleData, string>
+    );
+    const semestersClone = cloneEntityState(semestersSource);
+
     dispatch(timetableAdded({ name: dupName }));
     dispatch(
       timetableUpdated({
         name: dupName,
-        modules: cloneEntityState<ModuleData>(src.modules as EntityState<ModuleData, string>),
-        semesters: cloneEntityState(src.semesters),
+        modules: modulesClone,
+        semesters: semestersClone,
       })
     );
     dispatch(switchTimetable(dupName));

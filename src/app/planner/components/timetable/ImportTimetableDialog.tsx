@@ -15,7 +15,6 @@ import { alpha } from "@mui/material/styles";
 import LinkIcon from "@mui/icons-material/Link";
 import CloudDownloadIcon from "@mui/icons-material/CloudDownload";
 import ContentPasteIcon from "@mui/icons-material/ContentPaste";
-import CloseIcon from "@mui/icons-material/Close";
 
 interface ImportTimetableDialogProps {
   open: boolean;
@@ -89,14 +88,14 @@ const ImportTimetableDialog: React.FC<ImportTimetableDialogProps> = ({
       <DialogContent sx={{ overflowY: 'visible', pt: 1 }}>
         <Stack spacing={3} sx={{ mt: 1 }}>
           <Typography variant="body1" color="text.primary">
-            Paste a valid <strong>UniPlan link</strong> or a <strong>Snapshot ID</strong> below to load a saved timetable.
+            Paste a valid <strong>UniPlans link</strong> or a <strong>Snapshot ID</strong> below to load a saved timetable.
           </Typography>
 
           <TextField
             autoFocus
             color="secondary"
             label="Link or Snapshot ID"
-            placeholder="e.g., https://uniplan.app/planner..."
+            placeholder="e.g., https://uniplans.net/planner..."
             fullWidth
             variant="outlined"
             value={value}

@@ -7,7 +7,7 @@ import Providers from "@/providers";
 import Box from "@mui/material/Box";
 
 export const metadata: Metadata = {
-  title: "Uniplan",
+  title: "Uniplans",
   description: "NUS Course Planning Tool",
 };
 
