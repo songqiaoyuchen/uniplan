@@ -1,12 +1,12 @@
 // we keep ModuleData dynamic for now in case for DB updates
 // in the future this should really be static and maintained per semester / acamdeic year
 import { ModuleData } from '@/types/plannerTypes';
-import { createApi } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getModuleByCode } from '@/db/getModuleByCode';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: async () => ({ data: null }),
+  baseQuery: fetchBaseQuery({ baseUrl: '' }),
   endpoints: (builder) => ({
     getModuleByCode: builder.query<ModuleData, string>({
       queryFn: async (code) => {
@@ -25,7 +25,7 @@ export const apiSlice = createApi({
 
     getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[]; useSpecialTerms?: boolean; maxMcsPerSemester?: number; preserveTimetable?: boolean; preservedData?: Record<number, string[]> }> ({
       query: (args) => ({
-        url: '/timetable',
+        url: '/api/timetable',
         method: 'POST',
         body: {
           required: args.requiredModuleCodes,

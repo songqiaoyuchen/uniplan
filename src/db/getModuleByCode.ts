@@ -12,15 +12,45 @@ export async function getModuleByCode(
     return null;
   }
 
+  // Extract preclusions from string (same logic as mapModuleData)
+  const preclusions: string[] = [];
+  if (typeof rawModule.preclusion === "string") {
+    const matches = rawModule.preclusion.match(/\b[A-Z]{2,3}\d{4}[A-Z]?\b/g);
+    if (matches) preclusions.push(...matches);
+  }
+
+  // Convert semester numbers to SemesterLabel enum (align with mapModuleData)
+  const semestersOffered: SemesterLabel[] = [];
+  if (Array.isArray(rawModule.semesterData)) {
+    for (const semData of rawModule.semesterData) {
+      switch (semData.semester) {
+        case 1:
+          semestersOffered.push(SemesterLabel.First);
+          break;
+        case 2:
+          semestersOffered.push(SemesterLabel.Second);
+          break;
+        case 3:
+          semestersOffered.push(SemesterLabel.SpecialTerm1);
+          break;
+        case 4:
+          semestersOffered.push(SemesterLabel.SpecialTerm2);
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   // Transform raw module data to match ModuleData type
   const module: ModuleData = {
     id: "", // neo4j node id not available in static data
     code: rawModule.moduleCode,
     title: rawModule.title,
     credits: parseInt(rawModule.moduleCredit || "0", 10),
-    semestersOffered: rawModule.semesterData?.map((s: any) => s.semester as SemesterLabel) || [],
+    semestersOffered,
     exam: null, // Not in static data
-    preclusions: [],
+    preclusions: preclusions,
     description: rawModule.description,
     faculty: rawModule.faculty,
     department: rawModule.department,
