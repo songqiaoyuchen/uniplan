@@ -35,11 +35,10 @@ export async function POST(request: NextRequest): Promise<NextResponse<Timetable
     // Build the dependency graph for the required modules
     const rawGraph = await getMergedTree(requiredModuleCodes);
     const normalisedGraph = normaliseNodes(rawGraph);
-    const prunedGraph = pruneGraph(normalisedGraph, requiredModuleCodes);
 
     // Run the scheduler
     const timetable = runScheduler(
-      prunedGraph,
+      normalisedGraph,
       requiredModuleCodes,
       exemptedModuleCodes,
       useSpecialTerms,
