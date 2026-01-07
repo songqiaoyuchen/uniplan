@@ -85,7 +85,7 @@
   },
   {
     "code": "AC5016",
-    "title": "Critical Heritage Approach to Conservation and Place"
+    "title": "Critical Approaches: Heritage, Conservation and Place"
   },
   {
     "code": "ACC1701A",
@@ -256,6 +256,10 @@
     "title": "Topics in Arts and Cultural Entrepreneurship"
   },
   {
+    "code": "ADS5101",
+    "title": "Introduction to Data Science for Decision-Making"
+  },
+  {
     "code": "ADS5101M",
     "title": "Introduction to Data Science for Decision-Making (Maritime)"
   },
@@ -400,6 +404,10 @@
     "title": "Happiness: Toward an Anthropology of the Good"
   },
   {
+    "code": "AN3550",
+    "title": "Anthropology Internship"
+  },
+  {
     "code": "AN3551",
     "title": "FASS Undergraduate Research Opportunity (UROP)"
   },
@@ -482,10 +490,6 @@
   {
     "code": "AR3102",
     "title": "Design 6"
-  },
-  {
-    "code": "AR3151",
-    "title": "Design - ISM"
   },
   {
     "code": "AR3223",
@@ -658,10 +662,6 @@
   {
     "code": "AR5955E",
     "title": "Topics in Research by Design 5"
-  },
-  {
-    "code": "AR5955G",
-    "title": "Topics in Research by Design 7"
   },
   {
     "code": "AR5955H",
@@ -874,6 +874,10 @@
   {
     "code": "BHD4001",
     "title": "Honours Dissertation"
+  },
+  {
+    "code": "BHD4002",
+    "title": "BBA Dissertation"
   },
   {
     "code": "BI3000",
@@ -1192,8 +1196,8 @@
     "title": "Practical Analysis of Genomic Data using R"
   },
   {
-    "code": "BL5632",
-    "title": "Genomic Data Science in the Cloud"
+    "code": "BL5633",
+    "title": "Applications of AI in Biotech and Biomed"
   },
   {
     "code": "BL5641",
@@ -1304,6 +1308,10 @@
     "title": "Entrepreneurial Management"
   },
   {
+    "code": "BMA5136",
+    "title": "A Consulting Toolkit For Strategic Decision-Making"
+  },
+  {
     "code": "BMA5138",
     "title": "Digital Business Transformation"
   },
@@ -1314,6 +1322,10 @@
   {
     "code": "BMA5277",
     "title": "Managing Geopolitics in International Business"
+  },
+  {
+    "code": "BMA5278",
+    "title": "Business Insights through Industry Analysis"
   },
   {
     "code": "BMA5302",
@@ -1345,6 +1357,10 @@
   },
   {
     "code": "BMA5338",
+    "title": "Sustainable Web3, Generative AI and Metaverse"
+  },
+  {
+    "code": "BMA5338A",
     "title": "Sustainable Web3, Generative AI and Metaverse"
   },
   {
@@ -1386,6 +1402,10 @@
   {
     "code": "BMA5539",
     "title": "Social Purpose Marketing"
+  },
+  {
+    "code": "BMA5540",
+    "title": "Generative AI in Marketing and Sales"
   },
   {
     "code": "BMA5701",
@@ -1882,6 +1902,10 @@
   {
     "code": "BMH5303",
     "title": "Experiential Learning: HR Consultancy Project"
+  },
+  {
+    "code": "BMH5401",
+    "title": "Independent Study Course in Human Capital Management and Analytics"
   },
   {
     "code": "BMI1101A",
@@ -2392,6 +2416,10 @@
     "title": "Biomedical Engineering Design"
   },
   {
+    "code": "BN3101B",
+    "title": "Clinical Immersion and HealthTech Innovation"
+  },
+  {
     "code": "BN3202",
     "title": "Musculoskeletal Biomechanics"
   },
@@ -2498,6 +2526,10 @@
   {
     "code": "BN5201",
     "title": "Advanced Biomaterials"
+  },
+  {
+    "code": "BN5202",
+    "title": "Orthopaedic Biomechanics"
   },
   {
     "code": "BN5203",
@@ -2952,10 +2984,6 @@
     "title": "Experimental Methods for Behavioral Research"
   },
   {
-    "code": "BZD6016",
-    "title": "Econometric Models in Marketing"
-  },
-  {
     "code": "CAH5101",
     "title": "Care of the Newborn & Common Paediatric Surgical Issues"
   },
@@ -3017,7 +3045,7 @@
   },
   {
     "code": "CCS5202",
-    "title": "Climate Hazards, Risks and Uncertainty"
+    "title": "Climate Risk, Adaptation Pathways and Resilient Worlds"
   },
   {
     "code": "CCS5203",
@@ -3038,6 +3066,10 @@
   {
     "code": "CCS5207",
     "title": "Coastal Vulnerability, Risk and Adaptation"
+  },
+  {
+    "code": "CCS5209",
+    "title": "Urban Sustainability Futures"
   },
   {
     "code": "CCS5301",
@@ -3096,6 +3128,10 @@
     "title": "Cities in Nature"
   },
   {
+    "code": "CDE2506",
+    "title": "Healthy Cities"
+  },
+  {
     "code": "CDE2605",
     "title": "Undergraduate Research Opportunities Programme"
   },
@@ -3122,6 +3158,10 @@
   {
     "code": "CDE3505",
     "title": "Planning and Governing Cities"
+  },
+  {
+    "code": "CDE3507",
+    "title": "Regenerative Cities"
   },
   {
     "code": "CDE4301",
@@ -3740,10 +3780,6 @@
     "title": "Operations & Management of Infrastructure Systems"
   },
   {
-    "code": "CE6006",
-    "title": "Advanced Finite Element Analysis"
-  },
-  {
     "code": "CE6077B",
     "title": "Numerical Methods for Environmental Flows"
   },
@@ -3794,10 +3830,6 @@
   {
     "code": "CEG5104",
     "title": "Cellular Networks"
-  },
-  {
-    "code": "CEG5106",
-    "title": "Quantum Computing and Communication"
   },
   {
     "code": "CEG5201",
@@ -3884,6 +3916,10 @@
     "title": "Collaborative Music Ensembles"
   },
   {
+    "code": "CFA2211",
+    "title": "Collaborative Music Ensembles"
+  },
+  {
     "code": "CFA3101A",
     "title": "Performing Arts in Practice (Music) 3"
   },
@@ -3892,12 +3928,20 @@
     "title": "Performing Arts in Practice (Dance) 3"
   },
   {
+    "code": "CFA3105",
+    "title": "Leading and Directing in Student Music Groups"
+  },
+  {
     "code": "CFA3121",
     "title": "Capstone Project for Second Major in Performing Arts"
   },
   {
     "code": "CFA3160",
     "title": "Artistic Identities and Pathways"
+  },
+  {
+    "code": "CFA3210",
+    "title": "Collaborative Music Ensembles"
   },
   {
     "code": "CFA3220",
@@ -4140,6 +4184,10 @@
     "title": "Transregional Chinese Literary Connections"
   },
   {
+    "code": "CH4401",
+    "title": "Honours Thesis"
+  },
+  {
     "code": "CH4660",
     "title": "Independent Study"
   },
@@ -4214,6 +4262,10 @@
   {
     "code": "CHC5301",
     "title": "History and Civilizations of the Tang Empire"
+  },
+  {
+    "code": "CHC5302",
+    "title": "Chinese Buddhist Proselytic Literature"
   },
   {
     "code": "CHC5303",
@@ -4348,8 +4400,44 @@
     "title": "Economic, Cultural and Social Transformation of Modern China"
   },
   {
+    "code": "CHC5352",
+    "title": "Contemporary China and the World"
+  },
+  {
+    "code": "CHC5353",
+    "title": "Poetic Merchants: Chinese Poetry and Socio-economic Changes since 16th Century"
+  },
+  {
+    "code": "CHC5354",
+    "title": "Monetary History of China"
+  },
+  {
+    "code": "CHC5355",
+    "title": "Chinese Literary Theory and Criticism"
+  },
+  {
+    "code": "CHC5360",
+    "title": "Chinese Dialects Overseas"
+  },
+  {
+    "code": "CHC5361",
+    "title": "Chinese Dialects: A Linguistic Overview"
+  },
+  {
+    "code": "CHC5362",
+    "title": "Chinese Language and Literature"
+  },
+  {
     "code": "CIT5001",
     "title": "A Systems Approach to Liveable Cities"
+  },
+  {
+    "code": "CIT5004",
+    "title": "Competitive Cities"
+  },
+  {
+    "code": "CIT5005",
+    "title": "Governing Cities"
   },
   {
     "code": "CL1101E",
@@ -4806,6 +4894,10 @@
   {
     "code": "CMH5203",
     "title": "Capstone Project"
+  },
+  {
+    "code": "CMH5204",
+    "title": "Applied Research Methods in Mental Health and Psychotherapy"
   },
   {
     "code": "CMH5301",
@@ -5580,6 +5672,10 @@
     "title": "Algorithmic Mechanism Design"
   },
   {
+    "code": "CS4262",
+    "title": "Machine Learning Systems"
+  },
+  {
     "code": "CS4268",
     "title": "Quantum Computing"
   },
@@ -5740,6 +5836,10 @@
     "title": "Algorithmic Mechanism Design"
   },
   {
+    "code": "CS5462",
+    "title": "Machine Learning Systems"
+  },
+  {
     "code": "CS5469",
     "title": "Fundamentals of Logic in Computer Science"
   },
@@ -5820,6 +5920,14 @@
     "title": "Advanced Topics in Robotics"
   },
   {
+    "code": "CS6281",
+    "title": "Topics in Computer Science: Inference Algorithms in Deep Generative Models"
+  },
+  {
+    "code": "CS6282",
+    "title": "Topics in Computer Science: AI meets Science - Science-Inspired AI and AI for Science"
+  },
+  {
     "code": "CSA6101",
     "title": "Cultural Studies Theory and Analysis"
   },
@@ -5894,10 +6002,6 @@
   {
     "code": "DBA4811",
     "title": "Analytics for Consulting"
-  },
-  {
-    "code": "DBA4812",
-    "title": "Supply Chain Analytics"
   },
   {
     "code": "DBA4814",
@@ -6416,10 +6520,6 @@
     "title": "The Lean Six Sigma Playbook"
   },
   {
-    "code": "DOS4716",
-    "title": "Advanced Operations and Supply Chain Management"
-  },
-  {
     "code": "DOS4751",
     "title": "Advanced Independent Study in Ops & Supply Chain Mgt"
   },
@@ -6446,10 +6546,6 @@
   {
     "code": "DOS5024",
     "title": "Strategic Procurement in a Digital World"
-  },
-  {
-    "code": "DOS5025",
-    "title": "Global Industry Insights for Smart Industry (Classroom and Practical Training)"
   },
   {
     "code": "DOS5101",
@@ -6960,6 +7056,14 @@
     "title": "Economy of Modern China I"
   },
   {
+    "code": "EC2880A",
+    "title": "Topics in Economics: The Rise and Fall of Great Cities"
+  },
+  {
+    "code": "EC2880C",
+    "title": "Introduction to Foreign Exchange"
+  },
+  {
     "code": "EC3101",
     "title": "Microeconomic Analysis II"
   },
@@ -7376,6 +7480,10 @@
     "title": "Economics of the Environment"
   },
   {
+    "code": "EC5383R",
+    "title": "Economics of the Environment"
+  },
+  {
     "code": "EC5386",
     "title": "Issues in Port Economics"
   },
@@ -7448,6 +7556,10 @@
     "title": "Quantitative & Computing Methods"
   },
   {
+    "code": "ECA5304",
+    "title": "Machine Learning and Economic Forecasting"
+  },
+  {
     "code": "ECA5305",
     "title": "R Programming for Economists"
   },
@@ -7456,8 +7568,16 @@
     "title": "Python Programming for Economists"
   },
   {
+    "code": "ECA5308",
+    "title": "Machine Learning for Applied Economics"
+  },
+  {
     "code": "ECA5313",
     "title": "Topics in Econometrics"
+  },
+  {
+    "code": "ECA5325",
+    "title": "Project & Policy Evaluation"
   },
   {
     "code": "ECA5333",
@@ -7476,16 +7596,52 @@
     "title": "Advanced International Finance"
   },
   {
+    "code": "ECA5351",
+    "title": "Public Finance"
+  },
+  {
     "code": "ECA5371",
     "title": "Economic Growth And Development"
+  },
+  {
+    "code": "ECA5372",
+    "title": "Big Data Analytics and Technologies"
+  },
+  {
+    "code": "ECA5373",
+    "title": "The Singapore Economy"
+  },
+  {
+    "code": "ECA5374",
+    "title": "The Modern Chinese Economy"
   },
   {
     "code": "ECA5375",
     "title": "Economic Growth in East Asia"
   },
   {
+    "code": "ECA5376",
+    "title": "Auctions and Market Design"
+  },
+  {
+    "code": "ECA5381",
+    "title": "Urban Economics"
+  },
+  {
+    "code": "ECA5383",
+    "title": "Environmental Economics"
+  },
+  {
+    "code": "ECA5396",
+    "title": "Economics of Business and Law of Intellectual Assets"
+  },
+  {
     "code": "ECA5401",
     "title": "Graduate Internship in Applied Economics"
+  },
+  {
+    "code": "ECA5880",
+    "title": "Topics in Applied Economics"
   },
   {
     "code": "ECA5881",
@@ -7618,10 +7774,6 @@
   {
     "code": "EE4204",
     "title": "Computer Networks"
-  },
-  {
-    "code": "EE4205",
-    "title": "Quantum Computing and Communication"
   },
   {
     "code": "EE4211",
@@ -7828,10 +7980,6 @@
     "title": "Information Theory and its Applications"
   },
   {
-    "code": "EE5140",
-    "title": "Quantum Computing and Communication"
-  },
-  {
     "code": "EE5303",
     "title": "Microwave Electronics"
   },
@@ -7944,8 +8092,16 @@
     "title": "Special Topics in Automation and Control (Advanced)"
   },
   {
+    "code": "EE6131",
+    "title": "Wireless Communications (Advanced)"
+  },
+  {
     "code": "EE6135",
     "title": "Digital Communications (Advanced)"
+  },
+  {
+    "code": "EE6138",
+    "title": "Optimization for Electrical and Computer Engineering (Advanced)"
   },
   {
     "code": "EE6139",
@@ -8292,6 +8448,10 @@
     "title": "Corpus Linguistics"
   },
   {
+    "code": "ELC5230",
+    "title": "Cognitive Linguistics"
+  },
+  {
     "code": "ELC5251",
     "title": "Approaches to Discourse"
   },
@@ -8525,7 +8685,7 @@
   },
   {
     "code": "ENC5242",
-    "title": "Women Novelists"
+    "title": "Writing Women"
   },
   {
     "code": "ENC5247",
@@ -8744,6 +8904,10 @@
     "title": "Biological Treatment Processes"
   },
   {
+    "code": "ESE5407",
+    "title": "Membrane Technology for Water Management"
+  },
+  {
     "code": "ESE5602",
     "title": "Environmental Management Systems"
   },
@@ -8821,7 +8985,7 @@
   },
   {
     "code": "ESP4401",
-    "title": "Optimization of Energy Systems"
+    "title": "Optimisation of Energy Systems"
   },
   {
     "code": "ESP4901",
@@ -9020,10 +9184,6 @@
     "title": "Programming and Advanced Numerical Methods"
   },
   {
-    "code": "FE5208",
-    "title": "Term Structure and Interest Rate Derivatives"
-  },
-  {
     "code": "FE5209",
     "title": "Financial Econometrics"
   },
@@ -9054,10 +9214,6 @@
   {
     "code": "FE5223",
     "title": "Introduction to Electronic Financial Market"
-  },
-  {
-    "code": "FE5224",
-    "title": "Current Topics In Applied Risk Management"
   },
   {
     "code": "FE5225",
@@ -9400,6 +9556,10 @@
     "title": "Professional Placement"
   },
   {
+    "code": "FST3201A",
+    "title": "Independent Study (Nutrition)"
+  },
+  {
     "code": "FST3202",
     "title": "Nutrition and Disease Prevention"
   },
@@ -9476,6 +9636,10 @@
     "title": "FOS Undergraduate Professional Internship Programme 4S1"
   },
   {
+    "code": "FST4313",
+    "title": "FOS Undergraduate Professional Internship Programme 4S2"
+  },
+  {
     "code": "FST5198",
     "title": "Advanced Food Science and Technology Seminar"
   },
@@ -9486,10 +9650,6 @@
   {
     "code": "FST5199B",
     "title": "Integrated Food Research Lab"
-  },
-  {
-    "code": "FST5201",
-    "title": "Rheology and Textural Properties of Biomaterials"
   },
   {
     "code": "FST5202A",
@@ -9877,7 +10037,7 @@
   },
   {
     "code": "GE5231",
-    "title": "Geospatial Machine Learning"
+    "title": "Geospatial Machine Learning and Artificial Intelligence"
   },
   {
     "code": "GE5660",
@@ -10121,7 +10281,7 @@
   },
   {
     "code": "GEN2002Y",
-    "title": "Total Defence Project Against Threat to Community"
+    "title": "Projects Against Threat to Community"
   },
   {
     "code": "GEN2004",
@@ -10173,7 +10333,7 @@
   },
   {
     "code": "GEN2062Y",
-    "title": "Community Activities for Seniors with SG Cares"
+    "title": "Community Activities for Seniors"
   },
   {
     "code": "GEN2070X",
@@ -10578,14 +10738,6 @@
   {
     "code": "GL4884BHM",
     "title": "Living with Infrastructure"
-  },
-  {
-    "code": "GL4886B",
-    "title": "The International Refugee Regime"
-  },
-  {
-    "code": "GL4886BHM",
-    "title": "The International Refugee Regime"
   },
   {
     "code": "GL4990",
@@ -11125,7 +11277,7 @@
   },
   {
     "code": "HS2906",
-    "title": "Saltwater: Society and the Sea"
+    "title": "Saltwater: Sea and Society"
   },
   {
     "code": "HS2907",
@@ -11416,6 +11568,10 @@
     "title": "History and Things"
   },
   {
+    "code": "HY3550",
+    "title": "History Internship"
+  },
+  {
     "code": "HY3551",
     "title": "FASS Undergraduate Research Opportunity"
   },
@@ -11614,6 +11770,10 @@
   {
     "code": "HY6770",
     "title": "Graduate Research Seminar"
+  },
+  {
+    "code": "IAN3550",
+    "title": "Anthropology Internship"
   },
   {
     "code": "ID1114",
@@ -11876,12 +12036,20 @@
     "title": "Design for Healthy Living"
   },
   {
+    "code": "ID5362",
+    "title": "Integrated Design Internship"
+  },
+  {
     "code": "ID5363",
     "title": "Advanced Interaction Design"
   },
   {
     "code": "ID5400",
     "title": "Creative Computing"
+  },
+  {
+    "code": "ID5401",
+    "title": "Spatial Computing: Design and Development"
   },
   {
     "code": "ID5770",
@@ -12057,7 +12225,7 @@
   },
   {
     "code": "IE4280",
-    "title": "Generative AI and Web3 in Industrial Engineering"
+    "title": "Generative AI and FinTech Technologies"
   },
   {
     "code": "IE5001",
@@ -12130,10 +12298,6 @@
   {
     "code": "IE5210",
     "title": "Value Chain Carbon Accounting and Sustainability"
-  },
-  {
-    "code": "IE5221",
-    "title": "Transportation Modeling and Economics"
   },
   {
     "code": "IE5231",
@@ -12466,10 +12630,6 @@
   {
     "code": "IS4238",
     "title": "Strategic Cybersecurity"
-  },
-  {
-    "code": "IS4241",
-    "title": "Social Media Network Analysis"
   },
   {
     "code": "IS4243",
@@ -12945,7 +13105,7 @@
   },
   {
     "code": "JSC5401",
-    "title": "Master’s Thesis (Coursework)"
+    "title": "Advanced Research Project"
   },
   {
     "code": "JSC5660",
@@ -13630,6 +13790,10 @@
   {
     "code": "LC2006G",
     "title": "Equity & Trusts (G)"
+  },
+  {
+    "code": "LC2006H",
+    "title": "Equity & Trusts (H)"
   },
   {
     "code": "LC2007",
@@ -14504,6 +14668,10 @@
     "title": "Financial Markets Law"
   },
   {
+    "code": "LL4557V",
+    "title": "Indonesian Business Law: Theory and Practice"
+  },
+  {
     "code": "LL5002V",
     "title": "Admiralty Law & Practice"
   },
@@ -14622,6 +14790,10 @@
   {
     "code": "LL5140V",
     "title": "Law of the Sea: Theory and Practice"
+  },
+  {
+    "code": "LL5148S",
+    "title": "Secured Transactions Law"
   },
   {
     "code": "LL5150V",
@@ -15098,6 +15270,10 @@
   {
     "code": "LL5556V",
     "title": "Financial Markets Law"
+  },
+  {
+    "code": "LL5557V",
+    "title": "Indonesian Business Law: Theory and Practice"
   },
   {
     "code": "LL6002V",
@@ -15614,6 +15790,10 @@
   {
     "code": "LL6556V",
     "title": "Financial Markets Law"
+  },
+  {
+    "code": "LL6557V",
+    "title": "Indonesian Business Law: Theory and Practice"
   },
   {
     "code": "LLD5002V",
@@ -16196,6 +16376,10 @@
     "title": "Financial Markets Law"
   },
   {
+    "code": "LLJ5557V",
+    "title": "Indonesian Business Law: Theory and Practice"
+  },
+  {
     "code": "LSM1111",
     "title": "Biological Challenges and Opportunities for Humankind"
   },
@@ -16582,10 +16766,6 @@
   {
     "code": "LSM4243",
     "title": "Tumour Biology"
-  },
-  {
-    "code": "LSM4245",
-    "title": "Advanced Epigenetics and Chromatin Biology"
   },
   {
     "code": "LSM4251",
@@ -17316,6 +17496,10 @@
     "title": "Advanced Hands-on Techniques in Electron Microscopy"
   },
   {
+    "code": "MDG5255",
+    "title": "The Cell as a Machine"
+  },
+  {
     "code": "MDG5256",
     "title": "Machine Learning in Medicine"
   },
@@ -17674,6 +17858,10 @@
   {
     "code": "ME5518",
     "title": "Functional Materials for Mechanical Engineering"
+  },
+  {
+    "code": "ME5521",
+    "title": "Nanotechnology for Engineering Applications"
   },
   {
     "code": "ME5600A",
@@ -18300,6 +18488,10 @@
     "title": "Business Ethics"
   },
   {
+    "code": "MNO2707C",
+    "title": "Business Ethics"
+  },
+  {
     "code": "MNO2711",
     "title": "NUS Young Leaders Programme (NYLP)"
   },
@@ -18553,6 +18745,10 @@
   },
   {
     "code": "MT5023",
+    "title": "Technology-Based Entrepreneurial Strategy"
+  },
+  {
+    "code": "MT5023G",
     "title": "Technology-Based Entrepreneurial Strategy"
   },
   {
@@ -18884,6 +19080,10 @@
     "title": "Rhythmical Devices in Performance 2"
   },
   {
+    "code": "MUA2230",
+    "title": "The Psychology of Music Performance"
+  },
+  {
     "code": "MUA2240",
     "title": "Collaborative Piano - Piano Ensemble"
   },
@@ -18925,7 +19125,7 @@
   },
   {
     "code": "MUA2266",
-    "title": "Navigating Community Music Projects"
+    "title": "Navigating Community Arts Projects"
   },
   {
     "code": "MUA3101",
@@ -19185,7 +19385,7 @@
   },
   {
     "code": "MUA3265",
-    "title": "Career Development Independent Project 2"
+    "title": "Career Development Independent Project"
   },
   {
     "code": "MUA3271",
@@ -19282,6 +19482,10 @@
   {
     "code": "MUA4196",
     "title": "Opera Workshop 3"
+  },
+  {
+    "code": "MUA4197",
+    "title": "Opera Workshop 4"
   },
   {
     "code": "MUA4201",
@@ -19476,8 +19680,16 @@
     "title": "Immersive Sound Technologies"
   },
   {
+    "code": "MUA5176",
+    "title": "Graduate Internship in Audio Arts and Sciences"
+  },
+  {
     "code": "MUA5177",
     "title": "Electroacoustics for Vehicle"
+  },
+  {
+    "code": "MUA5178",
+    "title": "Audio System Market and Industry"
   },
   {
     "code": "MUA5179",
@@ -19506,6 +19718,10 @@
   {
     "code": "MUA6178",
     "title": "Graduate Capstone Project in Music Leadership"
+  },
+  {
+    "code": "MUA6771",
+    "title": "Doctoral Seminar"
   },
   {
     "code": "MUH1101",
@@ -19548,6 +19764,10 @@
     "title": "French for Musicians 1"
   },
   {
+    "code": "MUL2108",
+    "title": "French for Musicians 2"
+  },
+  {
     "code": "MUL2109",
     "title": "German for Musicians 1"
   },
@@ -19578,6 +19798,10 @@
   {
     "code": "MUT3113",
     "title": "Orchestration"
+  },
+  {
+    "code": "MUT3201",
+    "title": "Modern Music"
   },
   {
     "code": "MUT3215",
@@ -19836,10 +20060,6 @@
     "title": "Hacking Humanity"
   },
   {
-    "code": "NHS2090",
-    "title": "Reality: Social, Virtual, Alternate and Otherwise"
-  },
-  {
     "code": "NHS2091",
     "title": "The Human Face in Art and Tech"
   },
@@ -19854,10 +20074,6 @@
   {
     "code": "NHS2095",
     "title": "Be Water My Friend: Why We Fight the Way We Do"
-  },
-  {
-    "code": "NHS2096",
-    "title": "How to escape despotism?"
   },
   {
     "code": "NHS2097",
@@ -19886,6 +20102,10 @@
   {
     "code": "NHS2104",
     "title": "Cinematic Body Genres and the Framing of Affect"
+  },
+  {
+    "code": "NHS3801A",
+    "title": "Topics in Humanities and Social Sciences: Food and Religious Imaginations"
   },
   {
     "code": "NHS3901",
@@ -19973,11 +20193,19 @@
   },
   {
     "code": "NLM5001",
-    "title": "Personalised Nutrition"
+    "title": "Precision Nutrition"
+  },
+  {
+    "code": "NLM5003",
+    "title": "Nutrition Across the Life Course"
   },
   {
     "code": "NLM5004A",
     "title": "Capstone Project I"
+  },
+  {
+    "code": "NLM5006",
+    "title": "Exercise as Medicine: Bridging Research and Practice"
   },
   {
     "code": "NM1101E",
@@ -20376,6 +20604,10 @@
     "title": "Media in Asia"
   },
   {
+    "code": "NMC5363",
+    "title": "AI, Media, and Social Transformations"
+  },
+  {
     "code": "NMC5364",
     "title": "Digital Journalism, Law, and Society"
   },
@@ -20468,6 +20700,10 @@
     "title": "Science and Society"
   },
   {
+    "code": "NSS2001K",
+    "title": "Science and Society"
+  },
+  {
     "code": "NST2001",
     "title": "The Biomolecular Revolution"
   },
@@ -20489,7 +20725,7 @@
   },
   {
     "code": "NST2026",
-    "title": "Pollution Control Engineering in Singapore"
+    "title": "Modeling for Sustainability: A Pollution Control Perspective"
   },
   {
     "code": "NST2030",
@@ -20553,7 +20789,7 @@
   },
   {
     "code": "NST2059",
-    "title": "Heritage Science: Decay and Decline of Ornamentation"
+    "title": "Heritage Science: Ornamental Breakdown"
   },
   {
     "code": "NST2060",
@@ -21576,10 +21812,6 @@
     "title": "Atomistic modelling of electronic materials under nonequilibrium conditions"
   },
   {
-    "code": "PC5239B",
-    "title": "Variational Principles"
-  },
-  {
     "code": "PC5252",
     "title": "Bayesian Statistics and Machine Learning"
   },
@@ -21972,6 +22204,10 @@
     "title": "FASS Undergraduate Research Opportunity (UROP)"
   },
   {
+    "code": "PH3551R",
+    "title": "FASS Undergraduate Research Opportunity (UROP)"
+  },
+  {
     "code": "PH4201",
     "title": "Philosophy of Science"
   },
@@ -22109,7 +22345,7 @@
   },
   {
     "code": "PH6210",
-    "title": "Topics in History of Western Philosophy"
+    "title": "Advanced Topics in Western Philosophy"
   },
   {
     "code": "PH6211",
@@ -22221,15 +22457,15 @@
   },
   {
     "code": "PHM5001",
-    "title": "Human Genomics in Precision Medicine"
+    "title": "Precision Human Genomics"
   },
   {
     "code": "PHM5002",
-    "title": "Proteomics and Metabolomics in Precision Health and Medicine"
+    "title": "Precision Proteomics and Metabolomics"
   },
   {
     "code": "PHM5003",
-    "title": "Applied Statistics for Precision Medicine"
+    "title": "Big Data Statistical Analysis for Precision Medicine"
   },
   {
     "code": "PHM5004",
@@ -22269,7 +22505,7 @@
   },
   {
     "code": "PHM5013",
-    "title": "Precision Drug Discovery and Development"
+    "title": "Precision Drug Discovery and Pharmacogenomics"
   },
   {
     "code": "PHM5014",
@@ -22289,7 +22525,7 @@
   },
   {
     "code": "PHM5018",
-    "title": "Precision Health and Medicine for Cardiometabolic Diseases"
+    "title": "Precision Cardiometabolic Medicine"
   },
   {
     "code": "PHM5019",
@@ -23148,6 +23384,10 @@
     "title": "Game Theory and Strategic Decision-Making"
   },
   {
+    "code": "PP5527A",
+    "title": "Game Theory and Strategic Decision-Making"
+  },
+  {
     "code": "PP5528",
     "title": "Designing Markets and Marketplaces"
   },
@@ -23205,7 +23445,7 @@
   },
   {
     "code": "PP5550",
-    "title": "Qualitative Methods for Public Policy"
+    "title": "Applied Qualitative Methods for Policy Research"
   },
   {
     "code": "PP5551",
@@ -23226,6 +23466,10 @@
   {
     "code": "PP5556",
     "title": "Policy in motion: Trade, Networks and the Environment"
+  },
+  {
+    "code": "PP5662",
+    "title": "Independent Study Course"
   },
   {
     "code": "PP5701",
@@ -23628,6 +23872,10 @@
     "title": "MCP Project: Systematic Review & Meta-analysis"
   },
   {
+    "code": "PR5249C",
+    "title": "MCP Project: Systematic Review & Meta-analysis"
+  },
+  {
     "code": "PR5250",
     "title": "Elective Clerkship I"
   },
@@ -23670,10 +23918,6 @@
   {
     "code": "PS2237",
     "title": "Introduction to International Relations"
-  },
-  {
-    "code": "PS2238",
-    "title": "International Politics of Northeast Asia"
   },
   {
     "code": "PS2240",
@@ -23952,10 +24196,6 @@
     "title": "Topics in CP: Money and Politics"
   },
   {
-    "code": "PS4881G",
-    "title": "Topics in CP: Politics of the Korean Peninsula"
-  },
-  {
     "code": "PS4882D",
     "title": "Topics in IR: Politics of Global Migration"
   },
@@ -23990,6 +24230,10 @@
   {
     "code": "PS5211",
     "title": "Non-State Actors in Global Governance"
+  },
+  {
+    "code": "PS5218",
+    "title": "The Politics of Authoritarian Rule"
   },
   {
     "code": "PS5312",
@@ -24458,6 +24702,10 @@
   {
     "code": "RVR2000",
     "title": "RVRC Undergraduate Research Opportunity (UROP)"
+  },
+  {
+    "code": "RVR2000X",
+    "title": "RVRC Undergraduate Research Opportunity (UROP) REx"
   },
   {
     "code": "RVSS1000",
@@ -25089,7 +25337,7 @@
   },
   {
     "code": "SH5106",
-    "title": "Radiation Safety"
+    "title": "Radiation and Nuclear Safety"
   },
   {
     "code": "SH5107",
@@ -25105,10 +25353,6 @@
   },
   {
     "code": "SH5202",
-    "title": "Quantified Risk Analysis"
-  },
-  {
-    "code": "SH5202C",
     "title": "Quantified Risk Analysis"
   },
   {
@@ -25266,6 +25510,10 @@
   {
     "code": "SM5004",
     "title": "Implementing Net Zero Healthcare"
+  },
+  {
+    "code": "SM5004A",
+    "title": "Implementing Net Zero Healthcare (GC)"
   },
   {
     "code": "SM5101",
@@ -26109,7 +26357,7 @@
   },
   {
     "code": "SW3105",
-    "title": "Community Work Practice"
+    "title": "Empowering Communities: Strategies and Practices"
   },
   {
     "code": "SW3208",
@@ -26744,10 +26992,6 @@
     "title": "Data Science for the Internet of Things"
   },
   {
-    "code": "TEE4305",
-    "title": "Introduction To Fuzzy/Neural Systems"
-  },
-  {
     "code": "TEE4436",
     "title": "Fabrication Process Technology"
   },
@@ -27292,6 +27536,14 @@
     "title": "Junior Seminar: Fakes"
   },
   {
+    "code": "UTC1102D",
+    "title": "Junior Seminar: Images"
+  },
+  {
+    "code": "UTC1102S",
+    "title": "Coding Mortality"
+  },
+  {
     "code": "UTC1113",
     "title": "Ignorance and Knowing"
   },
@@ -27300,12 +27552,16 @@
     "title": "Junior Seminar Engineering Marvels"
   },
   {
+    "code": "UTC1116",
+    "title": "Spectacles and Society"
+  },
+  {
     "code": "UTC1119",
     "title": "Junior Seminar: Crime and Punishment"
   },
   {
     "code": "UTC1120",
-    "title": "Junior Seminar: Emotions and Society"
+    "title": "Emotions in Modern Society"
   },
   {
     "code": "UTC1123",
@@ -27380,6 +27636,14 @@
     "title": "Machines That Learn"
   },
   {
+    "code": "UTC1803",
+    "title": "Humans versus Machines: Convergence, Conflict, and Coexistence"
+  },
+  {
+    "code": "UTC2104",
+    "title": "Intelligence and Singapore Society"
+  },
+  {
     "code": "UTC2105",
     "title": "Singapore as ‘Model’ City?"
   },
@@ -27392,8 +27656,16 @@
     "title": "Happiness By Design"
   },
   {
+    "code": "UTC2111",
+    "title": "Picturing and Seeing Development"
+  },
+  {
     "code": "UTC2114",
     "title": "Technologies and Ageing in Singapore"
+  },
+  {
+    "code": "UTC2115",
+    "title": "Migrant Workers, Rhetoric, and Performance"
   },
   {
     "code": "UTC2116",
@@ -27406,6 +27678,10 @@
   {
     "code": "UTC2119",
     "title": "Maps: Portraying Space as Place"
+  },
+  {
+    "code": "UTC2120",
+    "title": "The Art and Science of Negotiation"
   },
   {
     "code": "UTC2400",
@@ -27450,6 +27726,10 @@
   {
     "code": "UTC2420A",
     "title": "Sustainability in SE Asia: Study Trip to Indochina"
+  },
+  {
+    "code": "UTC2421",
+    "title": "Dengue, Deforestation and Displacement"
   },
   {
     "code": "UTC2502",
@@ -27500,6 +27780,10 @@
     "title": "Making Generosity Viral: Creating a culture of generosity"
   },
   {
+    "code": "UTC2812",
+    "title": "Empowering AI-Ready Older Adults via Confidence, Opportunities, Design and Engagement (CODE)"
+  },
+  {
     "code": "UTC2851",
     "title": "Problem Solving for Computing and AI"
   },
@@ -27517,6 +27801,10 @@
   },
   {
     "code": "UTC3103",
+    "title": "The Tembusu Senior Learning Experience Project"
+  },
+  {
+    "code": "UTC3103A",
     "title": "The Tembusu Senior Learning Experience Project"
   },
   {
@@ -27704,6 +27992,14 @@
     "title": "Undergraduate Teaching Opportunities Programme (UTOP)"
   },
   {
+    "code": "UTS2103",
+    "title": "Health and the Community in Singapore"
+  },
+  {
+    "code": "UTS2104",
+    "title": "Intelligence and Singapore Society"
+  },
+  {
     "code": "UTS2105",
     "title": "Singapore as ‘Model’ City?"
   },
@@ -27714,6 +28010,10 @@
   {
     "code": "UTS2114",
     "title": "Technologies and Ageing in Singapore"
+  },
+  {
+    "code": "UTS2115",
+    "title": "Migrant Workers, Rhetoric, and Performance"
   },
   {
     "code": "UTS2116",
@@ -27952,8 +28252,16 @@
     "title": "Advanced UROPS in Computational Biology I"
   },
   {
+    "code": "ZB3288R",
+    "title": "Advanced UROPS in Computational Biology I (REx)"
+  },
+  {
     "code": "ZB3289",
     "title": "Advanced UROPS in Computational Biology II"
+  },
+  {
+    "code": "ZB3289R",
+    "title": "Advanced UROPS in Computational Biology II (REx)"
   },
   {
     "code": "ZB3310",
