@@ -111,7 +111,7 @@ const ModuleDetails: React.FC<ModuleDetailsProps> = ({ module, isPlanned }) => {
       )}
 
       <Typography variant="body1">
-        Offered: {formatSemesters(module.semestersOffered)}
+        Offered: {formatSemesters(module.semestersOffered || [])}
       </Typography>
 
       {module.exam && (

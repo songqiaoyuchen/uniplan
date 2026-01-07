@@ -28,7 +28,6 @@ import type { ModuleData, TimetableSnapshot } from "@/types/plannerTypes";
 import type { EntityState } from "@reduxjs/toolkit";
 import { cloneEntityState } from "@/utils/cloneEntityState";
 import { serializeTimetable } from "@/utils/planner/shareTimetable";
-import { modulesAdapter, semestersAdapter, updateModuleStates } from "@/store/timetableSlice";
 import { useMemo, useState } from "react";
 import ImportTimetableDialog from "./ImportTimetableDialog";
 
@@ -50,6 +49,9 @@ const TimetableDropdown: React.FC = () => {
     () => allIds.map((id) => allEntities[id]).filter(Boolean) as Timetable[],
     [allIds, allEntities]
   );
+
+  const workingModules = useSelector((state: RootState) => state.timetable.modules);
+  const workingSemesters = useSelector((state: RootState) => state.timetable.semesters);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -80,14 +82,26 @@ const TimetableDropdown: React.FC = () => {
 
   const onDuplicate = (nameToCopy: string) => {
     const src = allEntities[nameToCopy];
-    if (!src) return;
+    if (!src && nameToCopy !== activeName) return;
     const dupName = uniqueName(`${nameToCopy} Copy`);
+
+    // If duplicating the currently active timetable, use the working slice
+    // (this contains any unsaved changes). Otherwise clone from stored src.
+    const modulesSource = nameToCopy === activeName ? workingModules : src!.modules;
+    const semestersSource = nameToCopy === activeName ? workingSemesters : src!.semesters;
+
+    // clone modules and semesters from the chosen source
+    const modulesClone = cloneEntityState<ModuleData>(
+      modulesSource as EntityState<ModuleData, string>
+    );
+    const semestersClone = cloneEntityState(semestersSource);
+
     dispatch(timetableAdded({ name: dupName }));
     dispatch(
       timetableUpdated({
         name: dupName,
-        modules: cloneEntityState<ModuleData>(src.modules as EntityState<ModuleData, string>),
-        semesters: cloneEntityState(src.semesters),
+        modules: modulesClone,
+        semesters: semestersClone,
       })
     );
     dispatch(switchTimetable(dupName));
@@ -102,8 +116,13 @@ const TimetableDropdown: React.FC = () => {
 
   // export / share
   const onShare = async (name: string) => {
-    const tt = allEntities[name];
-    if (!tt) return;
+    const stored = allEntities[name];
+    if (!stored) return;
+
+    const tt: Timetable =
+      name === activeName
+        ? { ...stored, modules: workingModules, semesters: workingSemesters }
+        : stored;
 
     try {
       const snapshot = serializeTimetable(tt);
@@ -199,8 +218,16 @@ const TimetableDropdown: React.FC = () => {
   return (
     <>
       <Tooltip title="Switch / manage timetables">
-        <IconButton size="small" onClick={handleOpen}>
-          <ArrowDropDownIcon />
+        <IconButton 
+          size="small" 
+          onClick={handleOpen}
+          sx={{
+            color: "text.secondary",
+            borderRadius: 1.5,
+            "&:hover": { bgcolor: "action.hover" }
+          }}
+        >
+          <ArrowDropDownIcon fontSize="small" />
         </IconButton>
       </Tooltip>
 
@@ -210,7 +237,7 @@ const TimetableDropdown: React.FC = () => {
         onClose={handleClose}
         anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
         transformOrigin={{ vertical: "top", horizontal: "left" }}
-        slotProps={{ paper: { sx: { minWidth: 320 } } }}
+        slotProps={{ paper: { sx: { minWidth: 320, borderRadius: 2 } } }}
       >
         {timetables.map((tt) => {
           const name = tt.name;

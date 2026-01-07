@@ -13,7 +13,9 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Slider from '@mui/material/Slider';
-import { useMemo } from 'react';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import { useMemo, useState, useEffect } from 'react';
 import miniModuleData from '@/data/miniModuleData.json';
 import { useLazyGetTimetableQuery } from '@/store/apiSlice';
 import { useSelector } from 'react-redux';
@@ -33,7 +35,20 @@ import { ModuleStatus } from '@/types/plannerTypes';
 
 const Generate: React.FC = () => {
   const dispatch = useAppDispatch();
-  const [triggerGetTimetable, { isFetching, error }] = useLazyGetTimetableQuery();
+  const [triggerGetTimetable, { isFetching, error, data, isSuccess }] = useLazyGetTimetableQuery();
+  
+  type SnackbarState = {
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error' | 'warning' | 'info';
+  };
+
+  const [snackbar, setSnackbar] = useState<SnackbarState>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
+  const [requestKey, setRequestKey] = useState(0);
 
   const targetModuleCodes = useSelector((state: RootState) => {
     const targeted = state.timetable.targetModules;
@@ -53,7 +68,13 @@ const Generate: React.FC = () => {
   } = useSelector((state: RootState) => state.timetable);
 
   const allSemesters = useSelector((state: RootState) => semestersAdapter.getSelectors().selectAll(state.timetable.semesters));
-  const totalSemesters = allSemesters.length;
+  const maxSemesterId = useMemo(() => {
+    if (!Array.isArray(allSemesters) || allSemesters.length === 0) return -1;
+    return Math.max(...allSemesters.map(s => (s && typeof s.id === 'number') ? s.id : -1));
+  }, [allSemesters]);
+
+  // If maxSemesterId is -1 (no semesters), totalSemesters will be 0.
+  const totalSemesters = maxSemesterId >= 0 ? Math.ceil((maxSemesterId + 1) / 2) : 0;
 
   // Create module objects from codes
   const targetModules = useMemo(() => {
@@ -90,25 +111,59 @@ const Generate: React.FC = () => {
     dispatch(exemptedModuleRemoved(moduleCode));
   };
 
+  // Handle generation result feedback
+  useEffect(() => {
+    if (isFetching || requestKey === 0) {
+      return; // Don't show result while still fetching or before first request
+    }
+    
+    if (isSuccess && data) {
+      const semesterCount = data.semesters?.length || 0;
+      if (semesterCount === 0) {
+        setSnackbar({
+          open: true,
+          message: 'No valid timetable could be generated.',
+          severity: 'warning'
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: `Successfully generated timetable.`,
+          severity: 'success'
+        });
+      }
+    } else if (error) {
+      setSnackbar({
+        open: true,
+        message: 'Error generating timetable. Please try again.',
+        severity: 'error'
+      });
+    }
+  }, [isSuccess, data, error, isFetching, requestKey]);
+
   const handleGenerate = () => {
+    // Close any existing snackbar and increment request key
+    setSnackbar((s) => ({ ...s, open: false }));
+    setRequestKey(prev => prev + 1);
+    
     const preservedData: Record<number, string[]> = {};
     
     if (preserveTimetable && preserveSemesters > 0) {
        const sortedSemesters = [...allSemesters].sort((a, b) => a.id - b.id);
-       const semestersToPreserve = sortedSemesters.slice(0, preserveSemesters);
+       const semestersToPreserve = sortedSemesters.filter(s => s.id < preserveSemesters * 2);
        
        semestersToPreserve.forEach(s => {
          preservedData[s.id] = s.moduleCodes;
        });
     }
 
+    // Trigger the timetable generation
     triggerGetTimetable({
       requiredModuleCodes: targetModuleCodes,
       exemptedModuleCodes: exemptedModuleCodes,
       useSpecialTerms: useSpecialTerms,
       maxMcsPerSemester: maxMcsPerSemester,
       preserveTimetable: preserveTimetable,
-      preserveSemesters: preserveSemesters,
       preservedData: preservedData
     });
   };
@@ -246,7 +301,7 @@ const Generate: React.FC = () => {
       {/* Max MCs Stepper */}
       <Box>
         <Typography variant="body2" gutterBottom sx={{ fontWeight: 600, pb: 1 }}>
-          Max MCs per Semester
+          Max units per semester
         </Typography>
         <Box sx={{ 
           display: 'flex', 
@@ -280,7 +335,7 @@ const Generate: React.FC = () => {
           </IconButton>
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block', textAlign: 'center' }}>
-          Recommended: 20-24 MCs
+          Recommended: 20-24 Units
         </Typography>
       </Box>
       
@@ -339,6 +394,23 @@ const Generate: React.FC = () => {
             </Box>
           )}
         </Box>
+
+      {/* Snackbar for generation feedback */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={1500}
+        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
       </Box>
 
       {/* Generate Button */}
@@ -359,11 +431,11 @@ const Generate: React.FC = () => {
           {isFetching ? 'Generating...' : 'Generate Timetable'}
         </Button>
         
-        {error && (
+        {error ? (
           <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block', textAlign: 'center' }}>
             Error generating timetable. Please try again.
           </Typography>
-        )}
+        ) : null}
       </Box>
     </Box>
   );

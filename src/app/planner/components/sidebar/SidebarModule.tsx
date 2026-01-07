@@ -35,21 +35,31 @@ const SidebarModule: React.FC<SidebarModuleProps> = ({ moduleCode }) => {
     return <ModuleTooltipPlaceholder />
   }
   if (isError || !module) {
-    return 
+    return (
+      <div style={{ 
+        padding: '4px 8px',
+        fontSize: '0.875rem',
+        color: '#888',
+        fontStyle: 'italic'
+      }}>
+        {moduleCode}
+      </div>
+    )
   }
   
   return (
-    <>
-      { isDragging && <div
-          ref={setNodeRef}
-        />}
-      <div {...listeners} {...attributes} onClick={handleClick}>
-        <ModuleTooltip 
-          module={module}
-          isPlanned={isPlanned}
-        />
-      </div>
-    </>
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={handleClick}
+      style={{ touchAction: "none" }}
+    >
+      <ModuleTooltip 
+        module={module}
+        isPlanned={isPlanned}
+      />
+    </div>
   )
 }
 

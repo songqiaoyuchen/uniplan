@@ -2,19 +2,30 @@
 // in the future this should really be static and maintained per semester / acamdeic year
 import { ModuleData } from '@/types/plannerTypes';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { getModuleByCode } from '@/db/getModuleByCode';
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+  baseQuery: fetchBaseQuery({ baseUrl: '' }),
   endpoints: (builder) => ({
     getModuleByCode: builder.query<ModuleData, string>({
-      query: (code) => `/modules/${encodeURIComponent(code)}`,
+      queryFn: async (code) => {
+        try {
+          const module = await getModuleByCode(code.toUpperCase());
+          if (!module) {
+            return { error: { status: 404, data: { error: `Module ${code} not found` } } };
+          }
+          return { data: module };
+        } catch (err) {
+          return { error: { status: 500, data: { error: 'Failed to fetch module' } } };
+        }
+      },
       keepUnusedDataFor: Number.MAX_VALUE,
     }),
 
-    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[]; useSpecialTerms?: boolean; maxMcsPerSemester?: number; preserveTimetable?: boolean; preserveSemesters?: number; preservedData?: Record<number, string[]> }> ({
+    getTimetable: builder.query<{ semesters: { id: number; moduleCodes: string[] }[] }, { requiredModuleCodes: string[]; exemptedModuleCodes: string[]; useSpecialTerms?: boolean; maxMcsPerSemester?: number; preserveTimetable?: boolean; preservedData?: Record<number, string[]> }> ({
       query: (args) => ({
-        url: '/timetable',
+        url: '/api/timetable',
         method: 'POST',
         body: {
           required: args.requiredModuleCodes,

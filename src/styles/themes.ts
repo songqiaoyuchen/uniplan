@@ -49,8 +49,8 @@ export const lightTheme = createTheme({
     success: { main: "#40ed48" },
     warning: { main: "#ef8937" },
     error: { main: "#ff240b" },
-    background: { default: "#ffffff", paper: "#ececec" },
-    text: { primary: "#000000", secondary: "#333333" },
+    background: { default: "#f6f8fb", paper: "#f1f3f6" },
+    text: { primary: "#111827", secondary: "#4b5563" },
     custom: {
       moduleCard: {
         selectedBorderWidth: "2px",
@@ -79,13 +79,13 @@ export const lightTheme = createTheme({
       styleOverrides: {
         body: {
           "*::-webkit-scrollbar": { width: "8px", height: "8px" },
-          "*::-webkit-scrollbar-track": { background: "#f5f5f5" },
+          "*::-webkit-scrollbar-track": { background: "#f2f4f6" },
           "*::-webkit-scrollbar-thumb": {
-            backgroundColor: "#bbbbbb",
+            backgroundColor: "#bfc6cc",
             borderRadius: "4px",
           },
-          "*::-webkit-scrollbar-thumb:hover": { backgroundColor: "#999999" },
-          "*": { scrollbarColor: "#bbbbbb #f5f5f5", scrollbarWidth: "normal" },
+          "*::-webkit-scrollbar-thumb:hover": { backgroundColor: "#9ea7ad" },
+          "*": { scrollbarColor: "#bfc6cc #f2f4f6", scrollbarWidth: "normal" },
         },
       },
     },
@@ -96,8 +96,8 @@ export const lightTheme = createTheme({
     },
     MuiOutlinedInput: {
       styleOverrides: {
-        input: { color: "#000000" },
-        notchedOutline: { borderColor: "#ffffff" },
+        input: { color: "#111827" },
+        notchedOutline: { borderColor: "#e6e9ef" },
         root: {
           "&:hover .MuiOutlinedInput-notchedOutline": {
             borderColor: "#bea6f7",

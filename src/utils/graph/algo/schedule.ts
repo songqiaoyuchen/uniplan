@@ -11,6 +11,7 @@ import { MAX_SEMESTERS } from './constants';
 import { validateSchedule, generateValidationReport } from './check';
 import { isModuleData, isNofNode } from './constants';
 import { cleanSemesters } from './clean';
+import { semesterRemoved } from '@/store/timetableSlice';
 
 /**
  * Runs the complete scheduling algorithm.
@@ -23,6 +24,7 @@ export function runScheduler(
   maxMcsPerSemester: number = 20,
   preservedTimetable: Record<number, string[]> = {}
 ): TimetableData {
+  
   // Build a map from node id to its edges
   const edgeMap: Record<string, { out: string[]; in: string[] }> = {};
 
@@ -73,27 +75,19 @@ export function runScheduler(
   // Pre-fill semesters with preserved data
   const semesters: Semester[] = [];
   let maxPreservedSemester = -1;
-
-  Object.entries(preservedTimetable).forEach(([semStr, codes]) => {
-    const semId = parseInt(semStr);
-    if (codes.length > 0) {
-      semesters.push({
-        id: semId,
-        moduleCodes: codes
-      });
-      if (semId > maxPreservedSemester) {
-        maxPreservedSemester = semId;
-      }
-    }
-  });
+  
+  for (const [semStr, codes] of Object.entries(preservedTimetable)) {
+    const semId = Number.parseInt(semStr, 10);
+    if (Number.isNaN(semId)) continue;
+    semesters.push({ id: semId, moduleCodes: Array.isArray(codes) ? codes : [] });
+    if (semId > maxPreservedSemester) maxPreservedSemester = semId;
+  }
 
   // Sort semesters to ensure order
   semesters.sort((a, b) => a.id - b.id);
 
   // Start scheduling from the next available semester
   const startSemester = maxPreservedSemester + 1;
-
-  console.log(`Starting scheduling from semester ${startSemester}. Preserved semesters: 0 to ${maxPreservedSemester}`);
 
   for (let semester = startSemester; semester <= MAX_SEMESTERS; semester++) {
     // Check if all targets completed

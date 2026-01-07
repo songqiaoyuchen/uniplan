@@ -84,13 +84,16 @@ export default function SemesterHeader({ semesterId, isEmpty }: SemesterHeaderPr
               borderRadius: 0.5, 
               alignSelf: "flex-end",
               marginLeft: "auto",
-              color: "common.white",
+              color: (theme) =>
+                theme.palette.mode === "light"
+                  ? theme.palette.common.black
+                  : theme.palette.common.white,
               "&:hover": {
                 backgroundColor: "error.main",
               },
             }}
           >
-            <CloseIcon sx={{ fontSize: 12 }} />
+            <CloseIcon sx={{ fontSize: 12, color: 'inherit' }} />
           </IconButton>
         )
         : (

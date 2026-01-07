@@ -53,7 +53,7 @@ export function parsePrereq(
     }
 
     if (type === "NOF") {
-      const n = node.properties.requires?.low ?? node.properties.requires ?? 1;
+      const n = node.properties.threshold ?? 1;
       return { type: "NOF", n, children };
     }
 

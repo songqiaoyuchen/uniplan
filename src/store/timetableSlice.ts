@@ -306,7 +306,49 @@ const timetableSlice = createSlice({
     builder.addMatcher(
       apiSlice.endpoints.getTimetable.matchFulfilled,
       (state, action) => {
-        semestersAdapter.setAll(state.semesters, action.payload.semesters);
+        // Ensure there are no gaps in EVEN semester IDs (main terms).
+        // Odd semester IDs (special terms) are optional and only included if present.
+        const incoming = action.payload.semesters ?? [];
+        if (incoming.length > 0) {
+          const presentById = new Map(incoming.map((s) => [s.id, s]));
+
+          // Find all even ids present
+          const evenIds = incoming.map((s) => s.id).filter((id) => id % 2 === 0);
+
+          if (evenIds.length > 0) {
+            const minEven = Math.min(...evenIds);
+            const maxEven = Math.max(...evenIds);
+            const normalized: { id: number; moduleCodes: string[] }[] = [];
+
+            // Walk full range from minEven to maxEven and ensure every even id exists.
+            for (let id = minEven; id <= maxEven; id++) {
+              if (id % 2 === 0) {
+                const found = presentById.get(id);
+                normalized.push(found ?? { id, moduleCodes: [] });
+              } else {
+                // odd id: include only if present in incoming
+                const found = presentById.get(id);
+                if (found) normalized.push(found);
+              }
+            }
+
+            semestersAdapter.setAll(state.semesters, normalized);
+          } else {
+            // No even semesters present — fall back to dense range behaviour
+            const ids = incoming.map((s) => s.id);
+            const minId = Math.min(...ids);
+            const maxId = Math.max(...ids);
+            const normalized: { id: number; moduleCodes: string[] }[] = [];
+            for (let id = minId; id <= maxId; id++) {
+              const found = presentById.get(id);
+              normalized.push(found ?? { id, moduleCodes: [] });
+            }
+            semestersAdapter.setAll(state.semesters, normalized);
+          }
+        } else {
+          semestersAdapter.setAll(state.semesters, []);
+        }
+
         modulesAdapter.removeAll(state.modules); // clear stale modules
       }
     );

@@ -78,9 +78,40 @@ export function checkModuleStates(
         // Always check for prereq satisfaction
         const prereqSatisfied = !module?.requires || evaluatePrereqTree(
           module.requires,
-          prereq => {
+          (prereqRaw) => {
+            const prereq = stripQualifier(prereqRaw);
+            // Support wildcard prerequisites like "EC%", "MA2*" etc.
+            if (hasWildcard(prereq)) {
+              for (const [seenCode, seenStatus] of Object.entries(modulesSeen)) {
+                if (
+                  matchesWildcard(prereq, seenCode) &&
+                  (seenStatus === ModuleStatus.Completed || seenStatus === ModuleStatus.Satisfied)
+                ) {
+                  return true;
+                }
+              }
+              return false;
+            }
+
             const seen = modulesSeen[prereq];
             return seen === ModuleStatus.Completed || seen === ModuleStatus.Satisfied;
+          },
+          (patternRaw) => {
+            const pattern = stripQualifier(patternRaw);
+            if (!hasWildcard(pattern)) {
+              const ok = modulesSeen[pattern];
+              return ok === ModuleStatus.Completed || ok === ModuleStatus.Satisfied ? 1 : 0;
+            }
+            let count = 0;
+            for (const [seenCode, seenStatus] of Object.entries(modulesSeen)) {
+              if (
+                matchesWildcard(pattern, seenCode) &&
+                (seenStatus === ModuleStatus.Completed || seenStatus === ModuleStatus.Satisfied)
+              ) {
+                count += 1;
+              }
+            }
+            return count;
           }
         );
 
@@ -241,20 +272,52 @@ function buildIssuesMap(
  */
 function evaluatePrereqTree(
   tree: PrereqTree,
-  isSatisfied: (code: string) => boolean
+  isSatisfied: (code: string) => boolean,
+  countMatches: (code: string) => number
 ): boolean {
   switch (tree.type) {
     case 'module':
       return isSatisfied(tree.moduleCode);
     case 'AND':
-      return tree.children.every(ch => evaluatePrereqTree(ch, isSatisfied));
+      return tree.children.every(ch => evaluatePrereqTree(ch, isSatisfied, countMatches));
     case 'OR':
-      return tree.children.some(ch => evaluatePrereqTree(ch, isSatisfied));
+      return tree.children.some(ch => evaluatePrereqTree(ch, isSatisfied, countMatches));
     case 'NOF': {
-      const count = tree.children.filter(ch => evaluatePrereqTree(ch, isSatisfied)).length;
+      // Count satisfied children; wildcard module children count all matching satisfied modules
+      let count = 0;
+      for (const ch of tree.children) {
+        if (ch.type === 'module' && hasWildcard(stripQualifier(ch.moduleCode))) {
+          count += countMatches(ch.moduleCode);
+        } else {
+          count += evaluatePrereqTree(ch, isSatisfied, countMatches) ? 1 : 0;
+        }
+      }
       return count >= (tree.n ?? 1);
     }
     default:
       return false;
   }
+}
+
+/**
+ * Wildcard helpers: support '%' (SQL-like) and '*' as multi-char wildcards.
+ * Examples: 'EC%' matches 'EC3303', 'MA2*' matches 'MA2101'.
+ */
+function hasWildcard(pattern: string): boolean {
+  return pattern.includes('%') || pattern.includes('*');
+}
+
+function matchesWildcard(pattern: string, candidate: string): boolean {
+  // Escape regex special chars except our wildcards
+  const escaped = pattern
+    .replace(/[.+^${}()|\[\]\\]/g, '\\$&')
+    .replace(/[%\*]/g, '.*');
+  const re = new RegExp(`^${escaped}$`, 'i');
+  return re.test(candidate);
+}
+
+// Remove trailing grade/qualifier like ':D', ':C' from prerequisite tokens
+function stripQualifier(token: string): string {
+  const idx = token.indexOf(':');
+  return idx >= 0 ? token.slice(0, idx) : token;
 }

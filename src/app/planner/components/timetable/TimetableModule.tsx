@@ -48,6 +48,7 @@ const TimetableModule: React.FC<TimetableModuleProps> = ({ moduleCode, semesterI
       margin: 0,
       backgroundColor: "transparent",
       opacity: isDragging ? 0.4 : 1,
+      touchAction: "none",
     }),
     [transform, transition]
   );
